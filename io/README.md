@@ -11,6 +11,25 @@ IO es un diario personal con finanzas: una app web instalable (PWA) que funciona
 
 **Es una sola pantalla que se scrollea**, en este orden: avatar y necesidades → Hoy/Semana/Mes → transacciones (lista infinita) → calendario (toca un día) → gastos programados → metas → salud → relaciones → diario → categorías → conexiones.
 
+## 🎮 El juego (se juega en la vida real)
+
+La tarjeta del avatar es una **consola**. La pantalla muestra tu cuarto y tu avatar, con un HUD de nivel, XP, monedas 🪙 y racha 🔥. Debajo están las **misiones de hoy**, que salen de tu vida real:
+
+| Misión | Se cumple cuando | Recompensa |
+|---|---|---|
+| 🧾 Registrar movimientos | registras algo (o marcas “hoy no gasté”) | 10 XP · 6🪙 |
+| 🛡️ Cerrar bajo el presupuesto diario | a partir de las 8pm, si tu gasto variable del día quedó bajo el límite | 30 XP · 15🪙 |
+| 💧 Agua · 🏋️ Moverte · 😴 Dormir | llegas a tus metas diarias | 15–25 XP |
+| 🧘 Check-in de ánimo · 📝 Diario | lo haces en la app | 10–20 XP |
+| 💬 Hablar con tu gente | a quien le toca según “cada cuántos días” | 20 XP · 12🪙 |
+| 🎯 Avanzar en una meta | haces un aporte hoy | 25 XP · 15🪙 |
+| ⭐ Hábitos · 📅 Agenda | los marcas como hechos | 10–15 XP |
+| 🎁 Cofre del día | completas todas las misiones | 50 XP · 30🪙 |
+
+Cuando cumples una misión, el avatar reacciona (salta, baila, levanta pesas, toma agua…), hay confeti, las monedas vuelan al HUD y suena un sonido 8-bit que se puede apagar en ⚙️. Si registras algo por Telegram, la misión queda lista con el botón **Reclamar 🎁**. Al subir de nivel **la casa cambia**: Cuarto → Cuarto acogedor (nivel 3) → Apartamento (nivel 5) → Loft (nivel 8) → Casa propia (nivel 12). Con las monedas compras muebles, mascotas y accesorios para el avatar en la **tienda** (START o B). **Nada se compra con dinero.** Con la cruceta mueves al avatar por el cuarto y con A te saluda.
+
+La **configuración inicial** aparece antes del dashboard (y se puede repetir desde ⚙️). Ahí defines: quién eres y cómo se ve tu avatar, qué te dice que vas bien (tus prioridades, que deciden qué misiones aparecen), tus finanzas y pagos fijos, tus 3 personas más cercanas, tus metas de salud y hábitos, tus metas grandes y tu agenda. La agenda acepta un calendario `.ics` exportado de Google Calendar.
+
 ## Qué hay de nuevo respecto a v4
 
 - **Captura universal** (botón verde **+ Registrar** o 🎙️): texto libre, **dictado por voz**, **foto de recibo**, **pantallazo del banco**, **PDF** o **alerta del correo pegada**. Claude separa todo lo que dijiste: “fui al gym 40 min y gasté 12 en un batido” = salud + gasto. Antes de guardar puedes revisar y editar cada registro.
@@ -33,6 +52,8 @@ io/
 ├── store.js              # datos local-first + Supabase + Sheet + demo
 ├── ai.js                 # Claude (SDK oficial) + parser local de respaldo
 ├── importer.js           # CSV del banco con reglas de integridad
+├── game.js               # niveles, casas, tienda, animaciones y sonido
+├── onboarding.js         # configuración inicial
 ├── sw.js                 # offline + share target
 ├── manifest.webmanifest  # app instalable
 ├── icons/

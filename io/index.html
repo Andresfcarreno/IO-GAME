@@ -16,7 +16,7 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -41,23 +41,37 @@
 
 <main class="main" id="main">
 
-  <!-- ① AVATAR + SALUDO + NECESIDADES -->
-  <section class="card av-card" id="avatarCard">
-    <div class="room" id="room">
-      <div class="sky" id="sky"><span class="celestial" id="celestial"></span><span class="stars"></span></div>
-      <div class="room-wall"></div>
-      <div class="room-shelf"><span>📚</span><span id="trophy">🏆</span></div>
-      <div class="room-floor"></div>
-      <div class="room-rug"></div>
-      <div class="room-plant" id="plant">🪴</div>
-      <div class="room-desk"><span class="laptop">💻</span><span id="deskItem">☕</span></div>
-      <div class="plumbob-sec">
-        <div class="plumbob" id="plumbob"></div>
-        <div class="mood-lbl" id="moodLbl">—</div>
-      </div>
-      <div class="av-wrap" id="avWrap" data-mood="neutral">
-        <div class="particles" aria-hidden="true"><span class="pt">✨</span><span class="pt">💚</span><span class="pt">⭐</span><span class="pt">💰</span><span class="pt">✨</span></div>
-        <div class="zzz" aria-hidden="true"><span>z</span><span>z</span><span>Z</span></div>
+  <!-- ① CONSOLA: tu vida como videojuego (pero se juega en la vida real) -->
+  <section class="card console" id="avatarCard">
+    <div class="bezel">
+      <div class="screen" id="screen">
+        <div class="room" id="room" data-tier="0">
+          <div class="room-wall"></div>
+          <div class="sky" id="sky"><span class="celestial" id="celestial"></span><span class="stars"></span><span class="skyline"></span><span class="hills"></span></div>
+          <div class="tier-deco" id="tierDeco"></div>
+          <div class="room-shelf"><span class="slot" id="slot-wallL"></span><span id="trophy"></span></div>
+          <span class="slot slot-ceiling" id="slot-ceiling"></span>
+          <div class="room-floor"></div>
+          <div class="room-rug"></div>
+          <span class="slot slot-floorL" id="slot-floorL"></span>
+          <span class="slot slot-floorR" id="slot-floorR"></span>
+          <span class="slot slot-pet" id="slot-pet"></span>
+        </div>
+        <div class="hud">
+          <span class="hud-lv">LV<b id="lvlN">1</b></span>
+          <div class="hud-xp" title="XP"><div class="hud-xp-fill" id="xpFill"></div></div>
+          <span class="hud-coins"><span>🪙</span><b id="coinN">0</b></span>
+          <span class="hud-streak" id="streak">🔥0</span>
+        </div>
+        <div class="plumbob-sec">
+          <div class="plumbob" id="plumbob"></div>
+          <div class="mood-lbl" id="moodLbl">—</div>
+        </div>
+        <div class="av-mover" id="avMover">
+          <span class="prop" id="prop"></span>
+          <div class="av-wrap" id="avWrap" data-mood="neutral">
+            <div class="particles" aria-hidden="true"><span class="pt">✨</span><span class="pt">💚</span><span class="pt">⭐</span><span class="pt">💰</span><span class="pt">✨</span></div>
+            <div class="zzz" aria-hidden="true"><span>z</span><span>z</span><span>Z</span></div>
         <svg class="av-svg" viewBox="0 0 120 165" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Tu avatar">
           <ellipse cx="60" cy="160" rx="30" ry="4" fill="rgba(0,0,0,.35)"/>
           <rect x="38" y="138" width="14" height="22" rx="6" class="pants"/>
@@ -112,24 +126,59 @@
           <g class="mouth mo-worried"><path d="M48 77 Q60 70 72 77" stroke="#1a0f0a" stroke-width="2.5" stroke-linecap="round"/></g>
           <g class="mouth mo-excited"><path d="M46 70 Q60 90 74 70Z" fill="#fff" stroke="#1a0f0a" stroke-width="2.5" stroke-linejoin="round"/></g>
           <g class="mouth mo-tired"><ellipse cx="60" cy="76" rx="4" ry="3" fill="#1a0f0a"/></g>
+          <g class="acc acc-gafas"><circle cx="49" cy="56" r="10" fill="rgba(10,10,20,.85)" stroke="#111" stroke-width="2"/><circle cx="71" cy="56" r="10" fill="rgba(10,10,20,.85)" stroke="#111" stroke-width="2"/><path d="M59 55h2M39 54l-8-3M81 54l8-3" stroke="#111" stroke-width="2"/><path d="M44 52l4-3M66 52l4-3" stroke="rgba(255,255,255,.5)" stroke-width="2" stroke-linecap="round"/></g>
+          <g class="acc acc-gorra"><path d="M30 42 Q31 17 60 16 Q89 17 90 42 Q75 34 60 34 Q45 34 30 42Z" fill="#ef4444"/><path d="M60 34 Q86 32 106 40 Q92 46 62 42Z" fill="#b91c1c"/><circle cx="60" cy="17" r="3" fill="#b91c1c"/></g>
+          <g class="acc acc-audifonos"><path d="M29 56 Q27 14 60 14 Q93 14 91 56" stroke="#1f2937" stroke-width="6" fill="none" stroke-linecap="round"/><rect x="21" y="46" width="14" height="22" rx="6" fill="#7c5cff"/><rect x="85" y="46" width="14" height="22" rx="6" fill="#7c5cff"/></g>
+          <g class="acc acc-sombrero"><rect x="40" y="0" width="40" height="28" rx="3" fill="#111827"/><rect x="40" y="19" width="40" height="6" fill="#7c5cff"/><rect x="28" y="26" width="64" height="7" rx="3.5" fill="#111827"/></g>
+          <g class="acc acc-corona"><path d="M36 30 L40 8 L51 21 L60 3 L69 21 L80 8 L84 30 Z" fill="#fbbf24" stroke="#b45309" stroke-width="1.5" stroke-linejoin="round"/><circle cx="60" cy="22" r="3" fill="#f87171"/><circle cx="46" cy="25" r="2" fill="#22d3ee"/><circle cx="74" cy="25" r="2" fill="#22d3ee"/></g>
         </svg>
+          </div>
+        </div>
+        <button class="dialog" id="speech" data-act="nextNudge" aria-label="Siguiente mensaje">
+          <span class="dlg-name">IO</span><span class="dlg-text" id="dlgText">Cargando tu mundo…</span><span class="dlg-next">▼</span>
+        </button>
+        <div class="fx" id="fx" aria-hidden="true"></div>
+        <div class="lvlup" id="lvlup" hidden></div>
+      </div>
+      <div class="bezel-label"><span class="led" id="led"></span><span>IO</span><i>◆</i><span>ESPEJO</span><small>life edition</small></div>
+    </div>
+    <div class="controls">
+      <div class="dpad" role="group" aria-label="Mover avatar">
+        <button class="dp-up" data-act="pad" data-d="up" aria-label="Saltar">▲</button>
+        <button class="dp-left" data-act="pad" data-d="left" aria-label="Izquierda">◀</button>
+        <span class="dp-mid"></span>
+        <button class="dp-right" data-act="pad" data-d="right" aria-label="Derecha">▶</button>
+        <button class="dp-down" data-act="pad" data-d="down" aria-label="Sentarse">▼</button>
+      </div>
+      <div class="mid-btns">
+        <button data-act="avatar"><i></i>SELECT</button>
+        <button data-act="shop"><i></i>START</button>
+        <span class="mid-lbl">avatar · tienda</span>
+      </div>
+      <div class="ab">
+        <button class="btn-b" data-act="shop" aria-label="B: tienda"><span>B</span></button>
+        <button class="btn-a" data-act="padA" aria-label="A: saludar"><span>A</span></button>
       </div>
     </div>
-    <div class="av-foot">
+    <div class="greet-row">
       <div>
         <div class="greet-name" id="greetName">—</div>
         <div class="greet-sub" id="greetSub">—</div>
       </div>
-      <button class="lvl" id="lvlBtn" data-act="avatar" aria-label="Nivel y personalizar avatar">
-        <span class="lvl-n" id="lvlN">1</span><span class="lvl-l">nivel</span>
-      </button>
+      <span class="tier-badge" id="tierBadge"></span>
     </div>
-    <button class="av-speech" id="speech" data-act="nextNudge">Cargando tu mundo… 🌌</button>
     <div class="needs" id="needs"></div>
-    <div class="xp-row">
-      <div class="xp-bar"><div class="xp-fill" id="xpFill"></div></div>
-      <span class="xp-txt" id="xpTxt">0 XP</span>
-      <span class="streak" id="streak">🔥 0</span>
+    <div class="quests">
+      <div class="quests-hdr">
+        <h2 class="ctitle m0">Misiones de hoy</h2>
+        <span class="q-prog" id="questProg"></span>
+      </div>
+      <div class="q-list" id="questList"></div>
+      <div id="chest"></div>
+      <form class="agenda-add" id="agendaForm">
+        <input id="agendaIn" placeholder="＋ Algo de tu agenda hoy (ej. 3pm reunión con Juan)" autocomplete="off" maxlength="120">
+        <button type="submit" aria-label="Agregar a la agenda">＋</button>
+      </form>
     </div>
   </section>
 
@@ -285,9 +334,12 @@
   </form>
 </div>
 
+<div class="onb" id="onb" role="dialog" aria-modal="true" aria-label="Configuración inicial" hidden></div>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <input type="file" id="fileIn" accept="image/*,application/pdf,.csv,text/csv" hidden>
 <input type="file" id="camIn" accept="image/*" capture="environment" hidden>
+<input type="file" id="icsIn" accept=".ics,text/calendar" hidden>
 <input type="file" id="backupIn" accept="application/json,.json" hidden>
 
 <script type="module" src="app.js"></script>
