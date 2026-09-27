@@ -849,7 +849,9 @@ function openChat(prefill = '') {
   setTimeout(() => $('cinp').focus(), 350);
 }
 function closeChat() { $('chat').classList.remove('open'); document.body.style.overflow = ''; stopDictation(); }
+const PREVIEW_NOTE = '👀 Esta es una vista previa: aquí la IA, Supabase y Telegram están apagados porque la página no puede conectarse a otros servidores. Registrar funciona en modo rápido (sin IA). En la app instalada todo se conecta.';
 function renderKeyInChat() {
+  if (window.IO_PREVIEW) { $('cmsgs').innerHTML = `<div class="key-box">${PREVIEW_NOTE}</div>`; return; }
   $('cmsgs').innerHTML = `<div class="key-box">🔮 Para hablar con IO necesito tu API key de Anthropic.<br><small>Se guarda solo mientras esta pestaña esté abierta (nunca en el código ni en la nube). Consíguela en <b>console.anthropic.com</b>.</small>
     <input class="inp" type="password" id="chatKey" placeholder="sk-ant-…" autocomplete="off"><button class="btn-acc" data-act="chatKeySave">Activar IO</button></div>`;
 }
@@ -890,6 +892,7 @@ async function sendChat(text) {
 
 /* ================= ajustes y conexiones ================= */
 function keySheet(after) {
+  if (window.IO_PREVIEW) return openSheet('Vista previa', `<div class="hint" style="font-size:13px">${PREVIEW_NOTE}</div>`);
   openSheet('Activar Claude 🔮', `
     <div class="hint">IO usa Claude para entender lo que escribes, leer pantallazos/recibos y conversar. Tu key se guarda <b>solo en esta pestaña</b> (sessionStorage) y se borra al cerrarla — nunca en el código ni en la nube.</div>
     <div class="field"><label>API key de Anthropic</label><input class="inp" type="password" id="keyInp" placeholder="sk-ant-…" value="" autocomplete="off"></div>
