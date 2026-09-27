@@ -1,26 +1,74 @@
 {
-  "name": "IO — tu vida en un espejo",
+  "name": "IO",
   "short_name": "IO",
-  "description": "Diario personal con finanzas, salud y relaciones. Tu avatar refleja cómo vas.",
+  "description": "IO: yo · 1 0 · el código de tu vida. Finanzas, salud y relaciones como un juego que se juega en la vida real.",
   "id": "/io/",
   "start_url": "/io/?source=pwa",
   "scope": "/io/",
   "display": "standalone",
-  "display_override": ["standalone", "minimal-ui"],
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
   "orientation": "portrait",
   "background_color": "#09090f",
   "theme_color": "#09090f",
   "lang": "es",
-  "categories": ["finance", "health", "lifestyle", "productivity"],
+  "categories": [
+    "finance",
+    "health",
+    "lifestyle",
+    "productivity"
+  ],
   "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
-    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
   ],
   "shortcuts": [
-    { "name": "Registrar", "short_name": "Registrar", "url": "/io/?add=1", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Hablar con IO", "short_name": "Chat", "url": "/io/?chat=1", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+    {
+      "name": "Registrar",
+      "short_name": "Registrar",
+      "url": "/io/?add=1",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Hablar con IO",
+      "short_name": "Chat",
+      "url": "/io/?chat=1",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
   ],
   "share_target": {
     "action": "/io/share",
@@ -30,7 +78,17 @@
       "title": "title",
       "text": "text",
       "url": "url",
-      "files": [{ "name": "file", "accept": ["image/*", "application/pdf", "text/csv", ".csv"] }]
+      "files": [
+        {
+          "name": "file",
+          "accept": [
+            "image/*",
+            "application/pdf",
+            "text/csv",
+            ".csv"
+          ]
+        }
+      ]
     }
   }
 }

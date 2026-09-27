@@ -7,6 +7,7 @@ import { parseCapture, chat as aiChat, localParse, CATS } from './ai.js';
 import { analyzeCSV } from './importer.js';
 import * as G from './game.js';
 import { openOnboarding, parseAgenda } from './onboarding.js';
+import { avatarSVG, editorHTML, normLook } from './avatar.js';
 
 /* ================= constantes ================= */
 const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
@@ -27,7 +28,7 @@ const ME = {
 };
 const MOODS = ['😣', '😕', '😐', '🙂', '😄'];
 const PILLARS = {
-  finanzas: { lbl: 'Finanzas', ic: '💰', sec: 'chipsCard' },
+  finanzas: { lbl: 'Finanzas', ic: '💰', sec: 'moneyCard' },
   salud: { lbl: 'Salud', ic: '💪', sec: 'healthCard' },
   social: { lbl: 'Social', ic: '💬', sec: 'relCard' },
   mente: { lbl: 'Mente', ic: '🧠', sec: 'journalCard' },
@@ -154,7 +155,7 @@ function progress() {
   let streak = 0; const d = new Date();
   if (!days.has(isoOf(d))) d.setDate(d.getDate() - 1);
   while (days.has(isoOf(d))) { streak++; d.setDate(d.getDate() - 1); }
-  return { xp: g.xp, coins: g.coins, lvl, pct: (g.xp - lo) / (hi - lo) * 100, next: hi, streak, tier: G.tierOf(lvl) };
+  return { xp: g.xp, coins: g.coins, lvl, pct: (g.xp - lo) / (hi - lo) * 100, next: hi, streak };
 }
 
 /* ================= render principal ================= */
@@ -179,7 +180,10 @@ function render() {
   renderPeople(P);
   renderJournal(M);
   renderCats();
+  renderBuilding();
+  renderShop();
   renderConn();
+  applyFolds();
 }
 
 function renderSync() {
@@ -223,7 +227,6 @@ function renderAvatar(f, H, P, M, scores) {
 
   // Habitación: cielo según hora, planta según salud, trofeo según metas
   const h = new Date().getHours();
-  $('sky').className = 'sky ' + (h >= 6 && h < 17 ? 'dia' : h >= 17 && h < 20 ? 'tarde' : 'noche');
   renderRoom(scores, life);
 
   // Frases (tócala para rotar)
@@ -264,13 +267,13 @@ function renderAvatar(f, H, P, M, scores) {
   $('coinN').textContent = pr.coins;
   $('streak').textContent = `🔥${pr.streak}`;
   $('streak').title = `${pr.streak} días seguidos registrando`;
-  const nextT = G.TIERS[pr.tier + 1];
-  $('tierBadge').textContent = `${G.TIERS[pr.tier].ic} ${G.TIERS[pr.tier].name}${nextT ? ` · nv ${nextT.min} → ${nextT.ic}` : ''}`;
   renderQuests(qs);
 }
+let lastLook = '';
 function applyAvatarColors() {
-  const r = document.documentElement.style;
-  r.setProperty('--skin', cfg.avatar.skin); r.setProperty('--hair', cfg.avatar.hair); r.setProperty('--hoodie', cfg.avatar.hoodie);
+  const w = $('avWrap');
+  const key = JSON.stringify(cfg.avatar); if (key === lastLook && w.querySelector('svg')) return; lastLook = key;
+  w.innerHTML = '<div class="particles" aria-hidden="true"><span class="pt">✨</span><span class="pt">💚</span><span class="pt">⭐</span><span class="pt">💰</span><span class="pt">✨</span></div><div class="zzz" aria-hidden="true"><span>z</span><span>z</span><span>Z</span></div>' + avatarSVG(cfg.avatar);
 }
 
 /* ---------- ② chips ---------- */
@@ -318,47 +321,59 @@ function renderChip() {
 }
 
 /* ---------- ③ transacciones: lista infinita agrupada por día ---------- */
-let txObserver;
-function filteredTx() {
+function filteredTx(query = '') {
   const eod = endOfToday();
-  const q = ui.txQuery.trim().toLowerCase();
+  const q = query.trim().toLowerCase();
   return S.allTx().filter(t => t.d <= eod && (!q || `${t.descripcion} ${t.categoria} ${t.monto.toFixed(2)} ${t.fecha}`.toLowerCase().includes(q)));
 }
+const TX_PREVIEW = 5;
 function renderTx() {
-  const all = filteredTx();
+  const all = filteredTx('');
+  $('txCount').textContent = all.length ? `(${all.length})` : '';
+  const items = all.slice(0, TX_PREVIEW);
+  $('txList').innerHTML = items.length ? items.map((t, i) => txRow(t, i, true)).join('') : '<div class="empty">Aún no hay movimientos. Toca <b>+ Registrar</b> o escríbele al bot.</div>';
+}
+/** Todos los movimientos en un panel aparte: buscador + lista que carga más al bajar. */
+function allTxSheet() {
+  ui.txShown = 40; ui.txQuery = '';
+  openSheet('Todos los movimientos', `<input class="search" id="txSearch" type="search" placeholder="Buscar comercio, categoría, monto…" autocomplete="off"><div class="tx-list" id="txAll"></div>`);
+  renderAllTx();
+  let t; $('txSearch').addEventListener('input', e => { clearTimeout(t); t = setTimeout(() => { ui.txQuery = e.target.value; ui.txShown = 40; renderAllTx(); }, 150); });
+  $('sheetBody').onscroll = () => {
+    const b = $('sheetBody'); if (!$('txAll')) return;
+    if (b.scrollTop + b.clientHeight > b.scrollHeight - 300 && ui.txShown < filteredTx(ui.txQuery).length) { ui.txShown += 40; renderAllTx(); }
+  };
+}
+function renderAllTx() {
+  const el = $('txAll'); if (!el) return;
+  const all = filteredTx(ui.txQuery);
   const items = all.slice(0, ui.txShown);
-  $('txCount').textContent = all.length ? `${all.length}` : '';
-  if (!items.length) { $('txList').innerHTML = `<div class="empty">${ui.txQuery ? 'Nada coincide con tu búsqueda.' : 'Aún no hay transacciones. Toca <b>+ Registrar</b> o escríbele al bot.'}</div>`; return; }
+  if (!items.length) { el.innerHTML = '<div class="empty">Nada coincide con tu búsqueda.</div>'; return; }
   const byDay = {};
   all.forEach(t => { (byDay[t.fecha] ||= { out: 0, in: 0 }); byDay[t.fecha][t.tipo === 'ingreso' ? 'in' : 'out'] += t.monto; });
   let html = '', lastDay = '';
   items.forEach((t, i) => {
     if (t.fecha !== lastDay) {
-      lastDay = t.fecha; const s = byDay[t.fecha];
-      html += `<div class="tx-day"><span>${esc(relDay(t.fecha))}</span><span>${s.out ? '-' + fmt(s.out) : ''}${s.in ? ' +' + fmt(s.in) : ''}</span></div>`;
+      lastDay = t.fecha; const d = byDay[t.fecha];
+      html += `<div class="tx-day"><span>${esc(relDay(t.fecha))}</span><span>${d.out ? '-' + fmt(d.out) : ''}${d.in ? ' +' + fmt(d.in) : ''}</span></div>`;
     }
     html += txRow(t, i);
   });
   if (all.length <= ui.txShown) html += `<div class="tx-end">— ${all.length} movimientos · eso es todo —</div>`;
-  $('txList').innerHTML = html;
+  el.innerHTML = html;
 }
-function txRow(t, i = 0) {
+function txRow(t, i = 0, showDay = false) {
   const c = catCfg(t.categoria), isIn = t.tipo === 'ingreso';
   const badge = t.local && !t.synced && S.hasSupabase() ? '<span class="badge q">pendiente</span>'
     : t.fromApp && t.fecha === todayIso() ? '<span class="badge">nuevo</span>'
     : t.origen === 'telegram' && t.fecha === todayIso() ? '<span class="badge tg">telegram</span>' : '';
   return `<button class="tx" data-act="txDetail" data-key="${esc(t.key)}" style="animation-delay:${Math.min(i, 10) * 25}ms">
     <div class="tx-ic" style="background:${c.c}22">${emojiFor(t.descripcion, t.categoria)}</div>
-    <div class="tx-inf"><div class="tx-nm">${esc(t.descripcion)}${badge}</div><div class="tx-mt">${esc(t.categoria)}${t.hora ? ' · ' + esc(t.hora) : ''}</div></div>
+    <div class="tx-inf"><div class="tx-nm">${esc(t.descripcion)}${badge}</div><div class="tx-mt">${showDay ? esc(relDay(t.fecha)) + ' · ' : ''}${esc(t.categoria)}${t.hora ? ' · ' + esc(t.hora) : ''}</div></div>
     <div class="tx-r"><span class="tx-am" style="color:${isIn ? 'var(--green)' : 'var(--text)'}">${isIn ? '+' : '-'}${fmt(t.monto)}</span></div>
   </button>`;
 }
-function setupInfinite() {
-  txObserver = new IntersectionObserver(es => {
-    if (es.some(e => e.isIntersecting) && ui.txShown < filteredTx().length) { ui.txShown += 30; renderTx(); }
-  }, { rootMargin: '400px' });
-  txObserver.observe($('txSentinel'));
-}
+
 function txDetail(key) {
   const t = S.allTx().find(x => x.key === key); if (!t) return;
   const c = catCfg(t.categoria), isIn = t.tipo === 'ingreso';
@@ -384,10 +399,11 @@ function txDetail(key) {
 function renderCalendar() {
   $('calMonth').textContent = `${MESES[ui.vm]} ${ui.vy}`;
   const byDay = {};
-  const add = (iso, k, v = 1) => { const d = dateOf(iso); if (d.getMonth() !== ui.vm || d.getFullYear() !== ui.vy) return; (byDay[d.getDate()] ||= { out: 0, in: 0, h: 0, j: 0 })[k] += v; };
+  const add = (iso, k, v = 1) => { const d = dateOf(iso); if (d.getMonth() !== ui.vm || d.getFullYear() !== ui.vy) return; (byDay[d.getDate()] ||= { out: 0, in: 0, h: 0, j: 0, e: 0 })[k] += v; };
   F.md.forEach(t => add(t.fecha, t.tipo === 'ingreso' ? 'in' : 'out', t.monto));
   S.itemsOf('health').forEach(h => add(h.fecha, 'h'));
   S.itemsOf('journal').forEach(j => add(j.fecha, 'j'));
+  S.itemsOf('event').forEach(e => add(e.fecha, 'e'));
   const maxOut = Math.max(1, ...Object.values(byDay).map(d => d.out));
   const first = new Date(ui.vy, ui.vm, 1).getDay();
   const dim = new Date(ui.vy, ui.vm + 1, 0).getDate();
@@ -397,7 +413,7 @@ function renderCalendar() {
   for (let i = 0; i < first; i++) html += '<div class="cal-d empty"></div>';
   for (let d = 1; d <= dim; d++) {
     const x = byDay[d]; const today = isCur && d === now.getDate(); const future = isCur && d > now.getDate();
-    const dots = x ? [x.out && 'var(--red)', x.in && 'var(--green)', x.h && 'var(--pink)', x.j && 'var(--acc2)'].filter(Boolean).map(c => `<i class="cdot" style="background:${c}"></i>`).join('') : '';
+    const dots = x ? [x.out && 'var(--red)', x.in && 'var(--green)', x.h && 'var(--pink)', x.j && 'var(--acc2)', x.e && 'var(--amber)'].filter(Boolean).map(c => `<i class="cdot" style="background:${c}"></i>`).join('') : '';
     const heat = x?.out ? `<span class="heat" style="background:rgba(248,113,113,${(0.05 + x.out / maxOut * 0.22).toFixed(2)})"></span>` : '';
     html += `<button class="cal-d${today ? ' today' : ''}${future ? ' future' : ''}" data-act="day" data-day="${d}">${heat}${d}<span class="cdots">${dots}</span></button>`;
   }
@@ -431,6 +447,7 @@ function renderPending() {
     ...F.future.filter(t => t.tipo === 'gasto').map(t => ({ kind: 'tx', desc: t.descripcion, monto: t.monto, cat: t.categoria, dia: t.d.getDate(), key: t.key })),
     ...F.fijosPend.map(f => ({ kind: 'fijo', desc: f.descripcion, monto: Number(f.monto), cat: f.categoria, dia: Number(f.dia), id: f.id })),
   ].sort((a, b) => a.dia - b.dia);
+  $('pendSum').textContent = F.isCur ? (rows.length ? `${rows.length} · ${fmt0(F.pendTotal)}` : '✅ al día') : '';
   if (!F.isCur) { $('pendList').innerHTML = '<div class="empty">Los pagos programados se muestran para el mes actual.</div>'; return; }
   if (!rows.length) { $('pendList').innerHTML = '<div class="empty">Sin pagos pendientes este mes ✅</div>'; return; }
   $('pendList').innerHTML = rows.map((r, i) => {
@@ -590,6 +607,9 @@ function renderCats() {
   src.forEach(t => { const k = ui.catMode === 'cat' ? t.categoria : t.descripcion; tot[k] = (tot[k] || 0) + t.monto; catOf[k] ||= t.categoria; });
   const items = Object.entries(tot).sort((a, b) => b[1] - a[1]);
   const sum = items.reduce((s, [, v]) => s + v, 0);
+  const topCat = Object.entries(F.paid.filter(t => t.tipo === 'gasto').reduce((a, t) => (a[t.categoria] = (a[t.categoria] || 0) + t.monto, a), {})).sort((a, b) => b[1] - a[1])[0];
+  $('catSum').textContent = topCat ? `más en ${topCat[0]}` : '';
+  $('moneyHint').textContent = `${MESES[ui.vm]} · ${F.bal >= 0 ? '+' : '-'}${fmt0(F.bal)}`;
   if (!items.length) { $('catList').innerHTML = '<div class="empty">Sin datos este mes.</div>'; $('donut').innerHTML = ''; $('donutC').innerHTML = ''; return; }
   const palette = ['#7c5cff', '#22d3ee', '#4ade80', '#fbbf24', '#f472b6', '#f87171', '#60a5fa', '#fb923c', '#a78bfa', '#9ca3af'];
   const colorOf = (k, i) => ui.catMode === 'cat' ? catCfg(k).c : palette[i % palette.length];
@@ -634,23 +654,39 @@ function say(text, lockMs = 0) {
   sayT = setInterval(() => { el.textContent = text.slice(0, ++i); if (i >= text.length) clearInterval(sayT); }, 16);
 }
 
+const FLOOR_DECO = {
+  cuarto: [],
+  sala: ['<span style="top:118px;left:44%;font-size:15px">🧸</span>'],
+  garaje: ['<span style="top:40px;left:36%;font-size:14px">💡</span>'],
+  gym: ['<span style="bottom:100px;left:40%;font-size:20px">🏋️</span>', '<span style="top:120px;left:20px;font-size:14px;font-family:var(--pixel);color:#f87171">NO PAIN</span>'],
+  oficina: ['<span style="top:118px;left:22px;font-size:12px;font-family:var(--pixel);color:#22d3ee">AI STAFF</span>'],
+  terraza: ['<span style="top:52px;left:30%;font-size:20px">☁️</span>'],
+  piscina: ['<span style="bottom:96px;left:44%;font-size:18px">🦆</span>'],
+  penthouse: ['<span class="neon" style="top:118px;left:20px">IO</span>'],
+  azotea: ['<span style="bottom:108px;left:46%;font-size:13px;font-family:var(--pixel);color:#111">H</span>', '<span style="top:60px;left:18%;font-size:22px">☁️</span>', '<span style="top:84px;right:18%;font-size:18px">☁️</span>'],
+};
+function currentFloor(g = G.state()) {
+  const lvl = G.levelOf(g.xp);
+  const f = G.floorById(g.floor);
+  return f && lvl >= f.lvl ? f : G.floorById('cuarto');
+}
 function renderRoom(scores, life) {
-  const g = G.state(); const lvl = G.levelOf(g.xp); const tier = G.tierOf(lvl);
-  $('room').dataset.tier = tier;
-  const deco = [];
-  if (tier >= 1) deco.push('<span style="top:92px;left:22px;font-size:14px">🕯️</span>');
-  if (tier >= 2) deco.push('<span style="top:40px;left:27%;font-size:16px">🖼️</span>');
-  if (tier >= 3) deco.push('<span class="neon">IO</span>');
-  if (tier >= 4) deco.push('<span style="bottom:140px;right:40%;font-size:18px">🔥</span>');
-  $('tierDeco').innerHTML = deco.join('');
-  for (const slot of ['wallL', 'ceiling', 'floorL', 'floorR', 'pet']) {
-    const it = G.itemById(g.equipped[slot]);
+  const g = G.state(); const f = currentFloor(g);
+  const room = $('room'); room.dataset.floor = f.id;
+  const h = new Date().getHours();
+  const win = $('win'); win.dataset.view = f.view;
+  win.className = 'win ' + (h >= 6 && h < 17 ? 'dia' : h >= 17 && h < 20 ? 'tarde' : 'noche');
+  $('floorDeco').innerHTML = (FLOOR_DECO[f.id] || []).join('');
+  $('floorTag').textContent = `${f.num === 'G' || f.num === 'R' ? f.num : 'PISO ' + f.num} · ${f.n.toUpperCase()}`;
+  for (const slot of ['W', 'C', 'L', 'R', 'V']) {
+    const it = G.equippedIn(g, `${f.id}.${slot}`);
     const el = $('slot-' + slot); el.textContent = it ? it.e : ''; el.title = it ? it.n : '';
-    if (slot === 'floorL') el.classList.toggle('wilt', !!it && ['planta', 'cactus'].includes(it.id) && scores.salud != null && scores.salud < 35);
+    if (slot === 'L') el.classList.toggle('wilt', !!it && ['planta', 'cactus', 'helecho', 'palmera'].includes(it.id) && scores.salud != null && scores.salud < 35);
   }
-  $('trophy').textContent = S.itemsOf('goal').some(x => x.actual >= x.objetivo) ? '🏆' : '';
+  const pet = G.equippedIn(g, 'pet'); $('slot-pet').textContent = pet ? pet.e : '';
+  $('trophy').textContent = f.id === 'cuarto' && S.itemsOf('goal').some(x => x.actual >= x.objetivo) ? '🏆' : '';
   const wrap = $('avWrap');
-  wrap.className = 'av-wrap ' + ['head', 'face'].map(k => g.equipped[k] ? 'wear-' + g.equipped[k] : '').join(' ');
+  wrap.className = 'av-wrap ' + ['head', 'face'].map(k => { const it = G.equippedIn(g, k); return it ? 'wear-' + it.id : ''; }).join(' ');
   $('led').classList.toggle('low', life < 45);
 }
 
@@ -688,7 +724,15 @@ function questsToday() {
     add({ id: `habit:${x.id}`, ic: x.emoji || '⭐', t: x.nombre, s: '', tag: 'hábito', manual: true, done: false, xp: 15, c: 8, act: 'flex', prop: x.emoji || '⭐' }));
   S.itemsOf('event').filter(e => e.fecha === t).sort((a, b) => (a.hora || '99').localeCompare(b.hora || '99')).forEach(e =>
     add({ id: `event:${e.id}`, ic: '📅', t: e.titulo, s: e.hora || 'hoy', tag: 'agenda', manual: true, done: false, xp: 10, c: 5, act: 'wave', prop: '📅', del: e.id }));
-  q.forEach(x => { if (x.manual) x.done = x.claimed; });
+  const GRP = { registro: 'dinero', presupuesto: 'dinero', agua: 'salud', mover: 'salud', dormir: 'salud', animo: 'mente', diario: 'mente' };
+  const lvl = G.levelOf(g.xp);
+  q.forEach(x => {
+    if (x.manual) x.done = x.claimed;
+    const grp = GRP[x.id] || (x.id.startsWith('contacto:') ? 'social' : x.id.startsWith('meta:') ? 'meta' : x.id.startsWith('habit:') ? 'habito' : 'agenda');
+    const m = G.perks(lvl, grp);
+    x.boost = m.x > 1 || m.c > 1;
+    x.xp = Math.round(x.xp * m.x); x.c = Math.round(x.c * m.c);
+  });
   return q;
 }
 function renderQuests(qs = questsToday()) {
@@ -706,7 +750,7 @@ function renderQuests(qs = questsToday()) {
     return `<div class="q${ready ? ' ready' : ''}${q.claimed ? ' done' : ''}" data-q="${esc(q.id)}">
       <div class="q-ic">${esc(q.ic)}</div>
       <div><div class="q-t">${esc(q.t)}</div>
-        <div class="q-s">${q.tag ? `<span class="q-tag">${q.tag}</span>` : ''}<span class="q-rw">+${q.xp}XP · ${q.c}🪙</span>${q.s ? `<span>${esc(q.s)}</span>` : ''}
+        <div class="q-s">${q.tag ? `<span class="q-tag">${q.tag}</span>` : ''}<span class="q-rw">+${q.xp}XP · ${q.c}🪙${q.boost ? ' ⚡' : ''}</span>${q.s ? `<span>${esc(q.s)}</span>` : ''}
           ${q.alt && !q.done && !q.claimed ? `<button class="q-link" data-act="qNoSpend">${q.alt}</button>` : ''}
           ${q.del && !q.claimed ? `<button class="q-link" data-act="delEvent" data-id="${esc(q.del)}">quitar</button>` : ''}</div>
         ${q.moods ? `<div class="q-moods">${MOODS.map((m, i) => `<button data-act="qMood" data-v="${i + 1}" aria-label="ánimo ${i + 1}">${m}</button>`).join('')}</div>` : ''}
@@ -716,7 +760,7 @@ function renderQuests(qs = questsToday()) {
   const g = G.state(); const t = todayIso();
   const all = qs.length >= 3 && done === qs.length;
   $('chest').innerHTML = g.chest[t] ? '<div class="chest opened">🎁 Cofre del día abierto · vuelve mañana por más</div>'
-    : all ? '<button class="chest open-me" data-act="openChest">🎁 ¡Abrir el cofre del día! +50 XP · 30🪙</button>'
+    : all ? (() => { const r = G.chestReward(G.levelOf(g.xp), progress().streak); return `<button class="chest open-me" data-act="openChest">🎁 ¡Abrir el cofre del día! +${r.xp} XP · ${r.c}🪙</button>`; })()
     : `<div class="chest">🎁 Cofre del día: completa todas las misiones (${done}/${qs.length})</div>`;
 }
 function claimQuest(id) {
@@ -728,7 +772,7 @@ function claimQuest(id) {
   celebrate(q.act, q.prop, q.xp, q.c, document.querySelector(`[data-q="${CSS.escape(id)}"]`), `¡Misión cumplida! ${q.t}. +${q.xp} XP y ${q.c} monedas.`);
   render();
   const after = G.levelOf(G.state().xp);
-  if (after > before) setTimeout(() => levelUp(after, G.tierOf(after) > G.tierOf(before)), 900);
+  if (after > before) setTimeout(() => levelUp(before, after), 900);
   return true;
 }
 function celebrate(act, prop, xp, c, fromEl, line) {
@@ -744,24 +788,25 @@ function autoClaimReady() {
   const ready = questsToday().filter(q => q.done && !q.claimed && !q.manual);
   ready.forEach((q, i) => setTimeout(() => claimQuest(q.id), 400 + i * 1300));
 }
-function levelUp(lvl, newTier) {
-  const tier = G.TIERS[G.tierOf(lvl)];
-  const unlocked = G.CATALOG.filter(i => i.lvl === lvl);
+function levelUp(before, lvl) {
+  const floors = G.FLOORS.filter(f => f.lvl > before && f.lvl <= lvl);
+  const unlocked = G.CATALOG.filter(i => i.lvl > before && i.lvl <= lvl && i.price > 0);
   const el = $('lvlup');
-  el.innerHTML = `<b>¡NIVEL ${lvl}!</b>${newTier ? `<span>NUEVA CASA<br>${tier.ic} ${tier.name.toUpperCase()}</span>` : ''}${unlocked.length ? `<small>Desbloqueaste en la tienda: ${unlocked.map(i => i.e).join(' ')}</small>` : '<small>Sigue así 💪</small>'}`;
+  el.innerHTML = `<b>¡NIVEL ${lvl}!</b>${floors.map(f => `<span>NUEVO PISO<br>${f.ic} ${f.n.toUpperCase()}</span><small>${esc(f.perk)}</small>`).join('')}${unlocked.length ? `<small>Nuevo en la tienda: ${unlocked.slice(0, 8).map(i => i.e).join(' ')}</small>` : ''}${!floors.length && !unlocked.length ? '<small>Sigue así 💪</small>' : ''}`;
   el.hidden = false; G.blip('level'); G.confetti(50); G.avatarAct('dance', '⭐');
-  say(newTier ? `¡Subiste al nivel ${lvl}! Te mudaste a: ${tier.name}.` : `¡Subiste al nivel ${lvl}!`, 5000);
-  clearTimeout(levelUp.t); levelUp.t = setTimeout(() => { el.hidden = true; }, 3200);
+  say(floors.length ? `¡Nivel ${lvl}! Desbloqueaste ${floors.map(f => f.n).join(' y ')}. Toca ▲ para subir en el ascensor.` : `¡Subiste al nivel ${lvl}!`, 6000);
+  clearTimeout(levelUp.t); levelUp.t = setTimeout(() => { el.hidden = true; }, 3600);
   el.onclick = () => { el.hidden = true; };
 }
 function openChest() {
   const g = G.state(); const t = todayIso(); if (g.chest[t]) return;
   const before = G.levelOf(g.xp);
-  g.chest[t] = true; g.xp += 50; g.coins += 30; G.save(g);
-  celebrate('dance', '🎁', 50, 30, $('chest'), '¡Cofre del día abierto! Hoy fuiste imparable. +50 XP y 30 monedas.');
+  const r = G.chestReward(before, progress().streak);
+  g.chest[t] = true; g.xp += r.xp; g.coins += r.c; G.save(g);
+  celebrate('dance', '🎁', r.xp, r.c, $('chest'), `¡Cofre del día abierto! Hoy fuiste imparable. +${r.xp} XP y ${r.c} monedas.`);
   G.confetti(60); render();
   const after = G.levelOf(G.state().xp);
-  if (after > before) setTimeout(() => levelUp(after, G.tierOf(after) > G.tierOf(before)), 900);
+  if (after > before) setTimeout(() => levelUp(before, after), 900);
 }
 function questGo(id) {
   const q = questsToday().find(x => x.id === id); if (!q) return;
@@ -779,39 +824,51 @@ function sleepSheet() {
 }
 
 /* ---------- tienda: se paga con monedas de la vida real ---------- */
-function shopSheet(tab = ui.shopTab || 'casa') {
-  ui.shopTab = tab;
-  const g = G.state(); const lvl = G.levelOf(g.xp);
-  const items = G.CATALOG.filter(i => i.cat === tab);
-  openSheet('Tienda 🛒', `
-    <div class="shop-top"><span class="shop-wallet">🪙 ${g.coins}</span><span class="hint" style="margin:0">Nivel ${lvl} · ${G.TIERS[G.tierOf(lvl)].name}</span></div>
-    <div class="shop-tabs">${[['casa', '🏠 Casa'], ['mascotas', '🐾 Mascotas'], ['avatar', '🧢 Avatar']].map(([k, l]) => `<button class="${k === tab ? 'on' : ''}" data-act="shopTab" data-t="${k}">${l}</button>`).join('')}</div>
-    <div class="shop-grid">${items.map(i => {
-      const owned = g.owned.includes(i.id), eq = g.equipped[i.slot] === i.id, locked = !owned && lvl < i.lvl;
-      return `<button class="shop-it${locked ? ' locked' : ''}${owned ? ' owned' : ''}${eq ? ' equipped' : ''}" data-act="shopBuy" data-id="${i.id}">
-        <span class="e">${i.e}</span><span class="n">${i.n}</span><span class="slot-lbl">${G.SLOTS[i.slot]}</span>
-        <span class="p">${eq ? 'EQUIPADO' : owned ? 'TUYO' : locked ? `🔒 NV ${i.lvl}` : i.price ? `🪙${i.price}` : 'GRATIS'}</span></button>`;
-    }).join('')}</div>
-    <div class="shop-note">Las monedas se ganan cumpliendo misiones de tu vida real: tomar agua, moverte, hablar con tu gente, escribir, avanzar en tus metas. Nada se compra con dinero. Toca algo tuyo para ponerlo o guardarlo.</div>`);
-}
-function shopBuy(id) {
-  const r = G.buy(id);
-  if (!r.ok) { toast(r.msg); return; }
-  const it = G.itemById(id);
-  G.blip('buy'); G.avatarAct('dance', it.e); G.confetti(18);
-  say(r.msg.includes('tuyo') ? `¡Nuevo! ${it.e} ${it.n} ya está en tu casa.` : r.msg, 3000);
-  render(); shopSheet();
-}
+
 
 /* ---------- controles de la consola ---------- */
-const QUIPS = ['¡Hola! 👋 ¿Qué misión cumplimos hoy?', 'Tu vida es el juego. Yo solo llevo el marcador. 😉', '¿Ya tomaste agua? 💧', 'Cada misión cuenta, hasta la más pequeña.', 'Presiona START para ir a la tienda 🛒'];
 function padMove(d) {
   const sc = $('screen'); const x = parseFloat(sc.style.getPropertyValue('--x')) || 0;
   if (d === 'left' || d === 'right') {
     const nx = clamp(x + (d === 'left' ? -40 : 40), -110, 110);
     sc.style.setProperty('--x', nx + 'px');
     const m = $('avMover'); m.classList.remove('walk'); void m.offsetWidth; m.classList.add('walk');
-  } else G.avatarAct(d === 'up' ? 'jump' : 'sit');
+    return;
+  }
+  const g = G.state(); const lvl = G.levelOf(g.xp); const cur = currentFloor(g);
+  const idx = G.ORDER.indexOf(cur.id);
+  const next = d === 'up' ? G.ORDER.slice(idx + 1).map(G.floorById)[0] : G.ORDER.slice(0, idx).map(G.floorById).reverse()[0];
+  if (!next) { say(d === 'up' ? '¡Estás en lo más alto! 🚁' : 'Este es el piso más bajo.', 2500); return; }
+  if (lvl < next.lvl) { G.blip('buy'); say(`🔒 ${next.ic} ${next.n} se desbloquea en el nivel ${next.lvl}. ¡Cumple misiones para llegar!`, 3500); return; }
+  goFloor(next.id, d);
+}
+function goFloor(id, dir = 'up') {
+  const f = G.floorById(id); if (!f) return;
+  const cur = currentFloor();
+  if (cur.id === id) { $('screen').scrollIntoView({ behavior: 'smooth', block: 'nearest' }); return; }
+  if (!dir) dir = G.ORDER.indexOf(id) > G.ORDER.indexOf(cur.id) ? 'up' : 'down';
+  const el = $('elev');
+  el.innerHTML = `<b>${f.num}</b><span>${dir === 'up' ? '▲' : '▼'} ${f.n.toUpperCase()}</span>`;
+  el.hidden = false;
+  $('screen').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  G.setFloor(id);
+  setTimeout(() => {
+    render(); el.hidden = true; G.blip('ding');
+    const room = $('room'); room.classList.remove('go-up', 'go-down'); void room.offsetWidth; room.classList.add(dir === 'up' ? 'go-up' : 'go-down');
+    say(`${f.ic} ${f.n}. ${f.perk}.`, 4000);
+  }, 650);
+}
+function floorAction() {
+  const f = currentFloor();
+  const [act, prop] = f.act;
+  const lines = {
+    garaje: '¡Vamos a dar una vuelta! 💨', cuarto: '¡Hola! 👋 ¿Qué misión cumplimos hoy?', sala: 'Un rato de sofá… después de cumplir las misiones 😉',
+    gym: '¡Una más! 💪', oficina: 'A construir el imperio 💼', terraza: '¡Qué vista! 🎶', piscina: '¡Al agua! 💦', penthouse: 'Salud por lo que has logrado 🥂', azotea: '¡El cielo es el límite! 🚁',
+  };
+  const veh = G.equippedIn(G.state(), `${f.id}.V`);
+  if (act === 'fly' && !veh) { G.avatarAct('wave', '🌇'); say('Desde aquí se ve todo lo que construiste. Compra el helicóptero para volar 🚁', 3500); return; }
+  if (act === 'drive' && !veh) { G.avatarAct('wave', '🔧'); say('Tu garaje está vacío. Mira los vehículos en la tienda 🚗', 3500); return; }
+  G.avatarAct(act, prop); say(lines[f.id] || '¡Hola!', 2500);
 }
 
 /* ---------- agenda y calendario (.ics) ---------- */
@@ -852,6 +909,85 @@ function importICSFile(cb) {
     render(); cb?.(n);
   };
   inp.click();
+}
+
+
+/* ---------- ④ tu edificio ---------- */
+function renderBuilding() {
+  const g = G.state(); const lvl = G.levelOf(g.xp); const cur = currentFloor(g);
+  const unlocked = G.unlockedFloors(lvl);
+  $('buildHint').textContent = `nivel ${lvl} · ${unlocked.length}/${G.FLOORS.length} pisos`;
+  $('tierBadge').textContent = `🏢 ${cur.num === 'G' || cur.num === 'R' ? cur.num : 'Piso ' + cur.num} · ${unlocked.length} ${unlocked.length === 1 ? 'piso' : 'pisos'}`;
+  const next = G.FLOORS.filter(f => f.lvl > lvl).sort((a, b) => a.lvl - b.lvl)[0];
+  if (next) {
+    const need = G.xpFor(next.lvl), from = G.xpFor(lvl);
+    $('nextFloor').innerHTML = `<div class="nf-t"><span>Próximo piso: ${next.ic} ${esc(next.n)}</span><span>nivel ${next.lvl} · faltan ${need - g.xp} XP</span></div><div class="nf-bar"><i style="width:${clamp((g.xp - from) / (need - from) * 100)}%"></i></div><div class="fl-p" style="margin-top:6px">Al llegar: ${esc(next.perk)}</div>`;
+  } else $('nextFloor').innerHTML = '<div class="nf-t"><span>🏙️ Tienes el rascacielos completo</span><span>leyenda</span></div>';
+  $('tower').innerHTML = [...G.ORDER].reverse().map(id => {
+    const f = G.floorById(id); const open = lvl >= f.lvl; const here = cur.id === id;
+    return `<button class="fl${open ? '' : ' locked'}${here ? ' here' : ''}" data-act="floor" data-id="${id}">
+      <span class="fl-num">${f.num}</span>
+      <span><span class="fl-n">${f.ic} ${esc(f.n)}</span><span class="fl-p" style="display:block">${esc(f.perk)}</span></span>
+      <span class="fl-go">${here ? '📍 aquí' : open ? 'Ir ▸' : `🔒 nv ${f.lvl}`}</span></button>`;
+  }).join('') + '<div class="tower-base"></div>';
+  const P = peopleInfo();
+  const ach = G.achievements({ g, streak: progress().streak, lvl, journal: S.itemsOf('journal').length, contacts: S.itemsOf('interaction').length, goalsDone: S.itemsOf('goal').filter(x => x.actual >= x.objetivo).length, txs: S.allTx().filter(t => t.origen !== 'demo').length });
+  $('achvCount').textContent = `${ach.filter(a => a.done).length}/${ach.length}`;
+  $('achv').innerHTML = [...ach].sort((a, b) => b.done - a.done).map(a => `<div class="ach${a.done ? ' done' : ''}" title="${esc(a.n)}"><span class="e">${a.e}</span><span class="n">${esc(a.n)}</span><span class="v">${a.done ? '✓' : `${a.v}/${a.goal}`}</span></div>`).join('');
+  void P;
+}
+
+/* ---------- ⑤ tienda ---------- */
+function renderShop() {
+  const g = G.state(); const lvl = G.levelOf(g.xp);
+  ui.shopTab ||= 'pisos'; ui.shopFloor ||= currentFloor(g).id;
+  $('wallet').textContent = `🪙 ${g.coins}`;
+  $('shopTabs').innerHTML = [['pisos', '🏢 Pisos'], ['vehiculos', '🚗 Vehículos'], ['mascotas', '🐾 Mascotas'], ['avatar', '🧢 Avatar']].map(([k, l]) => `<button class="${ui.shopTab === k ? 'on' : ''}" data-act="shopTab" data-t="${k}">${l}</button>`).join('');
+  $('shopFloors').innerHTML = ui.shopTab === 'pisos' ? G.FLOORS.filter(f => f.id !== 'garaje').map(f => `<button class="${ui.shopFloor === f.id ? 'on' : ''}${lvl < f.lvl ? ' locked' : ''}" data-act="shopFloor" data-id="${f.id}">${f.ic} ${esc(f.n)}${lvl < f.lvl ? ' 🔒' : ''}</button>`).join('') : '';
+  $('shopFloors').hidden = ui.shopTab !== 'pisos';
+  const items = G.CATALOG.filter(i => ui.shopTab === 'pisos' ? i.floor === ui.shopFloor && i.slot !== 'V'
+    : ui.shopTab === 'vehiculos' ? i.slot === 'V' : ui.shopTab === 'mascotas' ? i.slot === 'pet' : ['head', 'face'].includes(i.slot));
+  $('shopGrid').innerHTML = items.map(i => {
+    const owned = G.owns(g, i), eq = G.equippedIn(g, G.slotKey(i))?.id === i.id, locked = !owned && lvl < i.lvl;
+    const where = i.floor === '*' ? G.SLOT_NAMES[i.slot] : i.slot === 'V' ? G.floorById(i.floor).n : G.SLOT_NAMES[i.slot];
+    return `<button class="shop-it${locked ? ' locked' : ''}${owned ? ' owned' : ''}${eq ? ' equipped' : ''}" data-act="shopBuy" data-id="${i.id}">
+      <span class="e">${i.e}</span><span class="n">${esc(i.n)}</span><span class="slot-lbl">${esc(where)}</span>
+      <span class="p">${eq ? 'EQUIPADO' : owned ? 'TUYO' : locked ? `🔒 NV ${i.lvl}` : `🪙${i.price}`}</span></button>`;
+  }).join('') || '<div class="empty">Nada por aquí todavía.</div>';
+}
+function shopBuy(id) {
+  const r = G.buy(id);
+  if (!r.ok) { toast(r.msg); return; }
+  const it = G.itemById(id);
+  G.blip('buy');
+  if (it.floor !== '*' && it.floor !== currentFloor().id) goFloor(it.floor, null);
+  setTimeout(() => { G.avatarAct(it.slot === 'V' ? 'drive' : 'dance', it.e); G.confetti(r.bought ? 24 : 8); say(r.bought ? `¡Nuevo! ${it.e} ${it.n}. Te lo ganaste en la vida real.` : r.msg, 3500); }, it.floor !== '*' && it.floor !== currentFloor().id ? 900 : 0);
+  render();
+  $('screen').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+/* ---------- paneles plegables ---------- */
+function folds() { try { return JSON.parse(localStorage.getItem('io_fold') || '{"conn":true}'); } catch { return { conn: true }; } }
+function applyFolds() {
+  const f = folds();
+  document.querySelectorAll('.fold[data-fold]').forEach(c => c.classList.toggle('collapsed', !!f[c.dataset.fold]));
+}
+function toggleFold(card) {
+  const f = folds(); const k = card.dataset.fold; f[k] = !f[k];
+  try { localStorage.setItem('io_fold', JSON.stringify(f)); } catch { /* */ }
+  applyFolds();
+}
+function openSection(id) {
+  const c = $(id); if (!c) return;
+  if (c.classList.contains('collapsed')) toggleFold(c);
+  c.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* ---------- qué significa IO ---------- */
+function aboutSheet() {
+  openSheet('IO', `<div class="io-intro"><div class="io-big"><span class="logo-flip"><span class="lf lf-a">IO</span><span class="lf lf-b">10</span></span><span class="logo-mirror" aria-hidden="true"><span>IO</span></span></div>
+    <div class="io-def"><b>IO</b><span>se lee “yo”. Eres tú, reflejado como en un espejo.</span><b>1 0</b><span>uno y cero: el código binario con el que se escribe todo.</span><b>1</b><span>lo que haces.</span><b>0</b><span>lo que aún no. Cada día eliges cuál escribir.</span></div>
+    <p class="onb-p" style="text-align:center">IO es el código de tu vida: tu dinero, tu cuerpo y tu gente, convertidos en un juego que solo se gana viviendo.</p></div>`);
 }
 
 /* ================= sheets ================= */
@@ -1077,7 +1213,7 @@ function lifeContext() {
     relaciones: P.people.map(p => ({ nombre: p.nombre, relacion: p.relacion, dias_sin_hablar: p.days, frecuencia_deseada_dias: p.cada })),
     metas: S.itemsOf('goal').map(g => ({ nombre: g.nombre, actual: g.actual, objetivo: g.objetivo, unidad: g.unidad, limite: g.limite })),
     diario_reciente: M.entries.slice(0, 6).map(e => ({ fecha: e.fecha, animo: e.animo, texto: e.texto.slice(0, 400) })),
-    nivel: pr.lvl, racha_dias: pr.streak, monedas: pr.coins, casa: G.TIERS[pr.tier].name,
+    nivel: pr.lvl, racha_dias: pr.streak, monedas: pr.coins, piso: currentFloor().n, pisos_desbloqueados: G.unlockedFloors(pr.lvl).map(f => f.n),
     prioridades: cfg.priorities || [], metas_diarias: TG(),
     misiones_hoy: questsToday().map(q => `${q.claimed ? '[x]' : '[ ]'} ${q.t}`),
     agenda_hoy: S.itemsOf('event').filter(e => e.fecha === todayIso()).map(e => `${e.hora || ''} ${e.titulo}`),
@@ -1179,17 +1315,12 @@ function settingsSheet() {
 }
 function avatarSheet() {
   const pr = progress();
-  const opts = {
-    skin: ['#f5d0b5', '#e0ac85', '#c4855a', '#a0663f', '#7a4a2a', '#4f2f1b'],
-    hair: ['#1a0f0a', '#4a2c17', '#8b5a2b', '#d4a24c', '#b0b0b0', '#7c5cff'],
-    hoodie: ['#7c5cff', '#22d3ee', '#4ade80', '#f472b6', '#fbbf24', '#f87171', '#1f2937', '#e5e7eb'],
-  };
-  const svg = document.querySelector('.av-svg').outerHTML.replace('class="av-svg"', 'class="av-svg-prev"');
-  openSheet(`Nivel ${pr.lvl} · ${cfg.name}`, `
-    <div class="av-prev ${$('avWrap').className.replace('av-wrap', '')}" data-mood="happy" id="avPrev">${svg}</div>
-    <div class="hint" style="text-align:center">${pr.xp} XP · 🪙 ${pr.coins} · 🔥 ${pr.streak} días de racha · faltan ${pr.next - pr.xp} XP para el nivel ${pr.lvl + 1}<br>Ganas XP y monedas cumpliendo las misiones de tu vida real. Gorras, gafas y más en la tienda 🛒.</div>
-    <button class="btn-ghost" data-act="shop" style="margin-bottom:14px">🛒 Ir a la tienda</button>
-    ${Object.entries({ skin: 'Piel', hair: 'Pelo', hoodie: 'Hoodie' }).map(([k, l]) => `<div class="lbl" style="margin-bottom:8px">${l}</div><div class="sw-row">${opts[k].map(c => `<button class="sw${cfg.avatar[k] === c ? ' on' : ''}" style="background:${c}" data-act="sw" data-k="${k}" data-c="${c}" aria-label="${l} ${c}"></button>`).join('')}</div>`).join('')}`);
+  ui.editLook = normLook(cfg.avatar);
+  openSheet(`Tu personaje · nivel ${pr.lvl}`, `
+    <div class="av-stage ${$('avWrap').className.replace('av-wrap', '')}" data-mood="happy" id="avPrev">${avatarSVG(ui.editLook)}</div>
+    <div class="hint" style="text-align:center;margin-top:10px">${pr.xp} XP · 🪙 ${pr.coins} · 🔥 ${pr.streak} días de racha</div>
+    ${editorHTML(ui.editLook)}
+    <div class="stack" style="margin-top:16px"><button class="btn-acc" data-act="saveLook">Guardar personaje</button><button class="btn-ghost" data-act="goShop">🛒 Accesorios en la tienda</button></div>`);
 }
 function telegramSheet() {
   openSheet('Telegram ✈️', `
@@ -1223,7 +1354,7 @@ function backupSheet() {
 const actions = {
   settings: settingsSheet, closeSheet, closeChat, chat: () => openChat(), capture: () => openCapture(),
   nextNudge: () => { ui.nudgeIdx = (ui.nudgeIdx + 1) % ui.nudges.length; say(ui.nudges[ui.nudgeIdx]); },
-  goto: el => $(el.dataset.sec)?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+  goto: el => openSection(el.dataset.sec),
   month: el => { ui.vm += +el.dataset.dir; if (ui.vm < 0) { ui.vm = 11; ui.vy--; } if (ui.vm > 11) { ui.vm = 0; ui.vy++; } render(); },
   day: el => showDay(+el.dataset.day),
   txDetail: el => txDetail(el.dataset.key),
@@ -1265,9 +1396,17 @@ const actions = {
   openChest,
   setSleep: el => { const iso = todayIso(); S.putItem('health', { ...healthOf(iso), sueno: +el.dataset.v }, `health:${iso}`); closeSheet(); render(); if (+el.dataset.v >= TG().sueno) autoClaim('dormir'); else say(`Anotado: ${el.dataset.v}h. Esta noche vamos por ${TG().sueno}h 😴`, 3000); },
   delEvent: el => { S.delItem(el.dataset.id); render(); },
-  shop: () => shopSheet(), shopTab: el => shopSheet(el.dataset.t), shopBuy: el => shopBuy(el.dataset.id),
+  shop: () => { closeSheet(); openSection('shopCard'); }, goShop: () => { closeSheet(); openSection('shopCard'); },
+  shopTab: el => { ui.shopTab = el.dataset.t; renderShop(); }, shopFloor: el => { ui.shopFloor = el.dataset.id; renderShop(); },
+  shopBuy: el => shopBuy(el.dataset.id),
   pad: el => padMove(el.dataset.d),
-  padA: () => { G.avatarAct('wave', '👋'); say(QUIPS[Math.floor(Math.random() * QUIPS.length)], 3000); },
+  padA: () => floorAction(),
+  floor: el => { const f = G.floorById(el.dataset.id); if (G.levelOf(G.state().xp) < f.lvl) return toast(`🔒 ${f.n} se desbloquea en el nivel ${f.lvl}`); goFloor(f.id, null); },
+  fold: el => toggleFold(el.closest('.fold')),
+  allTx: allTxSheet,
+  about: aboutSheet,
+  av: el => { ui.editLook[el.dataset.av] = el.dataset.v; const st = $('avPrev'); if (st) st.innerHTML = avatarSVG(ui.editLook); el.parentElement.querySelectorAll('[data-av]').forEach(b => b.classList.toggle('on', b === el)); },
+  saveLook: () => { saveCfg({ avatar: ui.editLook }); applyAvatarColors(); closeSheet(); render(); G.avatarAct('dance', '✨'); say('¡Nuevo look! Te ves increíble.', 3000); },
   onboarding: () => { closeSheet(); openOnboarding({ onDone: afterOnboarding, importICS: importICSFile }); },
   ics: () => importICSFile(),
   sound: () => { const on = G.toggleSound(); toast(on ? '🔊 Sonidos activados' : '🔇 Sonidos apagados'); settingsSheet(); },
@@ -1326,7 +1465,7 @@ const actions = {
     closeSheet(); toast('Guardado ✓'); await refresh();
   },
   avatar: avatarSheet,
-  sw: el => { cfg.avatar[el.dataset.k] = el.dataset.c; saveCfg({ avatar: cfg.avatar }); applyAvatarColors(); avatarSheet(); },
+
   telegram: telegramSheet, email: emailSheet, install: installSheet, backup: backupSheet,
   exportBackup: () => {
     const a = document.createElement('a');
@@ -1337,8 +1476,9 @@ const actions = {
 };
 
 document.addEventListener('click', e => {
-  const el = e.target.closest('[data-act]'); if (!el) return;
-  const fn = actions[el.dataset.act]; if (!fn) return;
+  const el = e.target.closest('[data-act],[data-av]'); if (!el) return;
+  if (!el.dataset.act && !$('onb').hidden) return; // el editor dentro de la configuración inicial lo maneja onboarding.js
+  const fn = actions[el.dataset.act || 'av']; if (!fn) return;
   e.preventDefault(); fn(el);
 });
 document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => { ui.chip = c.dataset.chip; renderChip(); }));
@@ -1346,7 +1486,7 @@ $('catSeg').addEventListener('click', e => { const b = e.target.closest('[data-c
 $('sheetOv').addEventListener('click', closeSheet);
 $('chatForm').addEventListener('submit', e => { e.preventDefault(); sendChat(); });
 let searchT;
-$('txSearch').addEventListener('input', e => { clearTimeout(searchT); searchT = setTimeout(() => { ui.txQuery = e.target.value; ui.txShown = 30; renderTx(); }, 150); });
+
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { if ($('chat').classList.contains('open')) closeChat(); else closeSheet(); }
   if (e.key === 'Enter' && !e.shiftKey && e.target.id === 'capText') { e.preventDefault(); captureAnalyze(); }
@@ -1398,7 +1538,6 @@ S.seedFijos();
 if (!S.getItem('game:state')) { const g = G.state(); g.xp = legacyXp(); G.save(g); }
 applyAvatarColors();
 render();
-setupInfinite();
 refresh().then(() => {
   if (!cfg.onboarded) openOnboarding({ onDone: afterOnboarding, importICS: importICSFile });
   else handleLaunchParams();

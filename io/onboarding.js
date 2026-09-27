@@ -3,6 +3,7 @@
 import * as S from './store.js';
 import { cfg, saveCfg, todayIso } from './store.js';
 import * as G from './game.js';
+import { avatarSVG, editorHTML, normLook } from './avatar.js';
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -14,14 +15,9 @@ export const PRIORITIES = [
 ];
 const HABITS = [['📖', 'Leer 20 min'], ['🧘', 'Meditar 10 min'], ['🛏️', 'Tender la cama'], ['🥗', 'Comer sano'], ['📵', '1 hora sin pantalla'], ['🙏', 'Agradecer 3 cosas'], ['🚶', 'Caminar al aire libre'], ['🇬🇧', 'Practicar inglés']];
 const GOAL_SUGG = [['🛟', 'Fondo de emergencia', 1500, '$', 'finanzas'], ['🚀', 'Lanzar AI Staff', 10, 'hitos', 'mente'], ['🏋️', 'Gym 12 sesiones al mes', 12, 'sesiones', 'salud'], ['📚', 'Leer 12 libros', 12, 'libros', 'mente'], ['✈️', 'Viaje a Colombia', 2000, '$', 'finanzas']];
-const SW = {
-  skin: ['#f5d0b5', '#e0ac85', '#c4855a', '#a0663f', '#7a4a2a', '#4f2f1b'],
-  hair: ['#1a0f0a', '#4a2c17', '#8b5a2b', '#d4a24c', '#b0b0b0', '#7c5cff'],
-  hoodie: ['#7c5cff', '#22d3ee', '#4ade80', '#f472b6', '#fbbf24', '#f87171', '#1f2937'],
-};
 const CATS = ['vivienda', 'suscripcion', 'salud', 'transporte', 'educacion', 'otros'];
 const REL = ['familia', 'pareja', 'amigo', 'trabajo', 'mentor', 'otro'];
-const TITLES = ['Tú', 'Prioridades', 'Finanzas', 'Tu gente', 'Salud y hábitos', 'Metas', 'Agenda', 'Listo'];
+const TITLES = ['IO', 'Tú', 'Prioridades', 'Finanzas', 'Tu gente', 'Salud y hábitos', 'Metas', 'Agenda', 'Listo'];
 
 let d, step, onDone, importICS;
 
@@ -29,7 +25,7 @@ function load() {
   const people = S.itemsOf('person').map(p => ({ ...p }));
   while (people.length < 3) people.push({ emoji: ['💜', '👩‍👦', '🤝'][people.length], nombre: '', relacion: ['pareja', 'familia', 'amigo'][people.length], cada: [2, 3, 7][people.length] });
   return {
-    name: cfg.name, avatar: { ...cfg.avatar },
+    name: cfg.name, avatar: normLook(cfg.avatar),
     priorities: cfg.priorities?.length ? [...cfg.priorities] : ['dinero', 'sueno', 'ejercicio', 'gente', 'diario', 'proyectos'],
     ingreso: cfg.ingreso ?? '', presupuesto: cfg.presupuesto ?? 501,
     fijos: S.itemsOf('fijo').sort((a, b) => a.dia - b.dia).map(f => ({ ...f })),
@@ -51,8 +47,22 @@ export function openOnboarding(opts) {
 function close() { $('onb').hidden = true; document.body.style.overflow = ''; }
 
 function avatarPreview() {
-  const svg = document.querySelector('#avWrap .av-svg');
-  return svg ? `<div class="av-prev" data-mood="happy" style="--skin:${d.avatar.skin};--hair:${d.avatar.hair};--hoodie:${d.avatar.hoodie}">${svg.outerHTML}</div>` : '';
+  return `<div class="av-stage" data-mood="happy" id="onbPrev">${avatarSVG(d.avatar)}</div>`;
+}
+let rainT;
+function binaryRain() {
+  const c = $('ioRain'); if (!c || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const ctx = c.getContext('2d'); const W = c.width = c.offsetWidth * 2, H = c.height = c.offsetHeight * 2;
+  const cols = Math.floor(W / 22); const y = Array.from({ length: cols }, () => Math.random() * H);
+  cancelAnimationFrame(rainT);
+  const tick = () => {
+    if (!document.body.contains(c)) return;
+    ctx.fillStyle = 'rgba(9,9,15,.18)'; ctx.fillRect(0, 0, W, H);
+    ctx.font = '22px Space Mono, monospace';
+    y.forEach((v, i) => { ctx.fillStyle = i % 3 ? '#7c5cff' : '#22d3ee'; ctx.fillText(Math.random() > .5 ? '1' : '0', i * 22, v); y[i] = v > H + Math.random() * 400 ? 0 : v + 14; });
+    rainT = requestAnimationFrame(tick);
+  };
+  tick();
 }
 function rowsHTML(kind) {
   if (kind === 'fijos') return d.fijos.map((f, i) => `<div class="onb-row" data-row="fijos" data-i="${i}">
@@ -83,17 +93,20 @@ function stepper(k, lbl, sub, st, fmt) {
 
 function body() {
   switch (step) {
-    case 0: return `<div class="onb-eyebrow">PLAYER 1 · CREA TU PERSONAJE</div>
-      <h1 class="onb-h">Tu vida es el juego.</h1>
-      <p class="onb-p">IO no se juega tocando la pantalla: se juega viviendo. Cada día tendrás misiones de tu vida real. Cuando las cumples, tu avatar lo celebra, subes de nivel, tu casa mejora y ganas monedas para comprarle cosas.</p>
+    case 0: return `<div class="io-intro"><canvas id="ioRain" aria-hidden="true"></canvas>
+      <div class="io-big"><span class="logo-flip"><span class="lf lf-a">IO</span><span class="lf lf-b">10</span></span><span class="logo-mirror" aria-hidden="true"><span>IO</span></span></div>
+      <div class="io-def"><b>IO</b><span>se lee “yo”. Eres tú, reflejado como en un espejo.</span><b>1 0</b><span>uno y cero: el código con el que se escribe todo.</span><b>1</b><span>lo que haces · <b style="font-size:14px">0</b> lo que aún no.</span></div>
+      <h1 class="onb-h" style="margin-top:8px">Tu vida es el juego.</h1>
+      <p class="onb-p">No se juega tocando la pantalla: se juega viviendo. Cada día tendrás misiones de tu vida real. Cuando las cumples, tu personaje lo celebra, subes de nivel, tu edificio crece piso a piso y ganas monedas para la tienda.</p></div>`;
+    case 1: return `<div class="onb-eyebrow">PLAYER 1 · CREA TU PERSONAJE</div>
       ${avatarPreview()}
-      <div class="field"><label for="onbName">¿Cómo te llamas?</label><input class="inp" id="onbName" value="${esc(d.name)}" autocomplete="given-name"></div>
-      ${Object.entries({ skin: 'Piel', hair: 'Pelo', hoodie: 'Hoodie' }).map(([k, l]) => `<div class="lbl" style="margin-bottom:8px">${l}</div><div class="sw-row">${SW[k].map(c => `<button class="sw${d.avatar[k] === c ? ' on' : ''}" style="background:${c}" data-onb="sw" data-k="${k}" data-c="${c}" aria-label="${l}"></button>`).join('')}</div>`).join('')}`;
-    case 1: return `<div class="onb-eyebrow">¿CÓMO SABES QUE VAS BIEN?</div>
+      <div class="field" style="margin-top:14px"><label for="onbName">¿Cómo te llamas?</label><input class="inp" id="onbName" value="${esc(d.name)}" autocomplete="given-name" maxlength="24"></div>
+      ${editorHTML(d.avatar)}`;
+    case 2: return `<div class="onb-eyebrow">¿CÓMO SABES QUE VAS BIEN?</div>
       <h1 class="onb-h">¿Qué te dice que tu vida va bien?</h1>
       <p class="onb-p">Escoge lo que de verdad te importa. Con esto IO arma tus misiones diarias.</p>
       <div class="onb-chips">${PRIORITIES.map(([k, e, l]) => `<button class="onb-chip${d.priorities.includes(k) ? ' on' : ''}" data-onb="prio" data-k="${k}">${e} ${l}</button>`).join('')}</div>`;
-    case 2: return `<div class="onb-eyebrow">PILAR 1 · FINANZAS</div>
+    case 3: return `<div class="onb-eyebrow">PILAR 1 · FINANZAS</div>
       <h1 class="onb-h">Tu plata, sin estrés.</h1>
       <p class="onb-p">Con esto IO calcula cuánto puedes gastar al día y te avisa de los pagos fijos. Puedes cambiarlo cuando quieras.</p>
       <div class="row"><div class="field"><label for="onbIng">Ingreso mensual aprox.</label><input class="inp" id="onbIng" type="number" inputmode="decimal" value="${esc(d.ingreso)}" placeholder="2276"></div>
@@ -101,12 +114,12 @@ function body() {
       <div class="hint">El presupuesto variable es lo que gastas en comida, gasolina, salidas… sin contar los fijos.</div>
       <div class="lbl" style="margin:6px 0 8px">Pagos fijos del mes · día · descripción · monto</div>
       ${rowsHTML('fijos')}<button class="onb-add" data-onb="add" data-k="fijos">＋ Agregar pago fijo</button>`;
-    case 3: return `<div class="onb-eyebrow">PILAR 2 · RELACIONES</div>
+    case 4: return `<div class="onb-eyebrow">PILAR 2 · RELACIONES</div>
       <h1 class="onb-h">Tus 3 personas.</h1>
       <p class="onb-p">¿Con quiénes te juntas más o quieres estar más presente? Dile a IO cada cuántos días te gustaría hablar con cada una y te lo pondrá como misión.</p>
       <div class="lbl" style="margin-bottom:8px">Emoji · nombre · relación · cada (días)</div>
       ${rowsHTML('people')}${d.people.length < 6 ? '<button class="onb-add" data-onb="add" data-k="people">＋ Agregar persona</button>' : ''}`;
-    case 4: return `<div class="onb-eyebrow">PILAR 3 · SALUD</div>
+    case 5: return `<div class="onb-eyebrow">PILAR 3 · SALUD</div>
       <h1 class="onb-h">Tu cuerpo también juega.</h1>
       <p class="onb-p">Metas diarias y hábitos que quieres construir. Cada uno será una misión.</p>
       ${stepper('agua', '💧 Agua', 'vasos al día', 1, v => v)}
@@ -116,27 +129,27 @@ function body() {
       <div class="lbl" style="margin:16px 0 8px">Hábitos diarios</div>
       <div class="onb-chips">${[...HABITS, ...d.habits.filter(h => !HABITS.some(x => x[1] === h.nombre)).map(h => [h.emoji, h.nombre])].map(([e, n]) => `<button class="onb-chip${d.habits.some(h => h.nombre === n) ? ' on' : ''}" data-onb="habit" data-e="${esc(e)}" data-n="${esc(n)}">${e} ${esc(n)}</button>`).join('')}</div>
       <div class="agenda-add" style="margin-top:0"><input id="onbHabit" placeholder="Otro hábito (ej. Estudiar 30 min)" maxlength="40"><button data-onb="habitAdd" aria-label="Agregar hábito">＋</button></div>`;
-    case 5: return `<div class="onb-eyebrow">MISIONES GRANDES</div>
+    case 6: return `<div class="onb-eyebrow">MISIONES GRANDES</div>
       <h1 class="onb-h">¿Hacia dónde vas?</h1>
       <p class="onb-p">Metas de semanas o meses. Cada aporte que hagas cuenta como misión y las metas cumplidas ponen un trofeo en tu casa.</p>
       <div class="onb-chips">${GOAL_SUGG.filter(s => !d.goals.some(g => g.nombre === s[1])).map((s, i) => `<button class="onb-chip" data-onb="goalSugg" data-i="${GOAL_SUGG.indexOf(s)}">${s[0]} ${s[1]}</button>`).join('')}</div>
       <div class="lbl" style="margin-bottom:8px">Emoji · meta · objetivo · unidad</div>
       ${rowsHTML('goals')}<button class="onb-add" data-onb="add" data-k="goals">＋ Agregar meta</button>`;
-    case 6: return `<div class="onb-eyebrow">TU AGENDA</div>
+    case 7: return `<div class="onb-eyebrow">TU AGENDA</div>
       <h1 class="onb-h">Lo que tienes que hacer también cuenta.</h1>
       <p class="onb-p">Tus compromisos del día aparecen como misiones. Cumplir lo que te propusiste también sube de nivel.</p>
       <div class="agenda-add" style="margin-top:0"><input id="onbEvent" placeholder="Hoy: 3pm reunión con Juan" maxlength="120"><button data-onb="eventAdd" aria-label="Agregar">＋</button></div>
       <div style="margin:10px 0 16px">${[...d.events, ...d.newEvents].map(e => `<span class="day-chip">📅 ${esc(e.fecha === todayIso() ? 'hoy' : e.fecha)} ${esc(e.hora || '')} · ${esc(e.titulo)}</span>`).join('') || '<span class="hint">Aún no hay nada en tu agenda.</span>'}</div>
       <button class="btn-ghost" data-onb="ics">📅 Importar calendario (.ics)</button>
       <div class="hint" style="margin-top:10px">Desde Google Calendar: Configuración → Importar y exportar → Exportar, y subes el archivo .ics aquí. Se importan los eventos de los próximos 30 días.</div>`;
-    case 7: {
+    case 8: {
       const n = { prio: d.priorities.length, people: d.people.filter(p => p.nombre.trim()).length, habits: d.habits.length, goals: d.goals.filter(g => g.nombre.trim()).length };
       return `<div class="onb-eyebrow">TODO LISTO</div>
       <h1 class="onb-h">${esc(d.name)}, tu partida está lista.</h1>
       <p class="onb-p">Cada mañana verás tus misiones debajo de la consola. Márcalas cuando las cumplas en la vida real.</p>
       ${avatarPreview()}
       <div class="onb-sum"><div><b>${n.prio}</b><span>prioridades</span></div><div><b>${n.people}</b><span>personas</span></div><div><b>${n.habits}</b><span>hábitos</span></div><div><b>${n.goals}</b><span>metas</span></div></div>
-      <div class="hint">Recompensas: misiones diarias de 10 a 30 XP y monedas 🪙 · cofre diario al completarlas todas · la casa mejora en los niveles 3, 5, 8 y 12. Nada se compra con dinero.</div>`;
+      <div class="hint">Recompensas: misiones diarias de 10 a 30 XP y monedas 🪙 · cofre diario al completarlas todas · cada nivel abre pisos nuevos en tu edificio: garaje (nivel 3), gimnasio (4), oficina (5)… hasta la azotea (15). Nada se compra con dinero.</div>`;
     }
   }
   return '';
@@ -149,8 +162,9 @@ function draw() {
       <button class="onb-skip" data-onb="skip">${first ? (S.isDemo() ? 'Ver demo' : 'Saltar') : 'Cerrar'}</button></div>
     <div class="onb-body" id="onbBody">${body()}</div>
     <div class="onb-foot">${step > 0 ? '<button class="btn-ghost" data-onb="back">← Atrás</button>' : ''}
-      <button class="btn-acc${step === 7 ? ' btn-green' : ''}" data-onb="next">${step === 0 ? 'Empezar →' : step === 7 ? '🎮 Empezar a jugar' : 'Siguiente →'}</button></div>`;
+      <button class="btn-acc${step === 8 ? ' btn-green' : ''}" data-onb="next">${step === 0 ? 'Crear mi personaje →' : step === 8 ? '🎮 Empezar a jugar' : 'Siguiente →'}</button></div>`;
   $('onbBody').scrollTop = 0;
+  if (step === 0) binaryRain();
 }
 
 function readInputs() {
@@ -200,14 +214,20 @@ function finish() {
 }
 
 document.addEventListener('click', e => {
+  const av = e.target.closest('[data-av]');
+  if (av && !$('onb').hidden && !av.dataset.act) {
+    d.avatar[av.dataset.av] = av.dataset.v;
+    $('onbPrev').innerHTML = avatarSVG(d.avatar);
+    av.parentElement.querySelectorAll('[data-av]').forEach(b => b.classList.toggle('on', b === av));
+    return;
+  }
   const el = e.target.closest('[data-onb]'); if (!el || $('onb').hidden) return;
   e.preventDefault();
   const a = el.dataset.onb;
   readInputs();
-  if (a === 'next') { if (step === 7) return finish(); step++; return draw(); }
+  if (a === 'next') { if (step === 8) return finish(); step++; return draw(); }
   if (a === 'back') { step = Math.max(0, step - 1); return draw(); }
   if (a === 'skip') { if (!cfg.onboarded) saveCfg({ onboarded: true }); close(); return onDone?.(false); }
-  if (a === 'sw') { d.avatar[el.dataset.k] = el.dataset.c; return draw(); }
   if (a === 'prio') { const k = el.dataset.k; d.priorities = d.priorities.includes(k) ? d.priorities.filter(x => x !== k) : [...d.priorities, k]; return draw(); }
   if (a === 'del') { d[el.dataset.k].splice(+el.dataset.i, 1); return draw(); }
   if (a === 'add') {

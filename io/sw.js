@@ -1,7 +1,7 @@
 /* IO — service worker: app shell offline + share target (pantallazos/recibos desde Android) */
-const VERSION = 'io-v5.1.0';
+const VERSION = 'io-v6.0.0';
 const SHELL = [
-  './', 'index.html', 'styles.css', 'app.js', 'ai.js', 'store.js', 'importer.js', 'game.js', 'onboarding.js',
+  './', 'index.html', 'styles.css', 'app.js', 'ai.js', 'store.js', 'importer.js', 'game.js', 'onboarding.js', 'avatar.js',
   'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png'
 ];
 const SHARE_CACHE = 'io-share';

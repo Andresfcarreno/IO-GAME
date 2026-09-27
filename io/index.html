@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<title>IO — tu espejo</title>
-<meta name="description" content="IO: diario personal con finanzas, salud y relaciones. Tu avatar refleja cómo vas.">
+<title>IO</title>
+<meta name="description" content="IO: el código de tu vida. Finanzas, salud y relaciones como un juego que se juega en la vida real.">
 <meta name="theme-color" content="#09090f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -22,9 +22,10 @@
 <body>
 
 <header class="hdr">
-  <div class="logo" aria-label="IO">
-    <span class="logo-io">IO</span><span class="logo-sub">espejo</span>
-  </div>
+  <button class="logo" data-act="about" aria-label="IO: yo, uno y cero. Qué significa">
+    <span class="logo-flip"><span class="lf lf-a">IO</span><span class="lf lf-b">10</span></span>
+    <span class="logo-mirror" aria-hidden="true"><span>IO</span></span>
+  </button>
   <div class="hdr-r">
     <button class="pill" id="syncPill" data-act="settings" aria-label="Estado de sincronización">
       <span class="ldot" id="syncDot"></span><span id="syncTxt">cargando</span>
@@ -41,20 +42,21 @@
 
 <main class="main" id="main">
 
-  <!-- ① CONSOLA: tu vida como videojuego (pero se juega en la vida real) -->
+  <!-- ① CONSOLA: tu vida como videojuego, que se juega en la vida real -->
   <section class="card console" id="avatarCard">
     <div class="bezel">
       <div class="screen" id="screen">
-        <div class="room" id="room" data-tier="0">
+        <div class="room" id="room" data-floor="cuarto">
           <div class="room-wall"></div>
-          <div class="sky" id="sky"><span class="celestial" id="celestial"></span><span class="stars"></span><span class="skyline"></span><span class="hills"></span></div>
-          <div class="tier-deco" id="tierDeco"></div>
-          <div class="room-shelf"><span class="slot" id="slot-wallL"></span><span id="trophy"></span></div>
-          <span class="slot slot-ceiling" id="slot-ceiling"></span>
+          <div class="win" id="win" data-view="street"><span class="celestial"></span><span class="stars"></span><span class="v-street"></span><span class="v-city"></span><span class="v-clouds"></span></div>
+          <div class="floor-deco" id="floorDeco"></div>
+          <div class="room-shelf"><span class="slot" id="slot-W"></span><span id="trophy"></span></div>
+          <span class="slot slot-C" id="slot-C"></span>
           <div class="room-floor"></div>
           <div class="room-rug"></div>
-          <span class="slot slot-floorL" id="slot-floorL"></span>
-          <span class="slot slot-floorR" id="slot-floorR"></span>
+          <span class="slot slot-L" id="slot-L"></span>
+          <span class="slot slot-R" id="slot-R"></span>
+          <span class="slot slot-V" id="slot-V"></span>
           <span class="slot slot-pet" id="slot-pet"></span>
         </div>
         <div class="hud">
@@ -63,101 +65,40 @@
           <span class="hud-coins"><span>🪙</span><b id="coinN">0</b></span>
           <span class="hud-streak" id="streak">🔥0</span>
         </div>
+        <div class="floor-tag" id="floorTag">PISO 1</div>
         <div class="plumbob-sec">
           <div class="plumbob" id="plumbob"></div>
           <div class="mood-lbl" id="moodLbl">—</div>
         </div>
         <div class="av-mover" id="avMover">
           <span class="prop" id="prop"></span>
-          <div class="av-wrap" id="avWrap" data-mood="neutral">
-            <div class="particles" aria-hidden="true"><span class="pt">✨</span><span class="pt">💚</span><span class="pt">⭐</span><span class="pt">💰</span><span class="pt">✨</span></div>
-            <div class="zzz" aria-hidden="true"><span>z</span><span>z</span><span>Z</span></div>
-        <svg class="av-svg" viewBox="0 0 120 165" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Tu avatar">
-          <ellipse cx="60" cy="160" rx="30" ry="4" fill="rgba(0,0,0,.35)"/>
-          <rect x="38" y="138" width="14" height="22" rx="6" class="pants"/>
-          <rect x="68" y="138" width="14" height="22" rx="6" class="pants"/>
-          <ellipse cx="45" cy="160" rx="10" ry="4" fill="#e5e7eb"/>
-          <ellipse cx="75" cy="160" rx="10" ry="4" fill="#e5e7eb"/>
-          <path d="M28 98 Q30 88 60 86 Q90 88 92 98 L96 142 Q60 150 24 142Z" class="hoodie"/>
-          <path d="M50 88 Q60 100 70 88" class="hoodie-dk" stroke-width="0"/>
-          <rect x="46" y="118" width="28" height="16" rx="6" fill="rgba(0,0,0,.16)"/>
-          <path d="M28 98 Q18 108 16 128 Q14 138 20 141 Q26 144 28 136 L34 115" class="hoodie"/>
-          <path d="M92 98 Q102 108 104 128 Q106 138 100 141 Q94 144 92 136 L86 115" class="hoodie"/>
-          <circle cx="18" cy="143" r="8" class="skin"/>
-          <circle cx="102" cy="143" r="8" class="skin"/>
-          <rect x="52" y="79" width="16" height="12" rx="4" class="skin"/>
-          <ellipse cx="60" cy="56" rx="29" ry="31" class="skin"/>
-          <path d="M32 48 Q30 25 60 22 Q90 22 88 48 Q82 38 72 36 Q60 32 48 36 Q38 38 32 48Z" class="hair"/>
-          <path d="M32 48 Q28 52 31 58" stroke-width="5" stroke-linecap="round" class="hair-s"/>
-          <path d="M88 48 Q92 52 89 58" stroke-width="5" stroke-linecap="round" class="hair-s"/>
-          <ellipse cx="31" cy="58" rx="5" ry="7" class="skin"/>
-          <ellipse cx="89" cy="58" rx="5" ry="7" class="skin"/>
-          <g class="eyes ey-neutral">
-            <g class="blink">
-              <ellipse cx="49" cy="55" rx="8" ry="9" fill="#fff"/><ellipse cx="71" cy="55" rx="8" ry="9" fill="#fff"/>
-              <ellipse cx="49" cy="57" rx="5" ry="6" fill="#1a0f0a"/><ellipse cx="71" cy="57" rx="5" ry="6" fill="#1a0f0a"/>
-              <circle cx="51" cy="54" r="2" fill="#fff"/><circle cx="73" cy="54" r="2" fill="#fff"/>
-            </g>
-          </g>
-          <g class="eyes ey-happy">
-            <path d="M41 54 Q49 46 57 54" stroke="#1a0f0a" stroke-width="3.5" stroke-linecap="round"/>
-            <path d="M63 54 Q71 46 79 54" stroke="#1a0f0a" stroke-width="3.5" stroke-linecap="round"/>
-            <ellipse cx="38" cy="66" rx="8" ry="4.5" fill="rgba(248,113,113,.28)"/>
-            <ellipse cx="82" cy="66" rx="8" ry="4.5" fill="rgba(248,113,113,.28)"/>
-          </g>
-          <g class="eyes ey-worried">
-            <ellipse cx="49" cy="55" rx="8" ry="9" fill="#fff"/><ellipse cx="71" cy="55" rx="8" ry="9" fill="#fff"/>
-            <ellipse cx="49" cy="58" rx="5" ry="6" fill="#1a0f0a"/><ellipse cx="71" cy="58" rx="5" ry="6" fill="#1a0f0a"/>
-            <path d="M40 42 Q49 48 58 43" stroke="#1a0f0a" stroke-width="3" stroke-linecap="round"/>
-            <path d="M62 43 Q71 48 80 42" stroke="#1a0f0a" stroke-width="3" stroke-linecap="round"/>
-            <ellipse cx="86" cy="48" rx="3.5" ry="5.5" fill="rgba(96,165,250,.6)"/>
-          </g>
-          <g class="eyes ey-excited">
-            <path d="M49 47 l2.6 5.4 5.9.8-4.3 4.1 1 5.9-5.2-2.8-5.2 2.8 1-5.9-4.3-4.1 5.9-.8z" fill="#fbbf24"/>
-            <path d="M71 47 l2.6 5.4 5.9.8-4.3 4.1 1 5.9-5.2-2.8-5.2 2.8 1-5.9-4.3-4.1 5.9-.8z" fill="#fbbf24"/>
-          </g>
-          <g class="eyes ey-tired">
-            <path d="M42 57 Q49 61 56 57" stroke="#1a0f0a" stroke-width="3" stroke-linecap="round"/>
-            <path d="M64 57 Q71 61 78 57" stroke="#1a0f0a" stroke-width="3" stroke-linecap="round"/>
-            <path d="M42 63 Q49 65 56 63 M64 63 Q71 65 78 63" stroke="rgba(76,29,149,.35)" stroke-width="2" stroke-linecap="round"/>
-          </g>
-          <g class="mouth mo-neutral"><path d="M50 74 Q60 79 70 74" stroke="#1a0f0a" stroke-width="2.5" stroke-linecap="round"/></g>
-          <g class="mouth mo-happy"><path d="M46 72 Q60 86 74 72" stroke="#1a0f0a" stroke-width="3" stroke-linecap="round"/></g>
-          <g class="mouth mo-worried"><path d="M48 77 Q60 70 72 77" stroke="#1a0f0a" stroke-width="2.5" stroke-linecap="round"/></g>
-          <g class="mouth mo-excited"><path d="M46 70 Q60 90 74 70Z" fill="#fff" stroke="#1a0f0a" stroke-width="2.5" stroke-linejoin="round"/></g>
-          <g class="mouth mo-tired"><ellipse cx="60" cy="76" rx="4" ry="3" fill="#1a0f0a"/></g>
-          <g class="acc acc-gafas"><circle cx="49" cy="56" r="10" fill="rgba(10,10,20,.85)" stroke="#111" stroke-width="2"/><circle cx="71" cy="56" r="10" fill="rgba(10,10,20,.85)" stroke="#111" stroke-width="2"/><path d="M59 55h2M39 54l-8-3M81 54l8-3" stroke="#111" stroke-width="2"/><path d="M44 52l4-3M66 52l4-3" stroke="rgba(255,255,255,.5)" stroke-width="2" stroke-linecap="round"/></g>
-          <g class="acc acc-gorra"><path d="M30 42 Q31 17 60 16 Q89 17 90 42 Q75 34 60 34 Q45 34 30 42Z" fill="#ef4444"/><path d="M60 34 Q86 32 106 40 Q92 46 62 42Z" fill="#b91c1c"/><circle cx="60" cy="17" r="3" fill="#b91c1c"/></g>
-          <g class="acc acc-audifonos"><path d="M29 56 Q27 14 60 14 Q93 14 91 56" stroke="#1f2937" stroke-width="6" fill="none" stroke-linecap="round"/><rect x="21" y="46" width="14" height="22" rx="6" fill="#7c5cff"/><rect x="85" y="46" width="14" height="22" rx="6" fill="#7c5cff"/></g>
-          <g class="acc acc-sombrero"><rect x="40" y="0" width="40" height="28" rx="3" fill="#111827"/><rect x="40" y="19" width="40" height="6" fill="#7c5cff"/><rect x="28" y="26" width="64" height="7" rx="3.5" fill="#111827"/></g>
-          <g class="acc acc-corona"><path d="M36 30 L40 8 L51 21 L60 3 L69 21 L80 8 L84 30 Z" fill="#fbbf24" stroke="#b45309" stroke-width="1.5" stroke-linejoin="round"/><circle cx="60" cy="22" r="3" fill="#f87171"/><circle cx="46" cy="25" r="2" fill="#22d3ee"/><circle cx="74" cy="25" r="2" fill="#22d3ee"/></g>
-        </svg>
-          </div>
+          <div class="av-wrap" id="avWrap" data-mood="neutral"></div>
         </div>
         <button class="dialog" id="speech" data-act="nextNudge" aria-label="Siguiente mensaje">
           <span class="dlg-name">IO</span><span class="dlg-text" id="dlgText">Cargando tu mundo…</span><span class="dlg-next">▼</span>
         </button>
         <div class="fx" id="fx" aria-hidden="true"></div>
+        <div class="elev" id="elev" hidden></div>
         <div class="lvlup" id="lvlup" hidden></div>
       </div>
-      <div class="bezel-label"><span class="led" id="led"></span><span>IO</span><i>◆</i><span>ESPEJO</span><small>life edition</small></div>
+      <div class="bezel-label"><span class="led" id="led"></span><span>IO</span><i>1·0</i><span>SYSTEM</span><small>life edition</small></div>
     </div>
     <div class="controls">
-      <div class="dpad" role="group" aria-label="Mover avatar">
-        <button class="dp-up" data-act="pad" data-d="up" aria-label="Saltar">▲</button>
-        <button class="dp-left" data-act="pad" data-d="left" aria-label="Izquierda">◀</button>
+      <div class="dpad" role="group" aria-label="Mover y ascensor">
+        <button class="dp-up" data-act="pad" data-d="up" aria-label="Subir de piso">▲</button>
+        <button class="dp-left" data-act="pad" data-d="left" aria-label="Caminar a la izquierda">◀</button>
         <span class="dp-mid"></span>
-        <button class="dp-right" data-act="pad" data-d="right" aria-label="Derecha">▶</button>
-        <button class="dp-down" data-act="pad" data-d="down" aria-label="Sentarse">▼</button>
+        <button class="dp-right" data-act="pad" data-d="right" aria-label="Caminar a la derecha">▶</button>
+        <button class="dp-down" data-act="pad" data-d="down" aria-label="Bajar de piso">▼</button>
       </div>
       <div class="mid-btns">
         <button data-act="avatar"><i></i>SELECT</button>
-        <button data-act="shop"><i></i>START</button>
-        <span class="mid-lbl">avatar · tienda</span>
+        <button data-act="goShop"><i></i>START</button>
+        <span class="mid-lbl">▲▼ ascensor · A acción</span>
       </div>
       <div class="ab">
-        <button class="btn-b" data-act="shop" aria-label="B: tienda"><span>B</span></button>
-        <button class="btn-a" data-act="padA" aria-label="A: saludar"><span>A</span></button>
+        <button class="btn-b" data-act="goShop" aria-label="B: tienda"><span>B</span></button>
+        <button class="btn-a" data-act="padA" aria-label="A: acción del piso"><span>A</span></button>
       </div>
     </div>
     <div class="greet-row">
@@ -165,7 +106,7 @@
         <div class="greet-name" id="greetName">—</div>
         <div class="greet-sub" id="greetSub">—</div>
       </div>
-      <span class="tier-badge" id="tierBadge"></span>
+      <button class="tier-badge" id="tierBadge" data-act="goto" data-sec="buildCard"></button>
     </div>
     <div class="needs" id="needs"></div>
     <div class="quests">
@@ -182,122 +123,129 @@
     </div>
   </section>
 
-  <!-- ② HOY / SEMANA / MES -->
-  <section class="card cp" id="chipsCard">
-    <div class="chips-row" role="tablist">
-      <button class="chip active" data-chip="today" role="tab">Hoy</button>
-      <button class="chip" data-chip="week" role="tab">Semana</button>
-      <button class="chip" data-chip="month" role="tab">Mes</button>
+  <!-- ② DINERO: resumen, últimos movimientos, programados y categorías -->
+  <section class="card cp fold" id="moneyCard" data-fold="money">
+    <button class="card-h" data-act="fold"><h2 class="ctitle m0">💰 Dinero</h2><span class="ccount" id="moneyHint"></span><span class="chev" aria-hidden="true">⌄</span></button>
+    <div class="card-b">
+      <div class="chips-row" role="tablist">
+        <button class="chip active" data-chip="today" role="tab">Hoy</button>
+        <button class="chip" data-chip="week" role="tab">Semana</button>
+        <button class="chip" data-chip="month" role="tab">Mes</button>
+      </div>
+      <div class="chip-nums">
+        <div class="cn-box"><div class="cn-val red" id="chipOut">$0.00</div><div class="cn-lbl">Gastado</div></div>
+        <div class="cn-box"><div class="cn-val green" id="chipIn">$0.00</div><div class="cn-lbl">Recibido</div></div>
+        <div class="cn-box"><div class="cn-val" id="chipBal">$0.00</div><div class="cn-lbl">Balance</div></div>
+      </div>
+      <div class="budget" id="budget"></div>
+      <div class="insight-box" id="insightBox">Cargando…</div>
+      <div class="sub-h"><span>Últimos movimientos</span><button class="mini-btn" data-act="allTx">Ver todos <b id="txCount"></b></button></div>
+      <div class="tx-list" id="txList"><div class="skel"></div><div class="skel w80"></div></div>
+      <details class="fold-d" id="pendFold">
+        <summary><span>📅 Pagos programados</span><span class="fold-sum" id="pendSum"></span></summary>
+        <div class="pend-list" id="pendList"></div>
+        <button class="mini-btn" data-act="fijos">Editar pagos fijos</button>
+      </details>
+      <details class="fold-d" id="catFold">
+        <summary><span>🍩 ¿En qué se va la plata?</span><span class="fold-sum" id="catSum"></span></summary>
+        <div class="ctitle-row"><span class="ccount" id="catTitle"></span>
+          <div class="seg" id="catSeg"><button class="on" data-cat="cat">Categoría</button><button data-cat="merch">Comercio</button><button data-cat="src">Ingresos</button></div></div>
+        <div class="donut-wrap"><svg id="donut" viewBox="0 0 120 120"></svg><div class="donut-c" id="donutC"></div></div>
+        <div id="catList"></div>
+      </details>
     </div>
-    <div class="chip-nums">
-      <div class="cn-box"><div class="cn-val red" id="chipOut">$0.00</div><div class="cn-lbl">Gastado</div></div>
-      <div class="cn-box"><div class="cn-val green" id="chipIn">$0.00</div><div class="cn-lbl">Recibido</div></div>
-      <div class="cn-box"><div class="cn-val" id="chipBal">$0.00</div><div class="cn-lbl">Balance</div></div>
-    </div>
-    <div class="budget" id="budget"></div>
-    <div class="insight-box" id="insightBox">Cargando insight…</div>
   </section>
 
-  <!-- ③ ÚLTIMAS TRANSACCIONES (lista infinita) -->
-  <section class="card cp" id="txCard">
-    <div class="ctitle-row">
-      <h2 class="ctitle">Últimas transacciones</h2>
-      <span class="ccount" id="txCount"></span>
-    </div>
-    <input class="search" id="txSearch" type="search" placeholder="Buscar comercio, categoría, monto…" autocomplete="off">
-    <div class="tx-list" id="txList"><div class="skel"></div><div class="skel w80"></div><div class="skel w60"></div></div>
-    <div id="txSentinel" class="sentinel"></div>
-  </section>
-
-  <!-- ④ CALENDARIO -->
-  <section class="card cp" id="calCard">
+  <!-- ③ CALENDARIO -->
+  <section class="card cp fold" id="calCard" data-fold="cal">
     <div class="cal-hdr">
-      <h2 class="ctitle m0">Calendario</h2>
+      <button class="card-h inline" data-act="fold"><h2 class="ctitle m0">🗓 Calendario</h2><span class="chev" aria-hidden="true">⌄</span></button>
       <div class="cal-mnav">
         <button class="cal-nbtn" data-act="month" data-dir="-1" aria-label="Mes anterior">‹</button>
         <span class="cal-mname" id="calMonth">—</span>
         <button class="cal-nbtn" data-act="month" data-dir="1" aria-label="Mes siguiente">›</button>
       </div>
     </div>
-    <div id="calGrid"></div>
-    <div class="cal-legend"><span><i class="cdot" style="background:var(--red)"></i>gasto</span><span><i class="cdot" style="background:var(--green)"></i>ingreso</span><span><i class="cdot" style="background:var(--pink)"></i>salud</span><span><i class="cdot" style="background:var(--acc2)"></i>diario</span></div>
+    <div class="card-b">
+      <div id="calGrid"></div>
+      <div class="cal-legend"><span><i class="cdot" style="background:var(--red)"></i>gasto</span><span><i class="cdot" style="background:var(--green)"></i>ingreso</span><span><i class="cdot" style="background:var(--pink)"></i>salud</span><span><i class="cdot" style="background:var(--acc2)"></i>diario</span><span><i class="cdot" style="background:var(--amber)"></i>agenda</span></div>
+    </div>
   </section>
 
-  <!-- ⑤ GASTOS PROGRAMADOS / PENDIENTES -->
-  <section class="card cp" id="pendCard">
-    <div class="ctitle-row">
-      <h2 class="ctitle">Gastos programados</h2>
-      <button class="mini-btn" data-act="fijos">Editar fijos</button>
+  <!-- ④ TU EDIFICIO: niveles y mundos -->
+  <section class="card cp fold game-card" id="buildCard" data-fold="build">
+    <button class="card-h" data-act="fold"><h2 class="ctitle m0">🏢 Tu edificio</h2><span class="ccount" id="buildHint"></span><span class="chev" aria-hidden="true">⌄</span></button>
+    <div class="card-b">
+      <div class="next-floor" id="nextFloor"></div>
+      <div class="tower" id="tower"></div>
+      <div class="sub-h"><span>Logros</span><span class="ccount" id="achvCount"></span></div>
+      <div class="achv" id="achv"></div>
     </div>
-    <div class="pend-list" id="pendList"></div>
+  </section>
+
+  <!-- ⑤ TIENDA -->
+  <section class="card cp fold game-card" id="shopCard" data-fold="shop">
+    <button class="card-h" data-act="fold"><h2 class="ctitle m0">🛒 Tienda</h2><span class="shop-wallet" id="wallet">🪙 0</span><span class="chev" aria-hidden="true">⌄</span></button>
+    <div class="card-b">
+      <div class="shop-tabs" id="shopTabs"></div>
+      <div class="shop-floors" id="shopFloors"></div>
+      <div class="shop-grid" id="shopGrid"></div>
+      <div class="shop-note">Las monedas se ganan cumpliendo misiones de tu vida real. Nada se compra con dinero. Toca algo tuyo para ponerlo o guardarlo.</div>
+    </div>
   </section>
 
   <!-- ⑥ METAS -->
-  <section class="card cp" id="goalsCard">
+  <section class="card cp fold" id="goalsCard" data-fold="goals">
     <div class="ctitle-row">
-      <h2 class="ctitle">Metas</h2>
+      <button class="card-h inline" data-act="fold"><h2 class="ctitle m0">🎯 Metas</h2><span class="chev" aria-hidden="true">⌄</span></button>
       <button class="mini-btn" data-act="goalForm">+ Meta</button>
     </div>
-    <div class="goals" id="goals"></div>
+    <div class="card-b"><div class="goals" id="goals"></div></div>
   </section>
 
   <!-- ⑦ SALUD -->
-  <section class="card cp" id="healthCard">
-    <div class="ctitle-row">
-      <h2 class="ctitle">Salud · hoy</h2>
-      <span class="ccount" id="healthScore"></span>
+  <section class="card cp fold" id="healthCard" data-fold="health">
+    <button class="card-h" data-act="fold"><h2 class="ctitle m0">💪 Salud · hoy</h2><span class="ccount" id="healthScore"></span><span class="chev" aria-hidden="true">⌄</span></button>
+    <div class="card-b">
+      <div class="h-grid" id="hGrid"></div>
+      <div class="mood-pick" id="moodPick"></div>
+      <details class="fold-d"><summary><span>😴 Sueño de la semana</span></summary><div class="spark" id="sleepSpark"></div></details>
     </div>
-    <div class="h-grid" id="hGrid"></div>
-    <div class="mood-pick" id="moodPick"></div>
-    <div class="spark" id="sleepSpark"></div>
   </section>
 
   <!-- ⑧ RELACIONES -->
-  <section class="card cp" id="relCard">
+  <section class="card cp fold" id="relCard" data-fold="rel">
     <div class="ctitle-row">
-      <h2 class="ctitle">Relaciones</h2>
+      <button class="card-h inline" data-act="fold"><h2 class="ctitle m0">💬 Tu gente</h2><span class="chev" aria-hidden="true">⌄</span></button>
       <button class="mini-btn" data-act="personForm">+ Persona</button>
     </div>
-    <div class="people" id="people"></div>
+    <div class="card-b"><div class="people" id="people"></div></div>
   </section>
 
   <!-- ⑨ DIARIO -->
-  <section class="card cp" id="journalCard">
-    <div class="ctitle-row">
-      <h2 class="ctitle">Diario</h2>
-      <span class="ccount" id="journalCount"></span>
-    </div>
-    <div class="j-compose">
-      <textarea id="jText" rows="2" placeholder="¿Cómo estuvo tu día? Escribe o dicta…"></textarea>
-      <div class="j-actions">
-        <div class="j-moods" id="jMoods"></div>
-        <button class="icon-btn mic" data-act="dictate" data-target="jText" aria-label="Dictar">🎙️</button>
-        <button class="btn-acc sm" data-act="saveJournal">Guardar</button>
+  <section class="card cp fold" id="journalCard" data-fold="journal">
+    <button class="card-h" data-act="fold"><h2 class="ctitle m0">📝 Diario</h2><span class="ccount" id="journalCount"></span><span class="chev" aria-hidden="true">⌄</span></button>
+    <div class="card-b">
+      <div class="j-compose">
+        <textarea id="jText" rows="2" placeholder="¿Cómo estuvo tu día? Escribe o dicta…"></textarea>
+        <div class="j-actions">
+          <div class="j-moods" id="jMoods"></div>
+          <button class="icon-btn mic" data-act="dictate" data-target="jText" aria-label="Dictar">🎙️</button>
+          <button class="btn-acc sm" data-act="saveJournal">Guardar</button>
+        </div>
+        <div class="j-prompt" id="jPrompt"></div>
       </div>
-      <div class="j-prompt" id="jPrompt"></div>
+      <div class="j-list" id="jList"></div>
     </div>
-    <div class="j-list" id="jList"></div>
   </section>
 
-  <!-- ⑩ CATEGORÍAS / FUENTES (secundario) -->
-  <section class="card cp" id="catCard">
-    <div class="ctitle-row">
-      <h2 class="ctitle" id="catTitle">Gastos por categoría</h2>
-      <div class="seg" id="catSeg">
-        <button class="on" data-cat="cat">Categoría</button><button data-cat="merch">Comercio</button><button data-cat="src">Ingresos</button>
-      </div>
-    </div>
-    <div class="donut-wrap"><svg id="donut" viewBox="0 0 120 120"></svg><div class="donut-c" id="donutC"></div></div>
-    <div id="catList"></div>
+  <!-- ⑩ CONEXIONES -->
+  <section class="card cp fold" id="connCard" data-fold="conn">
+    <button class="card-h" data-act="fold"><h2 class="ctitle m0">🔌 Conexiones y datos</h2><span class="chev" aria-hidden="true">⌄</span></button>
+    <div class="card-b"><div class="conn-grid" id="connGrid"></div></div>
   </section>
 
-  <!-- ⑪ CONEXIONES -->
-  <section class="card cp" id="connCard">
-    <h2 class="ctitle">Conexiones</h2>
-    <div class="conn-grid" id="connGrid"></div>
-  </section>
-
-  <footer class="foot">IO · tu vida en un espejo · <span id="ver">v5</span></footer>
+  <footer class="foot"><span class="bin" id="binFoot">01001001 01001111</span> · IO · <span id="ver">v6</span></footer>
 </main>
 
 <!-- DOCK -->
@@ -322,7 +270,7 @@
 <div class="chat" id="chat" role="dialog" aria-modal="true" aria-label="Chat con IO">
   <div class="chat-hdr">
     <div class="cav-mini">🔮</div>
-    <div><div class="cn">IO</div><div class="cs" id="chatStatus"><i></i>tu espejo · conectado a tu vida</div></div>
+    <div><div class="cn">IO</div><div class="cs" id="chatStatus"><i></i>yo · conectado a tu vida</div></div>
     <button class="sheet-close" data-act="closeChat" aria-label="Cerrar">✕</button>
   </div>
   <div class="cmsgs" id="cmsgs"></div>
