@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>IO — tu espejo</title>
+<meta name="description" content="IO: diario personal con finanzas, salud y relaciones. Tu avatar refleja cómo vas.">
+<meta name="theme-color" content="#09090f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="IO">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="hdr">
+  <div class="logo" aria-label="IO">
+    <span class="logo-io">IO</span><span class="logo-sub">espejo</span>
+  </div>
+  <div class="hdr-r">
+    <button class="pill" id="syncPill" data-act="settings" aria-label="Estado de sincronización">
+      <span class="ldot" id="syncDot"></span><span id="syncTxt">cargando</span>
+    </button>
+    <span class="datec" id="datec"></span>
+    <button class="icon-btn" data-act="settings" aria-label="Ajustes">⚙️</button>
+  </div>
+</header>
+
+<div class="demo-bar" id="demoBar" hidden>
+  <span>✨ Estás viendo datos de ejemplo.</span>
+  <button data-act="settings">Conectar mis datos →</button>
+</div>
+
+<main class="main" id="main">
+
+  <!-- ① AVATAR + SALUDO + NECESIDADES -->
+  <section class="card av-card" id="avatarCard">
+    <div class="room" id="room">
+      <div class="sky" id="sky"><span class="celestial" id="celestial"></span><span class="stars"></span></div>
+      <div class="room-wall"></div>
+      <div class="room-shelf"><span>📚</span><span id="trophy">🏆</span></div>
+      <div class="room-floor"></div>
+      <div class="room-rug"></div>
+      <div class="room-plant" id="plant">🪴</div>
+      <div class="room-desk"><span class="laptop">💻</span><span id="deskItem">☕</span></div>
+      <div class="plumbob-sec">
+        <div class="plumbob" id="plumbob"></div>
+        <div class="mood-lbl" id="moodLbl">—</div>
+      </div>
+      <div class="av-wrap" id="avWrap" data-mood="neutral">
+        <div class="particles" aria-hidden="true"><span class="pt">✨</span><span class="pt">💚</span><span class="pt">⭐</span><span class="pt">💰</span><span class="pt">✨</span></div>
+        <div class="zzz" aria-hidden="true"><span>z</span><span>z</span><span>Z</span></div>
+        <svg class="av-svg" viewBox="0 0 120 165" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Tu avatar">
+          <ellipse cx="60" cy="160" rx="30" ry="4" fill="rgba(0,0,0,.35)"/>
+          <rect x="38" y="138" width="14" height="22" rx="6" class="pants"/>
+          <rect x="68" y="138" width="14" height="22" rx="6" class="pants"/>
+          <ellipse cx="45" cy="160" rx="10" ry="4" fill="#e5e7eb"/>
+          <ellipse cx="75" cy="160" rx="10" ry="4" fill="#e5e7eb"/>
+          <path d="M28 98 Q30 88 60 86 Q90 88 92 98 L96 142 Q60 150 24 142Z" class="hoodie"/>
+          <path d="M50 88 Q60 100 70 88" class="hoodie-dk" stroke-width="0"/>
+          <rect x="46" y="118" width="28" height="16" rx="6" fill="rgba(0,0,0,.16)"/>
+          <path d="M28 98 Q18 108 16 128 Q14 138 20 141 Q26 144 28 136 L34 115" class="hoodie"/>
+          <path d="M92 98 Q102 108 104 128 Q106 138 100 141 Q94 144 92 136 L86 115" class="hoodie"/>
+          <circle cx="18" cy="143" r="8" class="skin"/>
+          <circle cx="102" cy="143" r="8" class="skin"/>
+          <rect x="52" y="79" width="16" height="12" rx="4" class="skin"/>
+          <ellipse cx="60" cy="56" rx="29" ry="31" class="skin"/>
+          <path d="M32 48 Q30 25 60 22 Q90 22 88 48 Q82 38 72 36 Q60 32 48 36 Q38 38 32 48Z" class="hair"/>
+          <path d="M32 48 Q28 52 31 58" stroke-width="5" stroke-linecap="round" class="hair-s"/>
+          <path d="M88 48 Q92 52 89 58" stroke-width="5" stroke-linecap="round" class="hair-s"/>
+          <ellipse cx="31" cy="58" rx="5" ry="7" class="skin"/>
+          <ellipse cx="89" cy="58" rx="5" ry="7" class="skin"/>
+          <g class="eyes ey-neutral">
+            <g class="blink">
+              <ellipse cx="49" cy="55" rx="8" ry="9" fill="#fff"/><ellipse cx="71" cy="55" rx="8" ry="9" fill="#fff"/>
+              <ellipse cx="49" cy="57" rx="5" ry="6" fill="#1a0f0a"/><ellipse cx="71" cy="57" rx="5" ry="6" fill="#1a0f0a"/>
+              <circle cx="51" cy="54" r="2" fill="#fff"/><circle cx="73" cy="54" r="2" fill="#fff"/>
+            </g>
+          </g>
+          <g class="eyes ey-happy">
+            <path d="M41 54 Q49 46 57 54" stroke="#1a0f0a" stroke-width="3.5" stroke-linecap="round"/>
+            <path d="M63 54 Q71 46 79 54" stroke="#1a0f0a" stroke-width="3.5" stroke-linecap="round"/>
+            <ellipse cx="38" cy="66" rx="8" ry="4.5" fill="rgba(248,113,113,.28)"/>
+            <ellipse cx="82" cy="66" rx="8" ry="4.5" fill="rgba(248,113,113,.28)"/>
+          </g>
+          <g class="eyes ey-worried">
+            <ellipse cx="49" cy="55" rx="8" ry="9" fill="#fff"/><ellipse cx="71" cy="55" rx="8" ry="9" fill="#fff"/>
+            <ellipse cx="49" cy="58" rx="5" ry="6" fill="#1a0f0a"/><ellipse cx="71" cy="58" rx="5" ry="6" fill="#1a0f0a"/>
+            <path d="M40 42 Q49 48 58 43" stroke="#1a0f0a" stroke-width="3" stroke-linecap="round"/>
+            <path d="M62 43 Q71 48 80 42" stroke="#1a0f0a" stroke-width="3" stroke-linecap="round"/>
+            <ellipse cx="86" cy="48" rx="3.5" ry="5.5" fill="rgba(96,165,250,.6)"/>
+          </g>
+          <g class="eyes ey-excited">
+            <path d="M49 47 l2.6 5.4 5.9.8-4.3 4.1 1 5.9-5.2-2.8-5.2 2.8 1-5.9-4.3-4.1 5.9-.8z" fill="#fbbf24"/>
+            <path d="M71 47 l2.6 5.4 5.9.8-4.3 4.1 1 5.9-5.2-2.8-5.2 2.8 1-5.9-4.3-4.1 5.9-.8z" fill="#fbbf24"/>
+          </g>
+          <g class="eyes ey-tired">
+            <path d="M42 57 Q49 61 56 57" stroke="#1a0f0a" stroke-width="3" stroke-linecap="round"/>
+            <path d="M64 57 Q71 61 78 57" stroke="#1a0f0a" stroke-width="3" stroke-linecap="round"/>
+            <path d="M42 63 Q49 65 56 63 M64 63 Q71 65 78 63" stroke="rgba(76,29,149,.35)" stroke-width="2" stroke-linecap="round"/>
+          </g>
+          <g class="mouth mo-neutral"><path d="M50 74 Q60 79 70 74" stroke="#1a0f0a" stroke-width="2.5" stroke-linecap="round"/></g>
+          <g class="mouth mo-happy"><path d="M46 72 Q60 86 74 72" stroke="#1a0f0a" stroke-width="3" stroke-linecap="round"/></g>
+          <g class="mouth mo-worried"><path d="M48 77 Q60 70 72 77" stroke="#1a0f0a" stroke-width="2.5" stroke-linecap="round"/></g>
+          <g class="mouth mo-excited"><path d="M46 70 Q60 90 74 70Z" fill="#fff" stroke="#1a0f0a" stroke-width="2.5" stroke-linejoin="round"/></g>
+          <g class="mouth mo-tired"><ellipse cx="60" cy="76" rx="4" ry="3" fill="#1a0f0a"/></g>
+        </svg>
+      </div>
+    </div>
+    <div class="av-foot">
+      <div>
+        <div class="greet-name" id="greetName">—</div>
+        <div class="greet-sub" id="greetSub">—</div>
+      </div>
+      <button class="lvl" id="lvlBtn" data-act="avatar" aria-label="Nivel y personalizar avatar">
+        <span class="lvl-n" id="lvlN">1</span><span class="lvl-l">nivel</span>
+      </button>
+    </div>
+    <button class="av-speech" id="speech" data-act="nextNudge">Cargando tu mundo… 🌌</button>
+    <div class="needs" id="needs"></div>
+    <div class="xp-row">
+      <div class="xp-bar"><div class="xp-fill" id="xpFill"></div></div>
+      <span class="xp-txt" id="xpTxt">0 XP</span>
+      <span class="streak" id="streak">🔥 0</span>
+    </div>
+  </section>
+
+  <!-- ② HOY / SEMANA / MES -->
+  <section class="card cp" id="chipsCard">
+    <div class="chips-row" role="tablist">
+      <button class="chip active" data-chip="today" role="tab">Hoy</button>
+      <button class="chip" data-chip="week" role="tab">Semana</button>
+      <button class="chip" data-chip="month" role="tab">Mes</button>
+    </div>
+    <div class="chip-nums">
+      <div class="cn-box"><div class="cn-val red" id="chipOut">$0.00</div><div class="cn-lbl">Gastado</div></div>
+      <div class="cn-box"><div class="cn-val green" id="chipIn">$0.00</div><div class="cn-lbl">Recibido</div></div>
+      <div class="cn-box"><div class="cn-val" id="chipBal">$0.00</div><div class="cn-lbl">Balance</div></div>
+    </div>
+    <div class="budget" id="budget"></div>
+    <div class="insight-box" id="insightBox">Cargando insight…</div>
+  </section>
+
+  <!-- ③ ÚLTIMAS TRANSACCIONES (lista infinita) -->
+  <section class="card cp" id="txCard">
+    <div class="ctitle-row">
+      <h2 class="ctitle">Últimas transacciones</h2>
+      <span class="ccount" id="txCount"></span>
+    </div>
+    <input class="search" id="txSearch" type="search" placeholder="Buscar comercio, categoría, monto…" autocomplete="off">
+    <div class="tx-list" id="txList"><div class="skel"></div><div class="skel w80"></div><div class="skel w60"></div></div>
+    <div id="txSentinel" class="sentinel"></div>
+  </section>
+
+  <!-- ④ CALENDARIO -->
+  <section class="card cp" id="calCard">
+    <div class="cal-hdr">
+      <h2 class="ctitle m0">Calendario</h2>
+      <div class="cal-mnav">
+        <button class="cal-nbtn" data-act="month" data-dir="-1" aria-label="Mes anterior">‹</button>
+        <span class="cal-mname" id="calMonth">—</span>
+        <button class="cal-nbtn" data-act="month" data-dir="1" aria-label="Mes siguiente">›</button>
+      </div>
+    </div>
+    <div id="calGrid"></div>
+    <div class="cal-legend"><span><i class="cdot" style="background:var(--red)"></i>gasto</span><span><i class="cdot" style="background:var(--green)"></i>ingreso</span><span><i class="cdot" style="background:var(--pink)"></i>salud</span><span><i class="cdot" style="background:var(--acc2)"></i>diario</span></div>
+  </section>
+
+  <!-- ⑤ GASTOS PROGRAMADOS / PENDIENTES -->
+  <section class="card cp" id="pendCard">
+    <div class="ctitle-row">
+      <h2 class="ctitle">Gastos programados</h2>
+      <button class="mini-btn" data-act="fijos">Editar fijos</button>
+    </div>
+    <div class="pend-list" id="pendList"></div>
+  </section>
+
+  <!-- ⑥ METAS -->
+  <section class="card cp" id="goalsCard">
+    <div class="ctitle-row">
+      <h2 class="ctitle">Metas</h2>
+      <button class="mini-btn" data-act="goalForm">+ Meta</button>
+    </div>
+    <div class="goals" id="goals"></div>
+  </section>
+
+  <!-- ⑦ SALUD -->
+  <section class="card cp" id="healthCard">
+    <div class="ctitle-row">
+      <h2 class="ctitle">Salud · hoy</h2>
+      <span class="ccount" id="healthScore"></span>
+    </div>
+    <div class="h-grid" id="hGrid"></div>
+    <div class="mood-pick" id="moodPick"></div>
+    <div class="spark" id="sleepSpark"></div>
+  </section>
+
+  <!-- ⑧ RELACIONES -->
+  <section class="card cp" id="relCard">
+    <div class="ctitle-row">
+      <h2 class="ctitle">Relaciones</h2>
+      <button class="mini-btn" data-act="personForm">+ Persona</button>
+    </div>
+    <div class="people" id="people"></div>
+  </section>
+
+  <!-- ⑨ DIARIO -->
+  <section class="card cp" id="journalCard">
+    <div class="ctitle-row">
+      <h2 class="ctitle">Diario</h2>
+      <span class="ccount" id="journalCount"></span>
+    </div>
+    <div class="j-compose">
+      <textarea id="jText" rows="2" placeholder="¿Cómo estuvo tu día? Escribe o dicta…"></textarea>
+      <div class="j-actions">
+        <div class="j-moods" id="jMoods"></div>
+        <button class="icon-btn mic" data-act="dictate" data-target="jText" aria-label="Dictar">🎙️</button>
+        <button class="btn-acc sm" data-act="saveJournal">Guardar</button>
+      </div>
+      <div class="j-prompt" id="jPrompt"></div>
+    </div>
+    <div class="j-list" id="jList"></div>
+  </section>
+
+  <!-- ⑩ CATEGORÍAS / FUENTES (secundario) -->
+  <section class="card cp" id="catCard">
+    <div class="ctitle-row">
+      <h2 class="ctitle" id="catTitle">Gastos por categoría</h2>
+      <div class="seg" id="catSeg">
+        <button class="on" data-cat="cat">Categoría</button><button data-cat="merch">Comercio</button><button data-cat="src">Ingresos</button>
+      </div>
+    </div>
+    <div class="donut-wrap"><svg id="donut" viewBox="0 0 120 120"></svg><div class="donut-c" id="donutC"></div></div>
+    <div id="catList"></div>
+  </section>
+
+  <!-- ⑪ CONEXIONES -->
+  <section class="card cp" id="connCard">
+    <h2 class="ctitle">Conexiones</h2>
+    <div class="conn-grid" id="connGrid"></div>
+  </section>
+
+  <footer class="foot">IO · tu vida en un espejo · <span id="ver">v5</span></footer>
+</main>
+
+<!-- DOCK -->
+<nav class="dock" aria-label="Acciones">
+  <button class="dock-side" data-act="dictateCapture" aria-label="Dictar un registro">🎙️</button>
+  <button class="add-btn" data-act="capture"><span class="plus">+</span> Registrar</button>
+  <button class="dock-side fab" data-act="chat" aria-label="Hablar con IO">🔮</button>
+</nav>
+
+<!-- SHEET GENÉRICO -->
+<div class="sheet-ov" id="sheetOv"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <div class="sheet-drag"></div>
+  <div class="sheet-hdr">
+    <h3 class="sheet-title" id="sheetTitle">—</h3>
+    <button class="sheet-close" data-act="closeSheet" aria-label="Cerrar">✕</button>
+  </div>
+  <div class="sheet-body" id="sheetBody"></div>
+</div>
+
+<!-- CHAT -->
+<div class="chat" id="chat" role="dialog" aria-modal="true" aria-label="Chat con IO">
+  <div class="chat-hdr">
+    <div class="cav-mini">🔮</div>
+    <div><div class="cn">IO</div><div class="cs" id="chatStatus"><i></i>tu espejo · conectado a tu vida</div></div>
+    <button class="sheet-close" data-act="closeChat" aria-label="Cerrar">✕</button>
+  </div>
+  <div class="cmsgs" id="cmsgs"></div>
+  <div class="chat-quick" id="chatQuick"></div>
+  <form class="cinp-row" id="chatForm">
+    <button type="button" class="icon-btn mic" data-act="dictate" data-target="cinp" aria-label="Dictar">🎙️</button>
+    <input class="cinp" id="cinp" placeholder="Pregúntale algo a IO…" autocomplete="off" maxlength="2000">
+    <button class="csend" type="submit" aria-label="Enviar">➤</button>
+  </form>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<input type="file" id="fileIn" accept="image/*,application/pdf,.csv,text/csv" hidden>
+<input type="file" id="camIn" accept="image/*" capture="environment" hidden>
+<input type="file" id="backupIn" accept="application/json,.json" hidden>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
