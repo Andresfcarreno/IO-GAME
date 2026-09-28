@@ -6,6 +6,8 @@ import { cfg } from './store.js';
 import { sceneHTML, runScene } from './scenes.js';
 import * as Radio from './radio.js';
 import * as Pet from './pet.js';
+import * as So from './social.js';
+import { avatarSVG } from './avatar.js';
 import * as W from './world.js';
 import { blip } from './engine.js';
 
@@ -78,6 +80,7 @@ export function open(id, { onClaim, onClose } = {}) {
           <div class="fc-clock" id="fcClock"><canvas id="fcRing" aria-hidden="true"></canvas>
             <div class="fc-center"><div class="fc-time" id="fcTime">--:--</div><div class="fc-bin" id="fcBin" title="Minutos restantes en binario"></div><div class="fc-pct" id="fcPct"></div></div></div>
           ${sceneHTML(act, cfg.avatar, W.game().wear, { big: true, pet: Pet.get() })}
+          <div class="fc-buddies" id="fcBud"></div>
         </div>
         <div class="bezel-label"><span class="bz-io">IO</span><em>1·0</em><span class="fgb-who">${esc(who)}</span></div>
       </div>
@@ -108,7 +111,7 @@ export function open(id, { onClaim, onClose } = {}) {
     while ((m = milestone(el0, dur - el0, dur, F.said))) { F.said.add(m[0]); last = m; }
     if (last && el0 > 20) { F.lastSay = performance.now(); setTimeout(() => say(`De vuelta 💜 ${last[2]}`, true), 300); }
   }
-  wake(true); rain(); loop();
+  wake(true); rain(); loop(); buddyLoop();
   document.addEventListener('visibilitychange', onVis);
 }
 function onVis() { if (document.visibilityState === 'visible' && F.id) { wake(true); } }
@@ -118,8 +121,20 @@ async function wake(on) {
     if (!on && F.wake) { await F.wake.release(); F.wake = null; }
   } catch { F.wake = null; }
 }
+/* compañeros de sala (o un bot 🤖) enfocados contigo */
+async function buddyLoop() {
+  clearTimeout(F.budT); if (!F.id) return;
+  const h = H.get(F.id); if (!h) return;
+  const rem = h.min * 60 - H.elapsed(F.id);
+  await So.presence(h, F.act, rem);
+  let list = await So.buddies();
+  if (!list.length && cfg.botBuddy !== false) list = [So.botBuddy(F.act)];
+  const el = $('fcBud'); if (!el || !F.id) return;
+  el.innerHTML = list.map(b => `<div class="bud${b.paused ? ' paused' : ''}"><span class="bud-f">${avatarSVG(b.look, 'av', '28 2 64 64')}</span><div><b>${esc(b.name)}</b><small>${b.bot ? `${(H.ACTS[b.act] || H.ACTS.jump)[0]} ${esc(b.habit)}` : `${esc(b.habit)}${b.rem ? ' · ' + Math.ceil(b.rem / 60) + ' min' : ''}${b.paused ? ' · pausa' : ''}`}</small></div></div>`).join('');
+  F.budT = setTimeout(buddyLoop, 20000);
+}
 export function close() {
-  cancelAnimationFrame(F.raf); clearInterval(F.rainT); wake(false); OV = null;
+  cancelAnimationFrame(F.raf); clearInterval(F.rainT); clearTimeout(F.budT); wake(false); OV = null;
   if (F.radioMine) { Radio.stop(); F.radioMine = false; }
   document.removeEventListener('visibilitychange', onVis);
   $('focus').hidden = true; $('focus').innerHTML = ''; $('focus').classList.remove('won'); document.body.style.overflow = '';

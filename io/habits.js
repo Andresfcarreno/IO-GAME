@@ -245,3 +245,26 @@ export function claimQuest(id) {
   const q = quests().find(x => x.id === id); if (!q || !q.done || q.claimed) return null;
   const g = W.game(); g.quests[id] = true; g.bits += q.bits; W.saveGame(g); return q;
 }
+
+/* ---------- diario de ánimo: una línea después de cada corona ---------- */
+export const MOODS = ['😫', '😕', '😐', '🙂', '🤩'];
+export function setMood(id, mood, note = '', iso = todayIso()) {
+  const l = log(iso); const s = l.s[id]; if (!s) return;
+  if (mood) s.mood = Math.max(1, Math.min(5, +mood)); else s.moodSkip = true;
+  if (note) s.note = String(note).slice(0, 140);
+  l.s[id] = s; saveLog(iso, l);
+}
+export const moodPending = () => forDay().filter(h => { const s = sess(h.id); return s.claimed && !s.mood && !s.moodSkip; });
+export function moodStats(days = 30) {
+  const hs = list(); const per = {}; const notes = []; let sum = 0, n = 0;
+  for (let i = 0; i < days; i++) {
+    const iso = addDays(todayIso(), -i); const l = log(iso);
+    for (const [id, s] of Object.entries(l.s)) {
+      if (!s.mood) continue; sum += s.mood; n++;
+      (per[id] ||= []).push(s.mood);
+      if (s.note && notes.length < 12) notes.push({ iso, id, mood: s.mood, note: s.note, h: hs.find(h => h.id === id) });
+    }
+  }
+  const byHabit = hs.map(h => ({ h, n: per[h.id]?.length || 0, avg: per[h.id] ? per[h.id].reduce((a, b) => a + b, 0) / per[h.id].length : 0 })).filter(x => x.n);
+  return { avg: n ? sum / n : 0, n, byHabit, notes };
+}

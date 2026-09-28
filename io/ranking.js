@@ -11,6 +11,7 @@ const K_AUTH = 'io.rank.auth';
 const conn = () => ({ url: (RANKING.url || cfg.supaUrl || '').replace(/\/+$/, ''), key: RANKING.key || cfg.supaKey || '' });
 export const online = () => { const c = conn(); return !!(c.url && c.key); };
 export const joined = () => !!cfg.rankOn;
+export const myId = () => readAuth()?.uid || null;
 export const state = { rows: [], me: null, scope: 'global', error: '', loadedAt: 0, loading: false };
 
 /* ---------- datos de otros jugadores: nunca se confía en ellos ---------- */
@@ -22,7 +23,7 @@ export function safeLook(l) {
 }
 const safeWear = w => ({ head: W.WEAR.some(i => i.id === w?.head) ? w.head : null, face: W.WEAR.some(i => i.id === w?.face) ? w.face : null });
 const num = v => Math.max(0, Math.min(1e9, Math.floor(+v || 0)));
-const clean = r => ({ id: String(r.user_id || r.id || ''), name: String(r.name || 'Anónimo').slice(0, 20), level: Math.max(1, num(r.level)), xp: num(r.xp), week_xp: num(r.week_xp), streak: num(r.streak), look: safeLook(r.look?.a || r.look), wear: safeWear(r.look?.w), bot: !!r.bot, me: !!r.me });
+const clean = r => ({ id: String(r.user_id || r.id || ''), name: String(r.name || 'Anónimo').slice(0, 20), level: Math.max(1, num(r.level)), xp: num(r.xp), week_xp: num(r.week_xp), streak: num(r.streak), look: safeLook(r.look?.a || r.look), wear: safeWear(r.look?.w), room: safeRoom(r.look), bot: !!r.bot, me: !!r.me });
 
 /* ---------- auth anónima ---------- */
 function readAuth() { try { return JSON.parse(localStorage.getItem(K_AUTH) || 'null'); } catch { return null; } }
@@ -35,13 +36,13 @@ async function authCall(path, body) {
   const a = { access: j.access_token, refresh: j.refresh_token, exp: Date.now() + (j.expires_in || 3600) * 1000 - 60000, uid: j.user?.id };
   writeAuth(a); return a;
 }
-async function session() {
+export async function session() {
   let a = readAuth();
   if (a?.access && a.exp > Date.now()) return a;
   if (a?.refresh) { try { return await authCall('token?grant_type=refresh_token', { refresh_token: a.refresh }); } catch { /* sesión vencida: nueva cuenta anónima */ } }
   return authCall('signup', {});
 }
-async function rest(path, { method = 'GET', body, headers = {} } = {}) {
+export async function rest(path, { method = 'GET', body, headers = {} } = {}) {
   const c = conn(); const a = await session();
   const r = await fetch(`${c.url}/rest/v1/${path}`, { method, headers: { apikey: c.key, Authorization: `Bearer ${a.access}`, 'Content-Type': 'application/json', ...headers }, body: body ? JSON.stringify(body) : undefined });
   if (!r.ok) { const t = await r.text().catch(() => ''); throw new Error(t.slice(0, 140) || `HTTP ${r.status}`); }
@@ -49,9 +50,22 @@ async function rest(path, { method = 'GET', body, headers = {} } = {}) {
 }
 
 /* ---------- mi fila ---------- */
+/** Foto pequeña de tu piso para que otros lo visiten (máx. 9 objetos). */
+export function roomSnap(g) {
+  const f = g.floor || 1; const list = (g.placed?.[f] || []).slice(0, 9).map(p => [p.item, Math.round((p.x || .5) * 100), p.on || '', p.y == null ? -1 : Math.round(p.y * 100)]);
+  const pet = g.pet?.sp && g.pet.stage ? [g.pet.sp, g.pet.stage] : null;
+  return { f, r: list, p: pet };
+}
+const ON = new Set(['', 'table', 'shelf1', 'shelf2']);
+export function safeRoom(look) {
+  const f = Math.max(1, Math.min(100000, Math.floor(+look?.f || 1)));
+  const r = (Array.isArray(look?.r) ? look.r : []).slice(0, 9).filter(x => Array.isArray(x) && W.itemById(x[0])).map(([id, x, on, y]) => [id, Math.max(0, Math.min(100, +x || 50)), ON.has(on) ? on : '', Math.max(-1, Math.min(100, Number.isFinite(+y) ? +y : -1))]);
+  const p = Array.isArray(look?.p) && ['ave', 'dragon', 'felino', 'marino'].includes(look.p[0]) ? [look.p[0], Math.max(0, Math.min(4, +look.p[1] || 0))] : null;
+  return { f, r, p };
+}
 function mine() {
   const g = W.game();
-  return { name: (cfg.rankName || cfg.name || 'Player').slice(0, 20), level: W.level(g), xp: g.xp, week_key: W.weekKey(), week_xp: H.weekXp(g), streak: H.dayStreak(), look: { a: cfg.avatar || LOOK_DEFAULT, w: { head: g.wear.head || null, face: g.wear.face || null } } };
+  return { name: (cfg.rankName || cfg.name || 'Player').slice(0, 20), level: W.level(g), xp: g.xp, week_key: W.weekKey(), week_xp: H.weekXp(g), streak: H.dayStreak(), look: { a: cfg.avatar || LOOK_DEFAULT, w: { head: g.wear.head || null, face: g.wear.face || null }, ...roomSnap(g) } };
 }
 let pushT;
 /** Publica tu progreso (con calma: como mucho una vez cada 20 s). */
@@ -103,6 +117,7 @@ export async function load(scope = state.scope) {
 /* ---------- liga de práctica (sin backend): bots 🤖, nunca personas inventadas ---------- */
 const BOT_NAMES = ['Byte', 'Nibble', 'Pixel', 'Bit', 'Chip', 'Kilo', 'Mega', 'Giga', 'Qubit', 'Bool', 'Loop', 'Array', 'Cache', 'Sprite', 'Glitch', 'Turbo', 'Ping', 'Nano', 'Tera', 'Hex'];
 function rng(seed) { let s = seed >>> 0; return () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+export function practiceRows(scope) { const keep = { ...state }; practice(scope); const rows = state.rows; Object.assign(state, keep); return rows; }
 function practice(scope) {
   const g = W.game(); const days = Math.floor(Date.now() / 864e5);
   const bots = BOT_NAMES.map((n, i) => {
@@ -111,9 +126,13 @@ function practice(scope) {
     const xp = Math.floor(pace * (age + Math.max(0, days - 20700) * .35));
     const look = {}; for (const k of Object.keys(OPTIONS)) { const o = OPTIONS[k]; const v = o[Math.floor(r() * o.length)]; look[k] = Array.isArray(v) ? v[0] : v; }
     const wr = rng(i * 31 + Math.floor((days + 3) / 7)); const now = new Date(); const into = (now.getDay() + 6) % 7 + (now.getHours() + 6) / 24; const week_xp = Math.floor(pace * 1.5 * into * (.5 + wr() * .9));
-    return clean({ id: 'bot' + i, name: '🤖 ' + n, level: W.levelOf(xp), xp, week_xp, streak: Math.floor(r() * 40), look, bot: true });
+    const lv = W.levelOf(xp); const f = 1 + Math.floor(r() * lv);
+    const pool = W.CATALOG.filter(it => it.lvl <= lv && it.kind !== 'veh'); const room = W.floorInfo(f).starter.map(([id, x]) => [id, Math.round(x * 100), '', -1]);
+    for (let k = 0; k < 3; k++) { const it = pool[Math.floor(r() * pool.length)]; if (it) room.push([it.id, 25 + Math.floor(r() * 65), it.band === 'floor' && W.surfacesOf(it).includes('shelf2') && r() > .4 ? 'shelf2' : '', it.band === 'wall' ? 30 : -1]); }
+    const sps = ['ave', 'dragon', 'felino', 'marino'];
+    return clean({ id: 'bot' + i, name: '🤖 ' + n, level: lv, xp, week_xp, streak: Math.floor(r() * 40), look: { a: look, f, r: room, p: [sps[i % 4], Math.min(4, Math.floor(lv / 8))] }, bot: true });
   });
-  const me = clean({ id: 'me', name: cfg.rankName || cfg.name || 'Tú', level: W.level(g), xp: g.xp, week_xp: H.weekXp(g), streak: H.dayStreak(), look: { a: cfg.avatar, w: g.wear }, me: true });
+  const me = clean({ id: 'me', name: cfg.rankName || cfg.name || 'Tú', level: W.level(g), xp: g.xp, week_xp: H.weekXp(g), streak: H.dayStreak(), look: { a: cfg.avatar, w: g.wear, ...roomSnap(g) }, me: true });
   const key = scope === 'semana' ? 'week_xp' : 'xp';
   state.rows = [...bots, me].sort((a, b) => b[key] - a[key]);
   state.me = null; state.loadedAt = Date.now();

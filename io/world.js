@@ -98,6 +98,25 @@ export const CATALOG = [
   ['hamster', '🐹', 'Hámster', 'floor', .8, 90, 2, 'pet'], ['gato', '🐈', 'Gato', 'floor', 1, 200, 4, 'pet'], ['perro', '🐕', 'Perro', 'floor', 1.1, 240, 6, 'pet'], ['loro', '🦜', 'Loro', 'floor', .9, 320, 9, 'pet'],
   ['tortuga', '🐢', 'Tortuga', 'floor', .9, 150, 3, 'pet'], ['zorro', '🦊', 'Zorro', 'floor', 1, 600, 20, 'pet'], ['unicornio', '🦄', 'Unicornio', 'floor', 1.3, 2500, 40, 'pet'], ['dragon', '🐉', 'Dragón', 'floor', 1.5, 9000, 100, 'pet'],
 ].map(([id, e, n, band, s, price, lvl, kind]) => ({ id, e, n, band, s, price, lvl, kind: kind || 'mueble' }));
+/* temporadas: objetos que solo se consiguen en su mes (se quedan para siempre si los compras) */
+export const SEASONS = {
+  1: ['Año nuevo', [['fuegos', '🎆', 'Fuegos artificiales', 'wall', 1.3, 120], ['brindis', '🥂', 'Brindis', 'floor', 1, 80]]],
+  2: ['Amor', [['corazon', '💘', 'Corazón', 'wall', 1.2, 90], ['rosas', '🌹', 'Rosas', 'floor', 1, 70]]],
+  3: ['Primavera', [['sakura', '🌸', 'Cerezo', 'floor', 1.6, 150], ['mariposa', '🦋', 'Mariposas', 'ceiling', 1, 90]]],
+  4: ['Pascua', [['huevos', '🪺', 'Nido de huevos', 'floor', 1, 90], ['conejo', '🐇', 'Conejo', 'floor', 1, 160, 'pet']]],
+  5: ['Mes de la madre', [['tulipan', '🌷', 'Ramo de tulipanes', 'floor', 1, 80], ['carta', '💌', 'Carta', 'wall', 1, 60]]],
+  6: ['Fútbol', [['balon', '⚽', 'Balón', 'floor', 1, 90], ['copa', '🏆', 'Copa dorada', 'wall', 1.3, 220]]],
+  7: ['Verano', [['helado', '🍦', 'Helado', 'floor', .9, 60], ['tabla', '🏄', 'Tabla de surf', 'wall', 1.4, 200]]],
+  8: ['Cometas', [['cometa', '🪁', 'Cometa', 'ceiling', 1.3, 110], ['viento', '🎐', 'Campanita de viento', 'ceiling', 1, 80]]],
+  9: ['Amor y amistad', [['amistad', '💝', 'Regalo de amistad', 'floor', 1, 90], ['globo_c', '🎈', 'Globo corazón', 'ceiling', 1, 60]]],
+  10: ['Halloween', [['calabaza', '🎃', 'Calabaza', 'floor', 1.2, 100], ['fantasma', '👻', 'Fantasma', 'ceiling', 1, 130], ['telarana', '🕸️', 'Telaraña', 'wall', 1.3, 70]]],
+  11: ['Otoño', [['hojas', '🍁', 'Hojas de otoño', 'wall', 1.2, 70], ['chocolate', '☕', 'Chocolate caliente', 'floor', .9, 60]]],
+  12: ['Navidad', [['arbol_nav', '🎄', 'Árbol de Navidad', 'floor', 1.8, 260], ['regalos', '🎁', 'Regalos', 'floor', 1.1, 120], ['muneco', '⛄', 'Muñeco de nieve', 'floor', 1.4, 180], ['media', '🧦', 'Media navideña', 'wall', 1, 60]]],
+};
+export const month = () => new Date().getMonth() + 1;
+export const seasonName = (m = month()) => SEASONS[m]?.[0] || '';
+Object.entries(SEASONS).forEach(([m, [, list]]) => list.forEach(([id, e, n, band, s, price, kind]) => CATALOG.push({ id, e, n, band, s, price, lvl: 1, kind: kind || 'mueble', season: +m })));
+export const inSeason = it => !it.season || it.season === month();
 export const WEAR = [
   ['lentes', '👓', 'Lentes', 'face', 40, 1], ['gafas', '🕶️', 'Gafas de sol', 'face', 90, 2], ['gorra', '🧢', 'Gorra', 'head', 60, 1], ['gorro', '🧶', 'Gorro de lana', 'head', 70, 2],
   ['lazo', '🎀', 'Lazo', 'head', 50, 1], ['audifonos', '🎧', 'Audífonos', 'head', 130, 3], ['casco', '⛑️', 'Casco de piloto', 'head', 220, 10], ['sombrero', '🎩', 'Sombrero de copa', 'head', 300, 15], ['corona', '👑', 'Corona', 'head', 1200, 30],
@@ -122,7 +141,7 @@ export function saveGame(g) { const { id, ...d } = g; S.putItem('game', d, GID);
 export const level = (g = game()) => levelOf(g.xp);
 
 /* ---------- superficies del cuarto: piso, aparador y dos repisas ---------- */
-const SHELF_OK = new Set(['radio', 'planta', 'cactus', 'vela', 'osito', 'frutas', 'cafetera', 'laptop', 'consola_tv', 'palomitas', 'globo', 'flores', 'microfono', 'lampara_pie_mini', 'trofeo_mini', 'hamster', 'tortuga']);
+const SHELF_OK = new Set(['brindis', 'rosas', 'huevos', 'tulipan', 'balon', 'helado', 'amistad', 'chocolate', 'regalos', 'radio', 'planta', 'cactus', 'vela', 'osito', 'frutas', 'cafetera', 'laptop', 'consola_tv', 'palomitas', 'globo', 'flores', 'microfono', 'lampara_pie_mini', 'trofeo_mini', 'hamster', 'tortuga']);
 const TABLE_OK = new Set([...SHELF_OK, 'tv', 'monitor', 'acuario', 'champana', 'lampara_pie', 'escultura', 'robot', 'telescopio']);
 /** Dónde puede ir un objeto (el orden es de abajo hacia arriba). */
 export function surfacesOf(it) {
@@ -168,7 +187,7 @@ export function rarityOf(it) {
   return RARITY.find(r => v < r.max) || RARITY[3];
 }
 const hash = str => { let h = 2166136261; for (const c of str) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; };
-export const SHOPPABLE = () => [...CATALOG.filter(i => i.price > 0), ...WEAR];
+export const SHOPPABLE = () => [...CATALOG.filter(i => i.price > 0 && inSeason(i)), ...WEAR];
 /** Oferta del día: igual para todos ese día, -30%, dentro de tu nivel (+3 para antojar). */
 export function dailyDeal(g = game(), iso = S.todayIso()) {
   const lvl = level(g);
@@ -195,6 +214,7 @@ export function buy(itemId, { deal = false } = {}) {
   const useDeal = d && d.item.id === itemId && !d.taken;
   const price = useDeal ? d.price : it.price;
   if (!useDeal && lvl < it.lvl) return { ok: false, msg: `🔒 Se desbloquea en el nivel ${it.lvl}` };
+  if (!inSeason(it)) return { ok: false, msg: `⏳ ${it.e} solo está disponible en temporada de ${SEASONS[it.season][0]}` };
   if (g.bits < price) return { ok: false, msg: `Te faltan ${price - g.bits} bits. Cumple un hábito y vuelve 💪` };
   g.bits -= price; g.owned[itemId] = (g.owned[itemId] || 0) + 1;
   if (useDeal) { g.deals = { ...(g.deals || {}), [S.todayIso()]: itemId }; }
@@ -227,6 +247,9 @@ export function mysteryBox(rand = Math.random) {
   saveGame(g);
   return { ok: true, item: it, rarity: rar, isNew };
 }
+
+/* ---------- temas de la consola: se desbloquean subiendo de nivel ---------- */
+export const THEMES = [['clasico', 'Clásico', 1, '#2c2166'], ['menta', 'Menta', 4, '#0f766e'], ['sandia', 'Sandía', 8, '#be123c'], ['atomico', 'Atómico', 12, '#6d28d9'], ['noche', 'Medianoche', 18, '#0f172a'], ['oro', 'Oro', 25, '#a16207'], ['arcoiris', 'Arcoíris', 40, '#db2777']];
 
 /* ---------- escudo de racha: si un día fallas, tu racha no se rompe (se gana, no se compra con dinero) ---------- */
 export const SHIELD = { price: 120, max: 2, lvl: 3 };

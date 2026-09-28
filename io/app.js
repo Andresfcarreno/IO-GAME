@@ -14,6 +14,7 @@ import * as R from './ranking.js';
 import * as Radio from './radio.js';
 import * as Rem from './remind.js';
 import * as Pet from './pet.js';
+import * as Wx from './weather.js';
 const mmss = s => { s = Math.max(0, Math.round(s)); return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; };
 const ANIM = { read: 'sit', study: 'sit', write: 'sit', type: 'sit', talk: 'wave', float: 'float', breathe: 'float', yoga: 'flex', pray: 'float', unplug: 'dance', sleep: 'float', flex: 'flex', run: 'jump', walk: 'dance', dog: 'dance', swim: 'jump', eat: 'jump', cook: 'dance', water: 'jump', clean: 'dance', music: 'dance', draw: 'wave', jump: 'jump' };
 
@@ -287,6 +288,7 @@ function settingsSheet() {
     <div class="stack" style="margin:10px 0 4px"><button class="btn-acc" data-act="saveSettings">Guardar</button>
       <button class="btn-ghost" data-act="allHabits">📋 Mis hábitos</button>
       <button class="btn-ghost" data-act="redoOnb">🎮 Rehacer configuración inicial</button></div>
+    <label class="tog"><input type="checkbox" id="stWx"${cfg.weather ? ' checked' : ''}> Clima real en la ventana de mi cuarto (usa tu ubicación)</label>
     <div class="sec-t">Recordatorios y calendario</div>
     <label class="tog"><input type="checkbox" id="stRemind"${Rem.enabled() ? ' checked' : ''}${Rem.state() === 'unsupported' || Rem.state() === 'denied' ? ' disabled' : ''}> Avisarme a la hora de cada hábito</label>
     <div class="field"><label for="stLead">Avisar</label><select class="inp" id="stLead">${[[0, 'A la hora exacta'], [5, '5 min antes'], [10, '10 min antes'], [15, '15 min antes']].map(([v, l]) => `<option value="${v}"${+(cfg.remindLead ?? 5) === v ? ' selected' : ''}>${l}</option>`).join('')}</select></div>
@@ -352,6 +354,7 @@ const A = {
   saveChar: () => { saveCfg({ avatar: editLook, name: $('chName').value.trim() || cfg.name }); closeSheet(); renderAll(); G.act('dance', '✨'); G.say('¡Nuevo look!', 2500); },
   saveSettings: async () => {
     saveCfg({ remindLead: +$('stLead').value });
+    if ($('stWx').checked !== !!cfg.weather) { const ok = await Wx.enable($('stWx').checked); if (!ok && $('stWx').checked) toast('No se pudo leer la ubicación', 3500); }
     if ($('stRemind').checked !== Rem.enabled()) { const r = await Rem.enable($('stRemind').checked); if (r === 'denied') toast('Notificaciones bloqueadas en el navegador', 4000); }
     const wasOn = !!cfg.rankOn; const on = $('stRank').checked; const rankName = $('stRankName').value.trim().slice(0, 20) || cfg.name;
     saveCfg({ name: $('stName').value.trim() || cfg.name, sound: $('stSound').checked, wake: $('stWake').checked, rankName });
@@ -394,7 +397,8 @@ G.init({
   onRadio: () => { const st = Radio.toggle(W.level()); $('scene').classList.toggle('radio-on', !!st); L.render(); return st ? `${st.e} ${st.n}` : ''; },
   onFloor: () => { renderTop(); L.render(); },
 });
-L.init({ renderAll, buy, place, celebrate });
+L.init({ renderAll, buy, place, celebrate, start: id => startHabit(id) });
+document.body.dataset.gb = cfg.gb || 'clasico';
 H.closeStale();
 const shielded = H.applyShields();
 W.grantRadio();
@@ -411,8 +415,10 @@ else {
 }
 S.sync().then(renderAll);
 Rem.start();
+Wx.refresh(); setInterval(() => Wx.refresh(), 30 * 60000);
 { // atajos del ícono y notificaciones: ?start=<id|next> · ?tab=<pestaña>
   const q = new URLSearchParams(location.search); const st = q.get('start'); const tb = q.get('tab');
+  const sala = q.get('sala'); if (sala) { import('./social.js').then(So => { const c = So.joinRoom(sala); if (c) { toast(`👥 Entraste a la sala ${c}. Arranca un hábito y enfóquense juntos.`, 5000); L.show('ranking'); } }); history.replaceState(null, '', location.pathname); }
   if (cfg.onboarded && (st || tb)) {
     history.replaceState(null, '', location.pathname);
     if (tb) L.show(tb, { scroll: true });

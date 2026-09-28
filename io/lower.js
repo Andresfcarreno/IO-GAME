@@ -11,6 +11,8 @@ import * as Radio from './radio.js';
 import * as Rem from './remind.js';
 import * as Share from './share.js';
 import * as Pet from './pet.js';
+import * as So from './social.js';
+import * as Coach from './coach.js';
 import { $, esc, fmtN, toast, openSheet, closeSheet } from './ui.js';
 
 const TABS = ['hoy', 'tienda', 'ranking', 'progreso', 'mundo'];
@@ -51,6 +53,11 @@ export function badges() {
 function renderHoy() {
   const c = H.weekChallenge();
   $('hoyWeekly').innerHTML = questsCard() + weeklyCard(c, true);
+  const mp = H.moodPending()[0];
+  $('hoyMood').innerHTML = mp ? `<div class="mood-card"><b>¿Cómo te sentiste con ${esc(mp.emoji)} ${esc(mp.nombre)}?</b>
+    <div class="mood-row">${H.MOODS.map((m, i) => `<button data-act="mood" data-id="${mp.id}" data-v="${i + 1}" aria-label="Ánimo ${i + 1}">${m}</button>`).join('')}</div>
+    <input class="inp" id="moodNote" maxlength="140" placeholder="Una línea para tu diario (opcional)">
+    <button class="mood-skip" data-act="mood" data-id="${mp.id}" data-v="0">Ahora no</button></div>` : '';
   const g = W.game(); const d = W.dailyDeal(g); const col = W.collection(g);
   const chase = chaser();
   $('quick').innerHTML = `
@@ -78,12 +85,13 @@ function chaser() {
 
 /* ================= TIENDA ================= */
 let shopCat = 'todo';
-const CATS = [['todo', '✨ Todo'], ['nuevo', '🆕 Nuevo'], ['mueble', '🛋️ Muebles'], ['veh', '🚗 Vehículos'], ['pet', '🐾 Mascotas'], ['wear', '🧢 Ropa']];
+const CATS = [['todo', '✨ Todo'], ['season', '⏳ Temporada'], ['nuevo', '🆕 Nuevo'], ['mueble', '🛋️ Muebles'], ['veh', '🚗 Vehículos'], ['pet', '🐾 Mascotas'], ['wear', '🧢 Ropa']];
 const untilMidnight = () => { const n = new Date(); const m = new Date(n); m.setHours(24, 0, 0, 0); const s = Math.floor((m - n) / 1000); return `${String(Math.floor(s / 3600)).padStart(2, '0')}:${String(Math.floor(s / 60) % 60).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; };
 function renderShop() {
   const g = W.game(); const lvl = W.level(g); const col = W.collection(g); const d = W.dailyDeal(g);
   let items = W.SHOPPABLE();
-  if (shopCat === 'nuevo') items = items.filter(i => i.lvl > lvl - 2 && i.lvl <= lvl + 3);
+  if (shopCat === 'season') items = items.filter(i => i.season);
+  else if (shopCat === 'nuevo') items = items.filter(i => i.lvl > lvl - 2 && i.lvl <= lvl + 3);
   else if (shopCat === 'wear') items = items.filter(i => i.kind === 'wear');
   else if (shopCat !== 'todo') items = items.filter(i => i.kind === shopCat);
   const open = items.filter(i => i.lvl <= lvl).sort((a, b) => a.price - b.price);
@@ -101,11 +109,17 @@ function renderShop() {
       <span class="mb-t"><b>Caja sorpresa</b><small>${W.RARITY.map(r => `<em class="rt r-${r.id}">${r.n} ${r.w}%</em>`).join('')}</small></span>
       <span class="mb-p">${lvl < 2 ? '🔒 NV 2' : `◆${W.BOX_PRICE}`}</span>
     </button>
+    ${seasonBanner()}
     ${shieldCard(g, lvl)}
     <div class="chips-row" role="tablist">${CATS.map(([k, l]) => `<button class="${k === shopCat ? 'on' : ''}" data-act="shopCat" data-c="${k}">${l}</button>`).join('')}</div>
     ${cheapest && g.bits < cheapest.price ? `<p class="sh-hint">💡 Te faltan <b>${cheapest.price - g.bits}◆</b> para ${cheapest.e} ${esc(cheapest.n)} · ≈ ${Math.max(1, Math.ceil((cheapest.price - g.bits) / 12))} hábito${Math.ceil((cheapest.price - g.bits) / 12) > 1 ? 's' : ''}</p>` : ''}
     <div class="sgrid">${[...open, ...locked].map(i => shopItem(g, lvl, i)).join('') || '<div class="empty">Nada por aquí todavía.</div>'}</div>
     <p class="note">◆ Los bits solo se ganan cumpliendo hábitos con el reloj. Nada se compra con dinero, nunca.</p>`;
+}
+function seasonBanner() {
+  const items = W.SHOPPABLE().filter(i => i.season); if (!items.length) return '';
+  const now = new Date(); const end = new Date(now.getFullYear(), now.getMonth() + 1, 1); const d = Math.ceil((end - now) / 864e5);
+  return `<button class="season" data-act="shopCat" data-c="season"><span class="ss-e">${items.map(i => i.e).join('')}</span><div><b>Temporada: ${esc(W.seasonName())}</b><small>⏳ Solo este mes · quedan ${d} día${d === 1 ? '' : 's'}</small></div><em>LIMITADO</em></button>`;
 }
 function shieldCard(g, lvl) {
   const n = g.shields || 0; const lock = lvl < W.SHIELD.lvl;
@@ -129,7 +143,7 @@ function shopItem(g, lvl, i) {
   const poor = !locked && !(i.kind === 'wear' && own) && g.bits < i.price;
   return `<button class="si r-${r.id}${locked ? ' locked' : ''}${worn ? ' on' : ''}${poor ? ' poor' : ''}" data-act="item" data-id="${i.id}">
     <span class="si-e">${i.e}</span><span class="si-n">${esc(i.n)}</span><span class="si-p">${p}</span>
-    ${isNew ? '<i class="si-new">NUEVO</i>' : ''}${own && i.kind !== 'wear' ? `<i class="si-own">×${own}</i>` : ''}
+    ${i.season ? '<i class="si-new ltd">LIMITADO</i>' : isNew ? '<i class="si-new">NUEVO</i>' : ''}${own && i.kind !== 'wear' ? `<i class="si-own">×${own}</i>` : ''}
   </button>`;
 }
 const WHERE = { floor: 'Va en el piso', wall: 'Va en la pared', ceiling: 'Cuelga del techo' };
@@ -212,10 +226,13 @@ function renderRank() {
   const practice = !R.online() || st.fallback;
   const rows = st.rows;
   const top3 = rows.slice(0, 3);
-  const podium = [top3[1], top3[0], top3[2]].map((r, k) => r ? `<div class="pd pd-${[2, 1, 3][k]}${r.me ? ' me' : ''}">
+  const podium = [top3[1], top3[0], top3[2]].map((r, k) => r ? `<div class="pd pd-${[2, 1, 3][k]}${r.me ? ' me' : ''}" data-act="visitTop" data-k="${rows.indexOf(r)}" role="button">
       ${[2, 1, 3][k] === 1 ? '<span class="pd-crown">👑</span>' : ''}${face(r.look, r.wear, 'pd-face')}
       <b>${esc(r.name)}</b><small>NV ${r.level} · ${fmtN(r[key])} XP</small><i>${[2, 1, 3][k]}</i></div>` : '<div class="pd"></div>').join('');
-  const ch = chaser();
+  const ch = chaser(); shown = [];
+  const moved = So.updateLeague(); const L = So.league(); const D = So.DIVS[L.div];
+  if (moved && !L.told) { const g = W.game(); g.league.told = 1; W.saveGame(g); toast(moved === 'up' ? `⬆️ ¡Subiste a la liga ${D[0]} ${D[1]}!` : moved === 'down' ? `⬇️ Bajaste a la liga ${D[0]}. ¡Esta semana la recuperas!` : `Sigues en la liga ${D[0]} ${D[1]}`, 5000); }
+  const zone = (pos, n) => scope !== 'semana' ? '' : pos <= So.ZONE && L.div < So.DIVS.length - 1 ? ' z-up' : pos > n - So.ZONE && L.div > 0 ? ' z-down' : '';
   $('p-ranking').innerHTML = `
     <div class="rk-head">
       <div class="chips-row"><button class="${scope === 'global' ? 'on' : ''}" data-act="rankScope" data-s="global">🌎 Global</button><button class="${scope === 'semana' ? 'on' : ''}" data-act="rankScope" data-s="semana">⚡ Esta semana</button></div>
@@ -225,18 +242,58 @@ function renderRank() {
       : !R.joined() ? `<div class="rk-join"><b>Únete al ranking mundial</b><small>Sin correo ni contraseña: solo tu nombre público, tu nivel y tu personaje.</small>
         <div class="row"><input class="inp" id="rkName" maxlength="20" value="${esc(cfg.rankName || cfg.name || '')}" placeholder="Tu nombre público"><button class="btn-acc" data-act="rankJoin" style="width:auto;padding:10px 16px">Entrar</button></div></div>` : ''}
     ${ch && ch.next ? `<div class="rk-chase">🎯 Te faltan <b>${fmtN(ch.gap)} XP</b> para pasar a <b>${esc(ch.next)}</b> y quedar #${ch.pos - 1}</div>` : ch ? '<div class="rk-chase gold">👑 ¡Vas de primero! Todos te quieren alcanzar.</div>' : ''}
+    ${scope === 'semana' ? `<div class="lg-card" style="--lc:${D[2]}"><span class="lg-ic">${D[1]}</span><div><b>Liga ${D[0]}</b><small>Termina en ${So.endsIn()} · vas <b>#${L.rank || '—'}</b></small><small>⬆ los ${So.ZONE} primeros suben · ⬇ los ${So.ZONE} últimos bajan</small></div>
+      <div class="lg-ladder">${So.DIVS.map((d, i) => `<i class="${i === L.div ? 'on' : i < L.div ? 'past' : ''}" title="${d[0]}">${d[1]}</i>`).join('')}</div></div>` : ''}
     <div class="podium">${podium}</div>
-    <ol class="rk-list">${rows.slice(3, 100).map((r, i) => rankRow(r, i + 4, key)).join('')}</ol>
+    <ol class="rk-list">${rows.slice(3, 100).map((r, i) => rankRow(r, i + 4, key, zone(i + 4, rows.length))).join('')}</ol>
     ${st.me ? `<div class="rk-me-sep">···</div><ol class="rk-list">${rankRow(st.me, st.me.pos, key)}</ol>` : ''}
+    ${togetherCard()}
     ${!rows.length ? '<div class="empty">Cargando ranking…</div>' : ''}
     <div class="stack" style="margin-top:12px"><button class="btn-ghost" data-act="invite">📣 Reta a tus amigos</button>
       ${R.online() && R.joined() ? '<button class="btn-ghost" data-act="rankLeave">Salir del ranking</button>' : ''}</div>
     <p class="note">${scope === 'semana' ? 'La tabla semanal se reinicia cada lunes: cualquiera puede ganarla.' : 'Top 100 por XP total. Tu nivel es tu piso.'} Títulos: ${W.TITLES.map(([l, t]) => `${t} (${l}+)`).join(' · ')}.</p>`;
 }
-function rankRow(r, pos, key) {
-  return `<li class="rk${r.me ? ' me' : ''}${r.bot ? ' bot' : ''}"><span class="rk-pos">${pos}</span>${face(r.look, r.wear)}
+let shown = [];
+function rankRow(r, pos, key, zone = '') {
+  shown.push(r);
+  return `<li class="rk${r.me ? ' me' : ''}${r.bot ? ' bot' : ''}${zone}" data-act="visit" data-i="${shown.length - 1}" role="button" tabindex="0"><span class="rk-pos">${pos}</span>${face(r.look, r.wear)}
     <span class="rk-n"><b>${esc(r.name)}${r.me ? ' <em>TÚ</em>' : ''}</b><small>${W.titleOf(r.level)} · piso ${r.level}${r.streak ? ` · 🔥${r.streak}` : ''}</small></span>
     <span class="rk-xp">${fmtN(r[key])}<small>XP</small></span></li>`;
+}
+
+function togetherCard() {
+  const code = So.room();
+  return `<div class="pg-sec tg-card"><div class="h-head"><h2>👥 Sesiones juntos</h2><span class="h-prog">${code ? 'sala ' + code : 'enfócate acompañado'}</span></div>
+    <p class="note">Crea una sala e invita a tus amigos: cuando arranquen su reloj, sus personajes aparecen en tu pantalla haciendo lo suyo. Estudiar o entrenar acompañado funciona.</p>
+    ${code ? `<div class="tg-code"><b>${code}</b><button class="btn-ghost" data-act="roomShare">📣 Invitar</button><button class="btn-ghost" data-act="roomLeave">Salir</button></div>${R.online() ? '' : '<p class="note">⚠️ Las salas necesitan el servidor del ranking. Mientras tanto te acompaña un bot 🤖.</p>'}`
+      : `<div class="row"><button class="btn-acc" data-act="roomNew">＋ Crear sala</button><input class="inp" id="roomIn" maxlength="8" placeholder="Código" style="text-transform:uppercase"><button class="btn-ghost" data-act="roomJoin" style="width:auto">Entrar</button></div>`}
+    <label class="tog"><input type="checkbox" data-bot-buddy${cfg.botBuddy !== false ? ' checked' : ''}> Si no hay nadie, que me acompañe un compañero 🤖</label></div>`;
+}
+/** El cuarto de otra persona, en miniatura. */
+export function miniRoom(room, look, wear, name = '') {
+  const f = W.floorInfo(room.f); const B = { '': '14%', table: 'calc(14% + 24px)', shelf2: '47%', shelf1: '64%' };
+  const pet = room.p ? Pet.SPECIES[room.p[0]]?.chain[room.p[1]] : '';
+  return `<div class="vroom${f.open ? ' open' : ''}" data-skin="${f.world.skin}" data-type="${f.type}">
+    <div class="vr-wall"></div><div class="vr-floor"></div><div class="vr-win"></div>
+    ${f.open ? '' : '<i class="vr-shf s1"></i><i class="vr-shf s2"></i><div class="vr-sb"></div>'}
+    ${room.r.map(([id, x, on, y]) => { const it = W.itemById(id); if (!it) return ''; const k = on ? .72 : 1;
+      const pos = it.band === 'wall' ? `top:${12 + Math.max(0, y) * .4}%` : it.band === 'ceiling' ? 'top:8%' : `bottom:${B[on] || B['']}`;
+      return `<span class="vr-it" style="left:${x}%;${pos};font-size:${Math.round(26 * it.s * k * (it.band === 'wall' ? 1.2 : 1))}px">${it.e}</span>`; }).join('')}
+    <div class="vr-av ${['head', 'face'].map(s => wear?.[s] ? 'wear-' + wear[s] : '').join(' ')}" data-mood="happy">${avatarSVG(look, 'av')}</div>
+    ${pet ? `<span class="vr-pet">${pet}</span>` : ''}
+    <div class="vr-tag">PISO ${room.f} · ${f.ic} ${esc(f.name)}${name ? ' · de ' + esc(name) : ''}</div></div>`;
+}
+async function visit(r) {
+  if (!r) return;
+  const st = R.state.scope === 'semana' ? 'week_xp' : 'xp';
+  openSheet(r.me ? 'Tu edificio' : `Visitando a ${r.name}`, `
+    ${miniRoom(r.room || { f: 1, r: [], p: null }, r.look, r.wear, r.me ? '' : r.name)}
+    <div class="vs-info"><div><small>Título</small><b>${esc(W.titleOf(r.level))}</b></div><div><small>Nivel</small><b>${r.level}</b></div><div><small>Racha</small><b>🔥 ${r.streak}</b></div><div><small>${st === 'xp' ? 'XP total' : 'XP semana'}</small><b>${fmtN(r[st])}</b></div></div>
+    <div class="vs-likes"><span id="vsLikes">❤️ …</span> esta semana</div>
+    ${r.me ? '<button class="btn-acc" data-act="story">📸 Compartir mi edificio</button>' : `<button class="btn-acc${So.liked(r.id) ? ' off' : ''}" data-act="like" data-id="${esc(r.id)}">${So.liked(r.id) ? '❤️ Ya le diste like' : '❤️ Dar like'}</button>`}
+    ${r.bot ? '<p class="note">🤖 Es un bot de la liga de práctica: sirve para entrenar la competencia mientras llegan tus amigos.</p>' : ''}`);
+  visit.row = r;
+  const n = await So.likesOf(r.me ? 'me' : r.id); const el = document.getElementById('vsLikes'); if (el) el.textContent = `❤️ ${n}`;
 }
 
 /* ================= PROGRESO ================= */
@@ -254,7 +311,10 @@ function renderProg() {
   const month = H.monthGoals(); const hm = H.heatmap(12); const ach = W.achievements(g, { streak: H.dayStreak() });
   const mname = dateOf(todayIso()).toLocaleDateString('es', { month: 'long' });
   const best = Math.max(g.stats.best || 0, ...H.list().map(h => H.streakOf(h.id)), 0);
+  const tips = Coach.tips(); renderProg.tips = tips; const ms = H.moodStats(30);
   $('p-progreso').innerHTML = `
+    <div class="coach-card"><div class="h-head"><h2>🧠 Coach IO</h2><span class="h-prog">tus últimas 2 semanas</span></div>
+      ${tips.map((t, i) => `<div class="tip"><span>${t.e}</span><div><b>${esc(t.t)}</b><small>${esc(t.d)}</small></div>${t.act ? `<button data-act="coachApply" data-i="${i}">${t.act.start ? '▶ Ya' : 'Aplicar'}</button>` : ''}</div>`).join('')}</div>
     ${weeklyCard(H.weekChallenge())}
     <div class="pg-sec"><div class="h-head"><h2>Tu semana</h2><span class="h-prog">🔥 ${H.dayStreak()} ${H.dayStreak() === 1 ? 'día' : 'días'}</span></div>
       <div class="week">${w.rows.length ? `<div class="wk-row wk-h"><span></span>${w.days.map(d => `<i>${DN[dateOf(d).getDay()]}</i>`).join('')}</div>` + w.rows.map(r => `<div class="wk-row"><span title="${esc(r.h.nombre)}">${esc(r.h.emoji)} ${esc(r.h.nombre)}</span>${r.cells.map(c => `<i class="c-${c}"></i>`).join('')}</div>`).join('') : '<div class="empty">Aquí verás tu semana.</div>'}</div></div>
@@ -262,6 +322,10 @@ function renderProg() {
       ${month.map(m => `<div class="mg"><span class="mg-e">${esc(m.h.emoji)}</span><div class="mg-b"><div class="mg-t"><b>${esc(m.h.nombre)}</b><small>${m.minutes}/${m.goal} min · ${m.done}/${m.plan} días</small></div><div class="mg-bar"><i style="width:${Math.min(100, m.pct * 100)}%"></i></div></div></div>`).join('') || '<div class="empty">Crea hábitos para ver tus metas.</div>'}</div>
     <div class="pg-sec"><div class="h-head"><h2>12 semanas en 1 y 0</h2><span class="h-prog">L → D</span></div>
       <div class="heat">${hm.map(wk => `<div class="hcol">${wk.map(c => `<i class="h${c.future ? 'f' : Math.min(3, c.n)}" title="${c.iso}: ${c.n}">${c.future ? '' : c.n ? 1 : 0}</i>`).join('')}</div>`).join('')}</div></div>
+    <div class="pg-sec"><div class="h-head"><h2>Tu ánimo</h2><span class="h-prog">${ms.n ? `${H.MOODS[Math.round(ms.avg) - 1]} promedio · ${ms.n} registros` : 'últimos 30 días'}</span></div>
+      ${ms.byHabit.length ? ms.byHabit.map(x => `<div class="mg"><span class="mg-e">${esc(x.h.emoji)}</span><div class="mg-b"><div class="mg-t"><b>${esc(x.h.nombre)}</b><small>${H.MOODS[Math.round(x.avg) - 1]} ${x.avg.toFixed(1)}/5</small></div><div class="mg-bar mood"><i style="width:${x.avg / 5 * 100}%"></i></div></div></div>`).join('')
+        : '<div class="empty">Después de cada corona te pregunto cómo te sentiste. Aquí verás qué hábitos te hacen bien.</div>'}
+      ${ms.notes.length ? `<div class="diary">${ms.notes.map(n => `<div><span>${H.MOODS[n.mood - 1]}</span><p>${esc(n.note)}<small>${esc(n.h?.emoji || '')} ${esc(n.h?.nombre || '')} · ${n.iso.slice(5).split('-').reverse().join('/')}</small></p></div>`).join('')}</div>` : ''}</div>
     <div class="stats">
       <div><b>${fmtN(g.stats.minutes)}</b><span>minutos</span></div><div><b>${fmtN(g.stats.sessions)}</b><span>hábitos completos</span></div><div><b>${best}</b><span>mejor racha</span></div>
       <div><b>${Object.keys(g.chest).length}</b><span>días perfectos</span></div><div><b>${fmtN(g.stats.spent || 0)}</b><span>bits invertidos</span></div><div><b>${g.stats.boxes || 0}</b><span>cajas abiertas</span></div>
@@ -271,6 +335,11 @@ function renderProg() {
 }
 
 /* ================= MUNDO ================= */
+function themeCard(lvl) {
+  const cur = cfg.gb || 'clasico';
+  return `<div class="pg-sec"><div class="h-head"><h2>🎮 Tu consola</h2><span class="h-prog">nuevos colores al subir</span></div>
+    <div class="themes">${W.THEMES.map(([id, n, l, c]) => `<button class="${cur === id ? 'on' : ''}${lvl < l ? ' locked' : ''}" data-act="theme" data-id="${id}" style="--tc:${c}"${lvl < l ? ' disabled' : ''}><i></i><b>${n}</b><small>${lvl < l ? '🔒 nivel ' + l : cur === id ? 'puesto' : 'usar'}</small></button>`).join('')}</div></div>`;
+}
 function petCard() {
   const p = Pet.get();
   const chain = p.sp ? Pet.SPECIES[p.sp].chain : ['🥚', '❔', '❔', '❔', '❔'];
@@ -315,6 +384,7 @@ function renderWorld() {
     <div class="pg-sec"><div class="h-head"><h2>Próximas metas</h2><span class="h-prog">nivel = piso</span></div>
       ${miles.map(([n, t]) => { const need = W.xpAt(n) - g.xp; return `<div class="mile"><i>${n}</i><b>${esc(t)}</b><small>faltan ${fmtN(need)} XP · ≈ ${Math.max(1, Math.round(need / 90))} días</small></div>`; }).join('')}</div>
     ${petCard()}
+    ${themeCard(lvl)}
     ${radioCard(lvl)}
     <div class="stack"><button class="btn-ghost" data-act="map">🗺️ Mapa completo del edificio</button><button class="btn-ghost" data-act="story">📸 Tarjeta para mis historias</button></div>
     <p class="note">Estás en el piso ${g.floor} · ${f.ic} ${esc(f.name)}. Toca un piso para tomar el ascensor.</p>`;
@@ -327,6 +397,16 @@ export const actions = {
   item: el => itemSheet(el.dataset.id),
   buyDeal: () => { const d = W.dailyDeal(); if (d) ctx.buy(d.item.id, { deal: true }); },
   box: () => openBox(),
+  theme: el => { saveCfg({ gb: el.dataset.id }); document.body.dataset.gb = el.dataset.id; G.blip('select'); renderWorld(); },
+  mood: el => { const v = +el.dataset.v; H.setMood(el.dataset.id, v, v ? (document.getElementById('moodNote')?.value || '') : ''); if (v) { G.blip('select'); toast(v >= 4 ? '💜 ¡Qué bien! Guardado en tu diario' : '💜 Gracias por contarlo. Mañana es otro día', 2600); } renderHoy(); },
+  coachApply: el => { const t = renderProg.tips?.[+el.dataset.i]; if (!t?.act) return; if (t.act.start) return ctx.start(t.act.start); const h = H.get(t.act.id); if (!h) return; const { id, ...rest } = h; H.save({ ...rest, ...(t.act.min ? { min: t.act.min } : {}), ...(t.act.hora ? { hora: t.act.hora } : {}) }, id); G.blip('buy'); toast('✅ Ajustado. Tu coach lo revisa en unos días', 3000); ctx.renderAll(); },
+  visit: el => visit(shown[+el.dataset.i]),
+  visitTop: el => visit(R.state.rows[+el.dataset.k]),
+  like: async el => { const r = visit.row; if (!r) return; const res = await So.like(r); if (!res.ok) return toast(res.msg); G.blip('coin'); el.textContent = '❤️ ¡Enviado!'; el.classList.add('off'); const v = document.getElementById('vsLikes'); if (v) v.textContent = v.textContent.replace(/\d+/, n => +n + 1); if (res.back) setTimeout(() => toast(`${r.name} te devolvió el ❤️`), 1500); },
+  roomNew: () => { const c = So.createRoom(); G.blip('select'); renderRank(); share(`Enfoquémonos juntos en IO 👥 Sala ${c}: ${So.roomLink(c)}`); },
+  roomJoin: () => { const c = So.joinRoom(document.getElementById('roomIn').value); if (!c) return toast('Escribe un código válido'); toast(`👥 Entraste a la sala ${c}`); renderRank(); },
+  roomShare: () => share(`Enfoquémonos juntos en IO 👥 Sala ${So.room()}: ${So.roomLink(So.room())}`),
+  roomLeave: () => { So.leaveRoom(); renderRank(); },
   petName: () => { const n = prompt('¿Cómo se llama tu compañero?', Pet.get().name); if (n && n.trim()) { Pet.rename(n); ctx.renderAll(); toast('❤️ ¡Le encantó su nombre!'); } },
   radioSt: el => { if (Radio.current() === el.dataset.id) Radio.stop(); else Radio.play(el.dataset.id); document.getElementById('scene')?.classList.toggle('radio-on', !!Radio.current()); G.blip('select'); renderWorld(); },
   radioOff: () => { Radio.stop(); document.getElementById('scene')?.classList.remove('radio-on'); renderWorld(); },
@@ -362,7 +442,7 @@ export function init(c) {
     if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.8 && !e.target.closest('.chips-row,.heat,.week')) { const i = TABS.indexOf(tab) + (dx < 0 ? 1 : -1); if (TABS[i]) show(TABS[i]); }
   }, { passive: true });
   document.addEventListener('input', e => { if (e.target.matches('[data-radio-vol]')) Radio.setVolume(+e.target.value); });
-  document.addEventListener('change', e => { if (e.target.matches('[data-radio-auto]')) saveCfg({ radioAuto: e.target.checked }); });
+  document.addEventListener('change', e => { if (e.target.matches('[data-radio-auto]')) saveCfg({ radioAuto: e.target.checked }); if (e.target.matches('[data-bot-buddy]')) saveCfg({ botBuddy: e.target.checked }); });
   setInterval(() => { document.querySelectorAll('[data-countdown]').forEach(s => { s.textContent = untilMidnight(); }); }, 1000);
   show(tab, { sound: false });
   loadRank('global');
