@@ -12,7 +12,7 @@ import { $, esc, toast, openSheet, closeSheet } from './ui.js';
 import * as L from './lower.js';
 import * as R from './ranking.js';
 const mmss = s => { s = Math.max(0, Math.round(s)); return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; };
-const ANIM = { read: 'sit', float: 'float', flex: 'flex', eat: 'jump', talk: 'wave', type: 'sit', music: 'dance', walk: 'dance', write: 'sit', clean: 'dance', jump: 'jump' };
+const ANIM = { read: 'sit', study: 'sit', write: 'sit', type: 'sit', talk: 'wave', float: 'float', breathe: 'float', yoga: 'flex', pray: 'float', unplug: 'dance', sleep: 'float', flex: 'flex', run: 'jump', walk: 'dance', dog: 'dance', swim: 'jump', eat: 'jump', cook: 'dance', water: 'jump', clean: 'dance', music: 'dance', draw: 'wave', jump: 'jump' };
 
 /* ================= hábitos de hoy ================= */
 function stateOf(h) {
@@ -68,7 +68,23 @@ function renderTop() {
   G.setMood(H.running() ? 'neutral' : t.claimed ? 'happy' : 'neutral');
   $('led').classList.toggle('on', !!H.running());
 }
-function renderAll() { renderTop(); renderHabits(); L.render(); G.render(); R.publish(); }
+function renderAll() { renderTop(); renderHabits(); L.render(); G.render(); renderMini(); R.publish(); }
+
+/* ================= mini reproductor: tu próximo hábito siempre a un toque ================= */
+let listVisible = false;
+function renderMini() {
+  const m = $('mini'); const r = H.running();
+  const crown = H.forDay().find(x => { const s = H.sess(x.id); return s.done && !s.claimed; });
+  const h = r ? H.get(r.hid) : crown || H.nextUp();
+  const show = !!h && cfg.onboarded && !listVisible && !Focus.isOpen() && $('onb').hidden;
+  m.classList.toggle('show', show); if (!show) return;
+  const el = H.elapsed(h.id); const st = stateOf(h);
+  const p = st === 'claimed' ? 1 : el / (h.min * 60);
+  m.innerHTML = `<div class="mi-bar"><i style="width:${Math.min(100, p * 100)}%"></i></div>
+    <span class="mi-e">${st === 'crown' ? '👑' : esc(h.emoji)}</span>
+    <div class="mi-t"><b>${esc(h.nombre)}</b><small>${st === 'crown' ? 'Corona lista: actívala' : st === 'running' ? `● quedan ${mmss(h.min * 60 - el)}` : st === 'paused' ? `⏸ pausado · quedan ${mmss(h.min * 60 - el)}` : `Próximo · ${h.hora} · ${h.min} min`}</small></div>
+    ${st === 'crown' ? `<button class="mi-go crown" data-act="claim" data-id="${h.id}" aria-label="Activar corona">👑</button>` : `<button class="mi-go" data-act="start" data-id="${h.id}" aria-label="${st === 'running' ? 'Abrir reloj' : 'Empezar'}">${st === 'running' ? '⤢' : '▶'}</button>`}`;
+}
 
 /* ================= reloj y corona ================= */
 function startHabit(id) {
@@ -77,6 +93,7 @@ function startHabit(id) {
 }
 function claimFlow(id) {
   const r = H.claim(id); if (!r) { renderAll(); return; }
+  try { navigator.vibrate?.([40, 30, 90]); } catch { /* */ }
   renderAll();
   const row = document.querySelector(`.hab[data-hid="${id}"]`);
   const act = H.actOf(r.habit);
@@ -106,9 +123,12 @@ function habitSheet(id) {
     <div class="row"><div class="field"><label for="hfMin">Duración (min)</label><input class="inp" id="hfMin" type="number" min="1" max="240" value="${h.min}" inputmode="numeric"></div>
     <div class="field"><label for="hfHora">Hora</label><input class="inp" id="hfHora" type="time" value="${esc(h.hora)}"></div></div>
     <div class="field"><label>Días</label><div class="hb-days big" id="hfDays">${H.DAYS.map((d, k) => `<button class="${(h.dias || []).includes(k) ? 'on' : ''}" data-act="toggleDay" data-k="${k}">${d}</button>`).join('')}</div></div>
+    <div class="field"><label for="hfAct">Tu personaje durante el reloj</label><select class="inp" id="hfAct">${Object.entries(H.ACTS).map(([k, [e, l]]) => `<option value="${k}"${k === H.actOf(h) ? ' selected' : ''}>${e} ${l}</option>`).join('')}</select></div>
     <div class="field"><label for="hfMot">¿Por qué? (te lo recordaremos si quieres pausar)</label><input class="inp" id="hfMot" value="${esc(h.motivo || '')}" maxlength="120" placeholder="Quiero…"></div>
     <div class="stack"><button class="btn-acc" data-act="saveHabit" data-id="${id || ''}">Guardar</button>
     ${id ? `<button class="btn-ghost danger" data-act="delHabit" data-id="${id}">Eliminar hábito</button>` : ''}</div>`);
+  let manual = !!id; $('hfAct').onchange = () => { manual = true; };
+  $('hfName').oninput = () => { if (manual) return; const a = H.guessAct($('hfName').value, $('hfEmoji').value); $('hfAct').value = a; };
 }
 function allHabitsSheet() {
   const hs = H.list();
@@ -202,7 +222,7 @@ function settingsSheet() {
 
 /* ================= demo ================= */
 function seedDemo() {
-  const pick = [0, 1, 2, 3, 12];
+  const pick = ['Leer', 'Meditar', 'Hacer ejercicio', 'Sacar al perro', 'Respirar'].map(n => H.EXAMPLES.findIndex(x => x[1] === n));
   const ids = pick.map(k => { const [e, n, m, h, act] = H.EXAMPLES[k]; return H.save({ emoji: e, nombre: n, min: m, hora: h, act, dias: [0, 1, 2, 3, 4, 5, 6], motivo: '' }).id; });
   const g = W.game(); g.xp = W.xpAt(7) + 40; g.bits = 900; g.stats = { minutes: 640, sessions: 31, best: 9, spent: 420, boxes: 1 }; g.floor = 1;
   g.owned = { ...g.owned, cactus: 1, gato: 1, gorra: 1 }; g.wear = { head: 'gorra' }; g.wk = { k: W.weekKey(), xp: 140, claimed: false };
@@ -230,7 +250,7 @@ const A = {
     if (!dias.length) return toast('Elige al menos un día');
     const old = el.dataset.id ? H.get(el.dataset.id) : null;
     const { id: _o, ...rest } = old || {};
-    H.save({ ...rest, emoji: $('hfEmoji').value, nombre, min: parseInt($('hfMin').value) || 10, hora: $('hfHora').value || '08:00', dias, motivo: $('hfMot').value.trim() }, el.dataset.id || null);
+    H.save({ ...rest, emoji: $('hfEmoji').value, nombre, min: parseInt($('hfMin').value) || 10, hora: $('hfHora').value || '08:00', dias, motivo: $('hfMot').value.trim(), act: $('hfAct').value }, el.dataset.id || null);
     closeSheet(); renderAll(); toast('Hábito guardado ✓');
   },
   delHabit: el => { if (el.dataset.sure) { H.remove(el.dataset.id); closeSheet(); renderAll(); toast('Hábito eliminado'); } else { el.dataset.sure = 1; el.textContent = '¿Seguro? Toca otra vez para eliminar'; } },
@@ -283,11 +303,15 @@ G.init({
 });
 L.init({ renderAll, buy, place, celebrate });
 H.closeStale();
+const shielded = H.applyShields();
 renderAll();
+new IntersectionObserver(es => { listVisible = es.some(e => e.isIntersecting); renderMini(); }, { rootMargin: '-130px 0px -90px 0px' }).observe($('habitList'));
+setInterval(() => { if (H.running() && !Focus.isOpen()) renderMini(); }, 1000);
 if (!cfg.onboarded) openOnboarding({ onDone: afterOnb });
 else {
   const r = H.running();
   if (r) startHabit(r.hid);
+  else if (shielded) G.say(`🛡️ Ayer se te pasó, pero tu escudo protegió la racha (${shielded} día${shielded > 1 ? 's' : ''}). ¡Hoy toca volver!`, 7000);
   else { const n = H.nextUp(); G.say(n ? `Hola ${cfg.name}. Próximo: ${n.emoji} ${n.nombre} a las ${n.hora}.` : `Hola ${cfg.name}. ¡Todo listo por hoy! Camina, decora o visita tus pisos.`, 5000); }
 }
 S.sync().then(renderAll);

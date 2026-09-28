@@ -3,7 +3,8 @@
  * Se puede pausar, no terminar antes: sin reloj completo no hay corona. */
 import * as H from './habits.js';
 import { cfg } from './store.js';
-import { avatarSVG } from './avatar.js';
+import { sceneHTML } from './scenes.js';
+import * as W from './world.js';
 import { blip } from './engine.js';
 
 const $ = id => document.getElementById(id);
@@ -18,12 +19,13 @@ const MOTIVOS = [
   'Tu racha depende de este momento.',
   'Cada minuto completo es un piso más alto en tu edificio.',
 ];
+const CHEERS = ['Quédate aquí. El reloj sigue contando aunque bloquees la pantalla.', '25% ✦ Ya arrancaste, que es lo más difícil.', '50% ✦ Mitad del camino. Tu personaje sigue contigo.', '75% ✦ Recta final. La corona ya se ve.'];
 const fmt = s => { s = Math.max(0, Math.ceil(s)); const m = Math.floor(s / 60), r = s % 60; return `${String(m).padStart(2, '0')}:${String(r).padStart(2, '0')}`; };
 let F = { id: null, raf: 0, rainT: 0, wake: null, onClaim: null, onClose: null, flick: 0 };
 
 export function open(id, { onClaim, onClose } = {}) {
   const h = H.get(id); if (!h) return;
-  F = { ...F, id, onClaim, onClose };
+  F = { ...F, id, onClaim, onClose, stage: -1 };
   if (!H.sess(id).done) { H.start(id); blip('start'); }
   const act = H.actOf(h);
   const fc = $('focus');
@@ -32,13 +34,15 @@ export function open(id, { onClaim, onClose } = {}) {
     <div class="fc-top"><span class="fc-emoji">${esc(h.emoji)}</span><div><b>${esc(h.nombre)}</b><small id="fcSub"></small></div></div>
     <div class="fc-ring"><canvas id="fcRing" aria-hidden="true"></canvas>
       <div class="fc-center"><div class="fc-time" id="fcTime">--:--</div><div class="fc-bin" id="fcBin" title="Minutos restantes en binario"></div><div class="fc-pct" id="fcPct"></div></div></div>
-    <div class="fc-hero a-${act}" data-mood="neutral"><span class="fc-prop">${H.PROP[act] || '⭐'}</span>${avatarSVG(cfg.avatar, 'av')}</div>
+    <div class="fc-stage"><div class="fc-act">${esc((cfg.name || 'Tu personaje').toUpperCase())} · ${esc((H.ACTS[act] || H.ACTS.jump)[1].toUpperCase())} CONTIGO</div>${sceneHTML(act, cfg.avatar, W.game().wear)}</div>
     <p class="fc-msg" id="fcMsg">Quédate aquí. El reloj sigue contando aunque bloquees la pantalla.</p>
+    <div class="fc-prize" id="fcPrize"></div>
     <div class="fc-actions"><button class="fc-pause" id="fcPause">⏸ Pausar</button></div>
     <div class="fc-modal" id="fcModal" hidden></div>
     <div class="fc-done" id="fcDone" hidden></div>`;
   fc.hidden = false; document.body.style.overflow = 'hidden';
   $('fcPause').onclick = askPause;
+  const pv = H.preview(id); if (pv) $('fcPrize').innerHTML = `Al terminar: <span>👑</span><b>+${pv.xp} XP</b><i>+${pv.bits} ◆</i>${pv.onTime ? '<span>⏰ a tiempo</span>' : ''}`;
   wake(true); rain(); loop();
   document.addEventListener('visibilitychange', onVis);
 }
@@ -52,7 +56,7 @@ async function wake(on) {
 export function close() {
   cancelAnimationFrame(F.raf); clearInterval(F.rainT); wake(false);
   document.removeEventListener('visibilitychange', onVis);
-  $('focus').hidden = true; $('focus').innerHTML = ''; document.body.style.overflow = '';
+  $('focus').hidden = true; $('focus').innerHTML = ''; $('focus').classList.remove('won'); document.body.style.overflow = '';
   F.id = null;
 }
 
@@ -66,12 +70,14 @@ function loop() {
   const end = new Date(Date.now() + rem * 1000);
   $('fcSub').textContent = rem > 0 ? `${h.min} min · termina a las ${end.toTimeString().slice(0, 5)}` : '¡Completo!';
   drawRing(p);
+  const st = Math.floor(p * 4); // 0..4: ánimos a 25, 50 y 75%
+  if (st !== F.stage) { if (F.stage >= 0 && st > F.stage && st < 4) { blip('coin'); try { navigator.vibrate?.(30); } catch { /* */ } } F.stage = st; $('fcMsg').textContent = CHEERS[st] || ''; }
   if (rem <= 0) { H.checkDone(F.id); return showDone(h); }
   F.raf = requestAnimationFrame(loop);
 }
 function drawRing(p) {
   const c = $('fcRing'); if (!c) return;
-  const size = Math.min(innerWidth - 32, innerHeight * .46, 360); const dpr = devicePixelRatio || 1;
+  const size = Math.min(innerWidth - 32, innerHeight * .38, 330); const dpr = devicePixelRatio || 1;
   if (c.width !== Math.round(size * dpr)) { c.width = c.height = Math.round(size * dpr); c.style.width = c.style.height = size + 'px'; }
   const x = c.getContext('2d'); const S = c.width; const R = S * .44; const N = 72;
   x.clearRect(0, 0, S, S); x.save(); x.translate(S / 2, S / 2);
@@ -125,8 +131,9 @@ function askPause() {
 function showDone(h) {
   cancelAnimationFrame(F.raf); drawRing(1); blip('done');
   const r = H.preview(F.id);
-  const hero = document.querySelector('.fc-hero'); hero.dataset.mood = 'excited'; hero.classList.add('won');
-  $('fcPause').hidden = true; $('fcMsg').textContent = '';
+  const fs = document.querySelector('#focus .fs'); if (fs) fs.dataset.mood = 'excited'; $('focus').classList.add('won');
+  try { navigator.vibrate?.([60, 40, 120]); } catch { /* */ }
+  $('fcPause').hidden = true; $('fcMsg').textContent = ''; $('fcPrize').innerHTML = '';
   $('fcDone').innerHTML = `<div class="fc-crown">👑</div><b>¡${esc(h.nombre)} completo!</b>
     <p>${h.min} ${h.min === 1 ? 'minuto' : 'minutos'} de verdad.${r?.onTime ? ' ⏰ ¡A tiempo! +25%' : ''}${r?.streak > 1 ? ` · 🔥 racha de ${r.streak}` : ''}</p>
     <button class="fc-claim" id="fcClaim">👑 Activar corona · +${r?.xp ?? 0} XP · +${r?.bits ?? 0} ◆</button>`;

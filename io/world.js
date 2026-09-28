@@ -114,7 +114,7 @@ export const titleOf = lvl => TITLES.filter(([l]) => lvl >= l).pop()[1];
 const GID = 'io:game';
 export function game() {
   const g = S.getItem(GID) || { xp: 0, bits: 60, floor: 1, placed: {}, owned: {}, wear: {}, chest: {}, stats: { minutes: 0, sessions: 0 }, seen: 1, deals: {}, wk: {} };
-  g.placed ||= {}; g.owned ||= {}; g.wear ||= {}; g.chest ||= {}; g.stats ||= { minutes: 0, sessions: 0 }; g.deals ||= {}; g.wk ||= {};
+  g.placed ||= {}; g.owned ||= {}; g.wear ||= {}; g.chest ||= {}; g.stats ||= { minutes: 0, sessions: 0 }; g.deals ||= {}; g.wk ||= {}; g.shielded ||= {}; g.quests ||= {};
   return g;
 }
 export function saveGame(g) { const { id, ...d } = g; S.putItem('game', d, GID); }
@@ -206,6 +206,23 @@ export function mysteryBox(rand = Math.random) {
   saveGame(g);
   return { ok: true, item: it, rarity: rar, isNew };
 }
+
+/* ---------- escudo de racha: si un día fallas, tu racha no se rompe (se gana, no se compra con dinero) ---------- */
+export const SHIELD = { price: 120, max: 2, lvl: 3 };
+export function buyShield() {
+  const g = game();
+  if (level(g) < SHIELD.lvl) return { ok: false, msg: `🔒 El escudo se desbloquea en el nivel ${SHIELD.lvl}` };
+  if ((g.shields || 0) >= SHIELD.max) return { ok: false, msg: `Ya tienes ${SHIELD.max} escudos 🛡️` };
+  if (g.bits < SHIELD.price) return { ok: false, msg: `Te faltan ${SHIELD.price - g.bits} bits para el escudo` };
+  g.bits -= SHIELD.price; g.shields = (g.shields || 0) + 1; g.stats.spent = (g.stats.spent || 0) + SHIELD.price; saveGame(g);
+  return { ok: true, msg: `🛡️ Escudo listo (${g.shields}/${SHIELD.max})` };
+}
+
+/* ---------- primeros pasos: misiones cortas para aprender jugando ---------- */
+export const QUESTS = [
+  ['q1', '👑', 'Activa tu primera corona', 20], ['q2', '🛒', 'Compra algo en la tienda', 15], ['q3', '🛋️', 'Mueve un objeto con SELECT', 15],
+  ['q4', '🏆', 'Mira el ranking', 10], ['q5', '🔥', 'Logra una racha de 3 días', 40],
+];
 
 /* ---------- logros ---------- */
 export function achievements(g, extra) {

@@ -90,7 +90,7 @@ function leg(side, L, k, S, SD) {
   const shoe = `<path d="M${cx - 8} 188Q${cx - 8} 178 ${cx} 178Q${cx + 9} 178 ${cx + 10} 186L${cx + 10} 189L${cx - 8} 189Z" fill="${L.shoes}"/><rect x="${cx - 8}" y="187" width="18" height="2.6" rx="1.3" fill="#000" opacity=".3"/>`;
   return `<g class="leg ${side < 0 ? 'leg-l' : 'leg-r'}">${body}${shoe}</g>`;
 }
-function arm(side, L, sh, S, SD, T, TD) {
+function arm(side, L, sh, S, SD, T, TD, hold) {
   const px = 60 + side * (sh - 3.5);
   const short = ['camiseta', 'vestido'].includes(L.top), bare = L.top === 'deportiva';
   let a = '';
@@ -98,7 +98,8 @@ function arm(side, L, sh, S, SD, T, TD) {
   else if (short) a = `<rect x="${px - 4.6}" y="82" width="9.2" height="36" rx="4.6" fill="${S}"/><rect x="${px - 6}" y="70" width="12" height="18" rx="5.5" fill="${T}"/><rect x="${px - 6}" y="70" width="4" height="18" rx="2" fill="${TD}" opacity=".45"/>`;
   else a = `<rect x="${px - 6}" y="70" width="12" height="47" rx="6" fill="${T}"/><rect x="${px - 6}" y="70" width="4.2" height="47" rx="2" fill="${TD}" opacity=".45"/><rect x="${px - 5.6}" y="112" width="11.2" height="4" rx="2" fill="${TD}"/>`;
   a += `<circle cx="${px}" cy="121" r="5.6" fill="${S}"/>`;
-  return `<g class="arm ${side < 0 ? 'arm-l' : 'arm-r'}"><g transform="rotate(${-side * 6} ${px} 74)">${a}</g></g>`;
+  if (hold) a += `<g class="hold">${hold(px, 121)}</g>`;
+  return `<g class="arm ${side < 0 ? 'arm-l' : 'arm-r'}" style="transform-box:view-box;transform-origin:${px}px 73px"><g transform="rotate(${-side * 6} ${px} 74)">${a}</g></g>`;
 }
 function face(L, S, SD, H) {
   const f = L.body === 'f'; const E = L.eye; const lip = f ? '#b4535b' : '#6b2b2b';
@@ -135,7 +136,8 @@ const ACC = `
  <g class="acc acc-sombrero"><rect x="44" y="-1" width="32" height="24" rx="2.5" fill="#111827"/><rect x="44" y="15" width="32" height="5" fill="#7c5cff"/><rect x="33" y="21" width="54" height="5.5" rx="2.7" fill="#111827"/></g>
  <g class="acc acc-corona"><path d="M41 25L44 6L52.5 16L60 2L67.5 16L76 6L79 25Z" fill="#fbbf24" stroke="#b45309" stroke-width="1.3" stroke-linejoin="round"/><circle cx="60" cy="18" r="2.6" fill="#ef4444"/><circle cx="48" cy="20.5" r="1.7" fill="#22d3ee"/><circle cx="72" cy="20.5" r="1.7" fill="#22d3ee"/></g>`;
 
-export function avatarSVG(look, cls = 'av', vb = '0 0 120 200') {
+/** opts.holdL / opts.holdR: (x, y) => svg de lo que sostiene cada mano (se mueve con el brazo). */
+export function avatarSVG(look, cls = 'av', vb = '0 0 120 200', opts = {}) {
   const L = { ...normLook(look), _id: ++seq };
   const k = { delgado: .88, medio: 1, robusto: 1.16 }[L.build] || 1;
   const S = L.skin, SD = shade(S, -0.22), SL = shade(S, 0.14);
@@ -153,7 +155,7 @@ export function avatarSVG(look, cls = 'av', vb = '0 0 120 200') {
     ${hairBack(L.hairStyle, H)}
     ${leg(-1, L, k, S, SD)}${leg(1, L, k, S, SD)}
     ${tor.svg}
-    ${arm(-1, L, tor.sh, S, SD, T, TD)}${arm(1, L, tor.sh, S, SD, T, TD)}
+    ${arm(-1, L, tor.sh, S, SD, T, TD, opts.holdL)}${arm(1, L, tor.sh, S, SD, T, TD, opts.holdR)}
     <rect x="54" y="56" width="12" height="15" rx="4" fill="${S}"/><path d="M54 62Q60 67 66 62L66 58L54 58Z" fill="${SD}" opacity=".5"/>
     <g class="av-head">
       <ellipse cx="40" cy="43" rx="3.8" ry="5.8" fill="${S}"/><ellipse cx="80" cy="43" rx="3.8" ry="5.8" fill="${S}"/>

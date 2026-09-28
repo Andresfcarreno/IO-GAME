@@ -29,7 +29,7 @@ export function render() {
   badges();
   if (tab === 'hoy') renderHoy();
   else if (tab === 'tienda') renderShop();
-  else if (tab === 'ranking') renderRank();
+  else if (tab === 'ranking') { const g = W.game(); if (!g.stats.sawRank) { g.stats.sawRank = 1; W.saveGame(g); } renderRank(); }
   else if (tab === 'progreso') renderProg();
   else if (tab === 'mundo') renderWorld();
 }
@@ -37,7 +37,7 @@ function badge(id, txt) { const b = $('bdg-' + id); if (!b) return; b.hidden = !
 export function badges() {
   const g = W.game(); const d = W.dailyDeal(g);
   const crowns = H.forDay().filter(h => { const s = H.sess(h.id); return s.done && !s.claimed; }).length;
-  badge('hoy', crowns ? '👑' : H.chestReady() ? '🎁' : '');
+  badge('hoy', crowns ? '👑' : H.chestReady() ? '🎁' : H.quests().some(q => q.done && !q.claimed) ? '!' : '');
   badge('tienda', d && !d.taken && g.bits >= d.price ? '%' : g.bits >= W.BOX_PRICE && W.level(g) >= 2 ? '!' : '');
   badge('progreso', H.weekChallenge().ready ? '!' : '');
   const lvl = W.level(g); badge('mundo', g.floor < lvl ? '▲' : '');
@@ -46,13 +46,20 @@ export function badges() {
 /* ================= HOY: extras debajo de la lista ================= */
 function renderHoy() {
   const c = H.weekChallenge();
-  $('hoyWeekly').innerHTML = weeklyCard(c, true);
+  $('hoyWeekly').innerHTML = questsCard() + weeklyCard(c, true);
   const g = W.game(); const d = W.dailyDeal(g); const col = W.collection(g);
   const chase = chaser();
   $('quick').innerHTML = `
     ${d && !d.taken ? `<button class="qk qk-deal r-${W.rarityOf(d.item).id}" data-act="tab" data-t="tienda"><span class="qk-e">${d.item.e}</span><span><b>Oferta del día −30%</b><small>${esc(d.item.n)} · ◆${d.price}</small></span></button>` : ''}
     ${chase ? `<button class="qk qk-rank" data-act="tab" data-t="ranking"><span class="qk-e">🏆</span><span><b>#${chase.pos} en ${R.online() && R.joined() ? 'el ranking' : 'tu liga'}</b><small>${chase.next ? `Te faltan ${fmtN(chase.gap)} XP para pasar a ${esc(chase.next)}` : '¡Vas de primero!'}</small></span></button>` : ''}
     <button class="qk" data-act="tab" data-t="tienda"><span class="qk-e">🧩</span><span><b>Colección ${col.own}/${col.total}</b><small>${Math.round(col.pct * 100)}% completa</small></span></button>`;
+}
+function questsCard() {
+  const qs = H.quests(); if (qs.every(q => q.claimed)) return '';
+  const n = qs.filter(q => q.claimed).length;
+  return `<div class="qst"><div class="wch-h"><b>🎯 Primeros pasos</b><small>${n}/${qs.length}</small></div>
+    ${qs.map(q => `<div class="qs${q.claimed ? ' claimed' : q.done ? ' done' : ''}"><span class="qs-e">${q.claimed ? '✓' : q.e}</span><span class="qs-n">${esc(q.n)}</span>
+      ${q.claimed ? '' : q.done ? `<button class="qs-go" data-act="quest" data-id="${q.id}">+${q.bits}◆</button>` : `<em>+${q.bits}◆</em>`}</div>`).join('')}</div>`;
 }
 /** A quién tienes justo encima en el ranking que está cargado. */
 function chaser() {
@@ -88,10 +95,16 @@ function renderShop() {
       <span class="mb-t"><b>Caja sorpresa</b><small>${W.RARITY.map(r => `<em class="rt r-${r.id}">${r.n} ${r.w}%</em>`).join('')}</small></span>
       <span class="mb-p">${lvl < 2 ? '🔒 NV 2' : `◆${W.BOX_PRICE}`}</span>
     </button>
+    ${shieldCard(g, lvl)}
     <div class="chips-row" role="tablist">${CATS.map(([k, l]) => `<button class="${k === shopCat ? 'on' : ''}" data-act="shopCat" data-c="${k}">${l}</button>`).join('')}</div>
     ${cheapest && g.bits < cheapest.price ? `<p class="sh-hint">💡 Te faltan <b>${cheapest.price - g.bits}◆</b> para ${cheapest.e} ${esc(cheapest.n)} · ≈ ${Math.max(1, Math.ceil((cheapest.price - g.bits) / 12))} hábito${Math.ceil((cheapest.price - g.bits) / 12) > 1 ? 's' : ''}</p>` : ''}
     <div class="sgrid">${[...open, ...locked].map(i => shopItem(g, lvl, i)).join('') || '<div class="empty">Nada por aquí todavía.</div>'}</div>
     <p class="note">◆ Los bits solo se ganan cumpliendo hábitos con el reloj. Nada se compra con dinero, nunca.</p>`;
+}
+function shieldCard(g, lvl) {
+  const n = g.shields || 0; const lock = lvl < W.SHIELD.lvl;
+  return `<div class="shield${lock ? ' locked' : ''}"><span class="sh-e">🛡️</span><div><b>Escudo de racha <em>${n}/${W.SHIELD.max}</em></b><small>Si un día fallas, tu racha 🔥 no se rompe. Se activa solo.</small></div>
+    <button data-act="shield"${n >= W.SHIELD.max || lock ? ' disabled' : ''}>${lock ? `🔒 NV ${W.SHIELD.lvl}` : n >= W.SHIELD.max ? 'Lleno' : `◆${W.SHIELD.price}`}</button></div>`;
 }
 function dealCard(g, d) {
   const it = d.item; const r = W.rarityOf(it);
@@ -286,6 +299,8 @@ export const actions = {
   item: el => itemSheet(el.dataset.id),
   buyDeal: () => { const d = W.dailyDeal(); if (d) ctx.buy(d.item.id, { deal: true }); },
   box: () => openBox(),
+  shield: () => { const r = W.buyShield(); toast(r.msg); G.blip(r.ok ? 'buy' : 'error'); if (r.ok) ctx.renderAll(); },
+  quest: el => { const q = H.claimQuest(el.dataset.id); if (!q) return; G.blip('coin'); try { navigator.vibrate?.(40); } catch { /* */ } G.bitsFly(el, 6); toast(`${q.e} ¡Misión cumplida! +${q.bits}◆`); ctx.renderAll(); },
   rvClose: el => { const again = el.dataset.again; closeReveal(); if (again) openBox(); },
   rvPlace: el => { closeReveal(); ctx.place(el.dataset.id); },
   rvWear: el => { closeReveal(); const g = W.game(); const it = W.itemById(el.dataset.id); g.wear[it.slot] = it.id; W.saveGame(g); ctx.renderAll(); G.act('dance', it.e); $('screen').scrollIntoView({ behavior: 'smooth', block: 'center' }); },

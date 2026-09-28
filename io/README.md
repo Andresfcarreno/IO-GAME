@@ -6,7 +6,10 @@ IO es un **juego de hábitos que se juega en la vida real**. Es una app web inst
 
 ## Cómo funciona
 
-1. **Configuración inicial.** Creas tu personaje y eliges tus hábitos. Cada hábito tiene **hora**, **duración** y **días**. Opcionalmente escribes tu **porqué**.
+1. **Configuración inicial (4 pasos).** Creas tu personaje y armas tu rutina:
+   - Tocas tarjetas por categoría (Mente, Cuerpo, Crecer, Casa y calma) o escribes el tuyo.
+   - Hora, minutos y días se eligen con chips.
+   - Cada hábito muestra en vivo cómo lo hará tu personaje, y la línea “Tu día” te enseña la rutina completa.
 2. **Temporizador obligatorio.** A la hora de tu hábito tocas ▶ y se abre el **modo enfoque** a pantalla completa:
    - Un anillo se va escribiendo en 1 y 0, con una lluvia binaria suave de fondo y el tiempo restante también en binario.
    - Tu personaje hace la actividad mientras corre el reloj.
@@ -16,6 +19,20 @@ IO es un **juego de hábitos que se juega en la vida real**. Es una app web inst
    - El personaje celebra en la consola con animación, confeti de unos y ceros y sonido 8-bit.
    - Ganas **XP** y **bits** ◆. Si empezaste a tiempo (±30 min de la hora) ganas +25%, y las rachas suman más.
 4. **🎁 Día perfecto.** Si completas todos los hábitos del día, abres el cofre.
+
+## Tu personaje hace tu hábito
+
+Mientras corre el reloj, el personaje hace lo mismo que tú, en **23 escenas** animadas:
+- **Mente:** lee, estudia, escribe, trabaja en su laptop, habla otro idioma con burbujas.
+- **Calma:** medita con aura, respira con un círculo que guía el ritmo (4 s inhala / 4 s exhala), hace yoga, ora, se desconecta con un té, duerme.
+- **Cuerpo:** levanta pesas, corre, camina, **saca al perro** con correa, nada.
+- **Casa:** come, cocina, toma agua, barre.
+- **Arte:** toca guitarra, pinta en un caballete.
+
+La actividad se detecta sola por el nombre del hábito (“sacar al perro” → 🐕) y se puede cambiar al crear o editar el hábito. Además, el modo enfoque:
+- muestra el premio que te espera;
+- te anima al 25, 50 y 75%;
+- vibra en el celular.
 
 ## La consola (Game Boy de verdad)
 
@@ -83,6 +100,17 @@ Cada nivel abre un piso nuevo. El edificio crece en lujo y no se acaba:
 - Barba, color de ojos y rasgos (pecas, lunar, rubor).
 - 6 tipos de ropa arriba, 3 abajo y color de zapatos.
 
+## Ideas tomadas de otros juegos (v9)
+
+| Juego | Idea | En IO |
+|---|---|---|
+| Finch, Tamagotchi | tu compañero vive contigo lo que haces | el personaje hace tu hábito durante el reloj |
+| Duolingo | la racha se protege | 🛡️ **Escudo de racha** (◆120, máx. 2, desde el nivel 3). Se usa solo si fallas un día. Los días sin hábitos programados ya no rompen la racha |
+| Pokémon, Candy Crush | tutorial jugando | 🎯 **Primeros pasos**: 5 misiones con premio (primera corona, primera compra, decorar, ranking, racha de 3) |
+| Spotify, Forest | la acción principal siempre a mano | **mini reproductor** abajo con tu próximo hábito, el reloj corriendo o la corona lista |
+| Forest | anticipar el premio (efecto meta-cercana) | “Al terminar: +XP +◆” y ánimos a mitad del reloj |
+| Juegos móviles | respuesta física | vibración al completar y en las misiones |
+
 ## Archivos
 
 ```
@@ -96,6 +124,7 @@ io/
 ├── app.js          # une todo: lista de hábitos, corona, cofre, tienda, mapa, ajustes, demo
 ├── engine.js       # motor 2D: caminar, ascensor, decorar, menú START, efectos, sonido
 ├── focus.js        # modo enfoque (anillo 1/0, pausa con motivos, corona)
+├── scenes.js       # 23 escenas: el personaje hace tu hábito mientras corre el reloj
 ├── habits.js       # hábitos, temporizador, recompensas, rachas
 ├── world.js        # niveles, edificios, pisos, catálogo, logros
 ├── avatar.js       # personaje por partes + editor

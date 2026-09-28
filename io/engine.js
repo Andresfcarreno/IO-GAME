@@ -302,6 +302,7 @@ function saveDecoPositions() {
     p.x = parseFloat(el.style.left) / 100;
     if (el.classList.contains('b-wall')) p.y = parseFloat(el.dataset.y);
   });
+  g.stats.moved = (g.stats.moved || 0) + 1;
   W.saveGame(g);
 }
 function decoB() {

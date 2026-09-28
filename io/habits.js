@@ -6,16 +6,35 @@ import * as S from './store.js';
 import { todayIso, addDays, dateOf } from './store.js';
 import * as W from './world.js';
 
-export const EXAMPLES = [
-  ['📖', 'Leer', 20, '21:00', 'read'], ['🧘', 'Meditar', 10, '07:00', 'float'], ['🏃', 'Hacer ejercicio', 30, '06:30', 'flex'],
-  ['🥗', 'Comer saludable (sin pantalla)', 30, '13:00', 'eat'], ['🇬🇧', 'Practicar inglés', 20, '19:00', 'talk'], ['💻', 'Trabajo profundo', 50, '09:00', 'type'],
-  ['🎓', 'Ir a clase / estudiar', 60, '18:00', 'read'], ['🎸', 'Practicar instrumento', 30, '20:00', 'music'], ['🚶', 'Caminar', 20, '17:30', 'walk'],
-  ['✍️', 'Escribir el diario', 10, '22:00', 'write'], ['🧹', 'Ordenar la casa', 15, '10:00', 'clean'], ['📵', 'Desconexión digital', 60, '21:30', 'float'],
-  ['🌬️', 'Respirar', 1, '12:00', 'float'],
+/* Ejemplos por categoría: [emoji, nombre, min, hora, actividad del personaje] */
+export const CATEGORIES = [
+  ['🧠', 'Mente', [['📖', 'Leer', 20, '21:00', 'read'], ['🧘', 'Meditar', 10, '07:00', 'float'], ['🌬️', 'Respirar', 1, '12:00', 'breathe'], ['✍️', 'Escribir el diario', 10, '22:00', 'write'], ['📵', 'Desconexión digital', 60, '21:30', 'unplug']]],
+  ['💪', 'Cuerpo', [['🏃', 'Hacer ejercicio', 30, '06:30', 'flex'], ['🚶', 'Caminar', 20, '17:30', 'walk'], ['🐕', 'Sacar al perro', 20, '07:30', 'dog'], ['🤸', 'Yoga', 15, '06:45', 'yoga'], ['🏊', 'Nadar', 40, '18:30', 'swim'], ['🥗', 'Comer saludable (sin pantalla)', 30, '13:00', 'eat']]],
+  ['🚀', 'Crecer', [['🇬🇧', 'Practicar inglés', 20, '19:00', 'talk'], ['🎓', 'Ir a clase / estudiar', 60, '18:00', 'study'], ['💻', 'Trabajo profundo', 50, '09:00', 'type'], ['🎸', 'Practicar instrumento', 30, '20:00', 'music'], ['🎨', 'Dibujar', 20, '16:00', 'draw']]],
+  ['🏠', 'Casa y calma', [['🧹', 'Ordenar la casa', 15, '10:00', 'clean'], ['🍳', 'Cocinar en casa', 30, '19:30', 'cook'], ['💧', 'Tomar agua', 1, '10:30', 'water'], ['🙏', 'Orar / agradecer', 5, '06:15', 'pray'], ['😴', 'Dormir a tiempo', 10, '22:30', 'sleep']]],
 ];
-const ACT_BY_EMOJI = { '📖': 'read', '📚': 'read', '🎓': 'read', '🧘': 'float', '📵': 'float', '🌬️': 'float', '🏃': 'flex', '🏋️': 'flex', '🚴': 'flex', '🥗': 'eat', '🍎': 'eat', '🇬🇧': 'talk', '🗣️': 'talk', '💻': 'type', '🎸': 'music', '🎹': 'music', '🚶': 'walk', '✍️': 'write', '🧹': 'clean' };
-export const actOf = h => h.act || ACT_BY_EMOJI[h.emoji] || 'jump';
-export const PROP = { read: '📖', float: '✨', flex: '💪', eat: '🥗', talk: '💬', type: '💻', music: '🎵', walk: '👟', write: '✍️', clean: '🧽', jump: '⭐' };
+export const EXAMPLES = CATEGORIES.flatMap(c => c[2]);
+/** Lo que hace el personaje durante el reloj. */
+export const ACTS = {
+  read: ['📖', 'Lee'], study: ['📘', 'Estudia'], write: ['✍️', 'Escribe'], type: ['💻', 'Trabaja'], talk: ['💬', 'Habla otro idioma'],
+  float: ['🧘', 'Medita'], breathe: ['🌬️', 'Respira'], yoga: ['🤸', 'Hace yoga'], pray: ['🙏', 'Ora'], unplug: ['🍵', 'Se desconecta'], sleep: ['😴', 'Duerme'],
+  flex: ['🏋️', 'Hace pesas'], run: ['🏃', 'Corre'], walk: ['🚶', 'Camina'], dog: ['🐕', 'Saca al perro'], swim: ['🏊', 'Nada'],
+  eat: ['🥗', 'Come'], cook: ['🍳', 'Cocina'], water: ['💧', 'Toma agua'], clean: ['🧹', 'Limpia'],
+  music: ['🎸', 'Toca música'], draw: ['🎨', 'Dibuja'], jump: ['⭐', 'Se anima'],
+};
+const ACT_BY_EMOJI = { '📖': 'read', '📚': 'read', '🎓': 'study', '📘': 'study', '🧘': 'float', '📵': 'unplug', '🌬️': 'breathe', '🏃': 'run', '🏋️': 'flex', '🚴': 'run', '🥗': 'eat', '🍎': 'eat', '🇬🇧': 'talk', '🗣️': 'talk', '💻': 'type', '🎸': 'music', '🎹': 'music', '🚶': 'walk', '✍️': 'write', '🧹': 'clean', '🐕': 'dog', '🐶': 'dog', '🤸': 'yoga', '🏊': 'swim', '🍳': 'cook', '💧': 'water', '🙏': 'pray', '😴': 'sleep', '💤': 'sleep', '🎨': 'draw', '🧠': 'study', '🍵': 'unplug' };
+const ACT_BY_WORD = [
+  [/perr|mascota|dog/i, 'dog'], [/respir/i, 'breathe'], [/medit|mindful/i, 'float'], [/yoga|estir/i, 'yoga'], [/or(ar|aci)|rez|agradec|gratitud/i, 'pray'],
+  [/dorm|sueñ|siesta/i, 'sleep'], [/descon|pantalla|celular/i, 'unplug'], [/corr|trot|bici|ciclis|running/i, 'run'], [/nad|piscina/i, 'swim'],
+  [/camin|pase/i, 'walk'], [/gym|gimnas|ejercic|pesas|entren|flexion|sentadill/i, 'flex'], [/cocin|receta/i, 'cook'], [/agua|hidrat/i, 'water'],
+  [/com(er|ida)|almuerz|desayun|cena/i, 'eat'], [/ingl|idioma|franc|alem|portug|hablar/i, 'talk'], [/estudi|clase|curso|tarea/i, 'study'],
+  [/le(er|ctura)|libro/i, 'read'], [/diario|escrib|journal/i, 'write'], [/trabaj|program|código|codigo|proyecto|oficina/i, 'type'],
+  [/guitar|piano|instrument|música|musica|cantar|violin/i, 'music'], [/dibuj|pint|arte|diseñ/i, 'draw'], [/orden|limpi|casa|barr/i, 'clean'],
+];
+export const guessAct = (nombre = '', emoji = '') => ACT_BY_WORD.find(([re]) => re.test(nombre))?.[1] || ACT_BY_EMOJI[emoji] || 'jump';
+export const guessEmoji = nombre => { const a = guessAct(nombre); return a === 'jump' ? '⭐' : ACTS[a][0]; };
+export const actOf = h => (h.act && ACTS[h.act] ? h.act : guessAct(h.nombre, h.emoji));
+export const PROP = Object.fromEntries(Object.entries(ACTS).map(([k, v]) => [k, v[0]]));
 export const DAYS = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
 
 /* ---------- hábitos ---------- */
@@ -83,17 +102,20 @@ export function streakOf(id) {
   const h = get(id); if (!h) return 0;
   let n = 0; let iso = todayIso();
   if (!sess(id, iso).claimed) iso = addDays(iso, -1);
+  const sh = W.game().shielded || {};
   for (let i = 0; i < 400; i++, iso = addDays(iso, -1)) {
-    if (!scheduled(h, iso)) continue;
+    if (!scheduled(h, iso) || (sh[iso] && !sess(id, iso).claimed)) continue;
     if (sess(id, iso).claimed) n++; else break;
   }
   return n;
 }
 export function dayStreak() {
   let n = 0; let iso = todayIso();
-  const any = d => Object.values(log(d).s).some(s => s.claimed);
+  const sh = W.game().shielded || {};
+  const any = d => sh[d] || Object.values(log(d).s).some(s => s.claimed);
   if (!any(iso)) iso = addDays(iso, -1);
-  for (let i = 0; i < 1000 && any(iso); i++, iso = addDays(iso, -1)) n++;
+  // los días de descanso (sin hábitos programados) no rompen la racha
+  for (let i = 0; i < 1000; i++, iso = addDays(iso, -1)) { if (any(iso)) n++; else if (forDay(iso).length || i > 400) break; }
   return n;
 }
 export function rewardOf(h, s, streak) {
@@ -151,7 +173,8 @@ export const weekXp = (g = W.game()) => (g.wk?.k === W.weekKey() ? g.wk.xp : 0);
 export function weekChallenge() {
   const k = W.weekKey(); const days = [...Array(7)].map((_, i) => addDays(k, i)); const hs = list();
   let planned = 0, done = 0;
-  days.forEach(d => hs.forEach(h => { if (scheduled(h, d)) { planned++; if (sess(h.id, d).claimed) done++; } }));
+  const since = S.cfg.since || '0000'; // la primera semana solo cuenta desde que empezaste
+  days.forEach(d => hs.forEach(h => { if (scheduled(h, d) && d >= since) { planned++; if (sess(h.id, d).claimed) done++; } }));
   const target = Math.max(3, Math.ceil(planned * .8));
   const g = W.game(); const claimed = g.wk?.k === k && !!g.wk.claimed;
   const left = Math.max(0, 7 - days.indexOf(todayIso()) - 1);
@@ -183,4 +206,26 @@ export function heatmap(weeks = 12) {
     const n = Object.values(log(iso).s).filter(x => x.claimed).length;
     return { iso, n, future: iso > todayIso() };
   }));
+}
+
+/** Al abrir la app: si fallaste días recientes y tienes escudos, protegen la racha. Devuelve cuántos se usaron. */
+export function applyShields() {
+  const g = W.game(); if (!g.shields) return 0;
+  const claimedOn = d => Object.values(log(d).s).some(s => s.claimed);
+  const planned = d => forDay(d).length > 0;
+  const missed = []; let d = addDays(todayIso(), -1);
+  for (let i = 0; i < 7 && !claimedOn(d) && !g.shielded[d]; i++, d = addDays(d, -1)) if (planned(d)) missed.push(d);
+  if (!missed.length || !claimedOn(d) || missed.length > g.shields) return 0; // solo si había racha que salvar
+  missed.forEach(x => { g.shielded[x] = true; }); g.shields -= missed.length; W.saveGame(g);
+  return missed.length;
+}
+/** Estado de las misiones de primeros pasos. */
+export function quests() {
+  const g = W.game(); const st = g.stats;
+  const done = { q1: st.sessions >= 1, q2: (st.spent || 0) > 0, q3: (st.moved || 0) > 0, q4: !!st.sawRank, q5: dayStreak() >= 3 };
+  return W.QUESTS.map(([id, e, n, bits]) => ({ id, e, n, bits, done: !!done[id], claimed: !!g.quests[id] }));
+}
+export function claimQuest(id) {
+  const q = quests().find(x => x.id === id); if (!q || !q.done || q.claimed) return null;
+  const g = W.game(); g.quests[id] = true; g.bits += q.bits; W.saveGame(g); return q;
 }
