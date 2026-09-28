@@ -4,6 +4,8 @@
 import * as H from './habits.js';
 import { cfg } from './store.js';
 import { sceneHTML, runScene } from './scenes.js';
+import * as Radio from './radio.js';
+import * as Pet from './pet.js';
 import * as W from './world.js';
 import { blip } from './engine.js';
 
@@ -66,19 +68,39 @@ export function open(id, { onClaim, onClose } = {}) {
   if (!H.sess(id).done) { H.start(id); blip('start'); }
   const act = H.actOf(h);
   const fc = $('focus');
+  const who = `${(cfg.name || 'Tu personaje').toUpperCase()} · ${(H.ACTS[act] || H.ACTS.jump)[1].toUpperCase()} CONTIGO`;
   fc.innerHTML = `
     <canvas class="fc-rain" id="fcRain" aria-hidden="true"></canvas>
-    <div class="fc-top"><span class="fc-emoji">${esc(h.emoji)}</span><div><b>${esc(h.nombre)}</b><small id="fcSub"></small></div></div>
-    <div class="fc-ring"><canvas id="fcRing" aria-hidden="true"></canvas>
-      <div class="fc-center"><div class="fc-time" id="fcTime">--:--</div><div class="fc-bin" id="fcBin" title="Minutos restantes en binario"></div><div class="fc-pct" id="fcPct"></div></div></div>
-    <div class="fc-stage"><div class="fc-act">${esc((cfg.name || 'Tu personaje').toUpperCase())} · ${esc((H.ACTS[act] || H.ACTS.jump)[1].toUpperCase())} CONTIGO</div>${sceneHTML(act, cfg.avatar, W.game().wear, { big: true })}
-      <div class="fc-coach" id="fcMsg"><p id="fcCoachT">Quédate aquí. El reloj sigue contando aunque bloquees la pantalla.</p></div></div>
-    <div class="fc-prize" id="fcPrize"></div>
-    <div class="fc-actions"><button class="fc-pause" id="fcPause">⏸ Pausar</button></div>
+    <div class="fgb">
+      <div class="fgb-top"><span class="led on"></span><span class="fc-emoji">${esc(h.emoji)}</span><div><b>${esc(h.nombre)}</b><small id="fcSub"></small></div><button class="fgb-radio" id="fcRadio" aria-label="Radio" hidden>📻</button></div>
+      <div class="fgb-bezel">
+        <div class="fgb-screen">
+          <div class="fc-clock" id="fcClock"><canvas id="fcRing" aria-hidden="true"></canvas>
+            <div class="fc-center"><div class="fc-time" id="fcTime">--:--</div><div class="fc-bin" id="fcBin" title="Minutos restantes en binario"></div><div class="fc-pct" id="fcPct"></div></div></div>
+          ${sceneHTML(act, cfg.avatar, W.game().wear, { big: true, pet: Pet.get() })}
+        </div>
+        <div class="bezel-label"><span class="bz-io">IO</span><em>1·0</em><span class="fgb-who">${esc(who)}</span></div>
+      </div>
+      <div class="fgb-lower">
+        <div class="ghost-pad" aria-hidden="true"><i></i><i></i></div><div class="ghost-ab" aria-hidden="true"><i></i><i></i></div>
+        <div class="fc-coach" id="fcMsg"><p id="fcCoachT">Quédate aquí. El reloj sigue contando aunque bloquees la pantalla.</p></div>
+        <div class="fc-prize" id="fcPrize"></div>
+        <div class="fc-actions"><button class="fc-pause" id="fcPause"><i></i>PAUSAR</button></div>
+      </div>
+    </div>
     <div class="fc-modal" id="fcModal" hidden></div>
     <div class="fc-done" id="fcDone" hidden></div>`;
   fc.hidden = false; document.body.style.overflow = 'hidden';
   $('fcPause').onclick = askPause;
+  { // radio: desde el nivel 2
+    const lvl = W.level(); const rb = $('fcRadio');
+    if (lvl >= Radio.RADIO_LVL) {
+      rb.hidden = false; F.radioMine = false;
+      if (cfg.radioAuto && cfg.radio && !Radio.current()) { Radio.toggle(lvl); F.radioMine = true; }
+      rb.classList.toggle('on', !!Radio.current());
+      rb.onclick = () => { const st = Radio.next(lvl); F.radioMine = !!st; rb.classList.toggle('on', !!st); say(st ? `📻 ${st.e} ${st.n}` : '📻 Radio apagada'); F.lastSay = performance.now(); };
+    }
+  }
   const pv = H.preview(id); if (pv) $('fcPrize').innerHTML = `Al terminar: <span>👑</span><b>+${pv.xp} XP</b><i>+${pv.bits} ◆</i>${pv.onTime ? '<span>⏰ a tiempo</span>' : ''}`;
   F.act = act; F.scene = runScene(fc.querySelector('.fs'), act);
   { // al retomar, los hitos que ya pasaron no se repiten: solo se dice el último
@@ -97,7 +119,8 @@ async function wake(on) {
   } catch { F.wake = null; }
 }
 export function close() {
-  cancelAnimationFrame(F.raf); clearInterval(F.rainT); wake(false);
+  cancelAnimationFrame(F.raf); clearInterval(F.rainT); wake(false); OV = null;
+  if (F.radioMine) { Radio.stop(); F.radioMine = false; }
   document.removeEventListener('visibilitychange', onVis);
   $('focus').hidden = true; $('focus').innerHTML = ''; $('focus').classList.remove('won'); document.body.style.overflow = '';
   F.id = null;
@@ -133,29 +156,46 @@ function coach(el, rem, dur) {
     say(pool[F.ci].replace('{n}', cfg.name || ''));
   }
 }
+/* reloj ovalado: los 1 y 0 recorren un óvalo a lo ancho de la pantalla */
+let OV = null;
+function ovalTable(a, b) {
+  const M = 720, pts = []; let L = 0, px = 0, py = -b;
+  for (let i = 0; i <= M; i++) { const t = -Math.PI / 2 + i / M * Math.PI * 2; const x = a * Math.cos(t), y = b * Math.sin(t); if (i) L += Math.hypot(x - px, y - py); pts.push([x, y, L, t]); px = x; py = y; }
+  return { pts, L };
+}
+function ovalAt(f) {
+  const { pts, L } = OV.tab; const target = f * L; let lo = 0, hi = pts.length - 1;
+  while (lo < hi) { const m = (lo + hi) >> 1; if (pts[m][2] < target) lo = m + 1; else hi = m; }
+  const [x, y, , t] = pts[lo]; return [x, y, Math.atan2(OV.b * Math.cos(t), -OV.a * Math.sin(t))];
+}
 function drawRing(p) {
-  const c = $('fcRing'); if (!c) return;
-  const size = Math.min(innerWidth * .62, innerHeight * .27, 260); const dpr = devicePixelRatio || 1;
-  if (c.width !== Math.round(size * dpr)) { c.width = c.height = Math.round(size * dpr); c.style.width = c.style.height = size + 'px'; }
-  const x = c.getContext('2d'); const S = c.width; const R = S * .44; const N = 72;
-  x.clearRect(0, 0, S, S); x.save(); x.translate(S / 2, S / 2);
-  // arco fino de progreso
-  x.lineWidth = 2 * dpr; x.strokeStyle = 'rgba(167,139,250,.18)'; x.beginPath(); x.arc(0, 0, R * .86, 0, Math.PI * 2); x.stroke();
-  const grad = x.createLinearGradient(-R, -R, R, R); grad.addColorStop(0, '#a78bfa'); grad.addColorStop(1, '#22d3ee');
-  x.strokeStyle = grad; x.lineWidth = 3 * dpr; x.lineCap = 'round'; x.beginPath(); x.arc(0, 0, R * .86, -Math.PI / 2, -Math.PI / 2 + p * Math.PI * 2); x.stroke();
-  // anillo de dígitos
+  const c = $('fcRing'); const box = $('fcClock'); if (!c || !box) return;
+  const dpr = devicePixelRatio || 1; const W = box.clientWidth, Hh = box.clientHeight;
+  if (!OV || OV.W !== W || OV.H !== Hh) {
+    c.width = Math.round(W * dpr); c.height = Math.round(Hh * dpr); c.style.width = W + 'px'; c.style.height = Hh + 'px';
+    const a = (W / 2 - 16) * dpr, b = (Hh / 2 - 12) * dpr; const fs = Math.max(10, Math.min(14, Hh * .08)) * dpr;
+    OV = { W, H: Hh, a, b, fs, tab: ovalTable(a, b) }; OV.N = Math.floor(OV.tab.L / (fs * 1.05));
+    OV.ia = a - fs * 1.2; OV.ib = b - fs * 1.2;
+  }
+  const x = c.getContext('2d'); const { a, b, fs, N } = OV;
+  x.clearRect(0, 0, c.width, c.height); x.save(); x.translate(c.width / 2, c.height / 2);
+  // pista y progreso por dentro del óvalo
+  x.lineWidth = 2 * dpr; x.strokeStyle = 'rgba(167,139,250,.16)'; x.beginPath(); x.ellipse(0, 0, OV.ia, OV.ib, 0, 0, Math.PI * 2); x.stroke();
+  const grad = x.createLinearGradient(-a, 0, a, 0); grad.addColorStop(0, '#a78bfa'); grad.addColorStop(.5, '#22d3ee'); grad.addColorStop(1, '#4ade80');
+  x.strokeStyle = grad; x.lineWidth = 3.5 * dpr; x.lineCap = 'round'; x.beginPath();
+  const steps = Math.max(2, Math.floor(p * 180));
+  for (let i = 0; i <= steps; i++) { const f = p * i / steps; const [ox, oy] = ovalAt(f); const k = OV.ia / a; i ? x.lineTo(ox * k, oy * (OV.ib / b)) : x.moveTo(ox * k, oy * (OV.ib / b)); }
+  if (p > 0) x.stroke();
+  // los dígitos
   const filled = Math.floor(p * N); const now = performance.now();
   if (now - F.flick > 140) F.flick = now;
-  x.font = `700 ${Math.round(S * .045)}px "Space Mono", ui-monospace, monospace`; x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.font = `700 ${Math.round(fs)}px "Space Mono", ui-monospace, monospace`; x.textAlign = 'center'; x.textBaseline = 'middle';
   for (let i = 0; i < N; i++) {
-    const a = -Math.PI / 2 + i / N * Math.PI * 2;
-    x.save(); x.rotate(a + Math.PI / 2); x.translate(0, -R);
-    if (i < filled) {
-      const t = i / N; x.fillStyle = `hsl(${258 - t * 70} 90% ${68 + 8 * Math.sin(now / 600 + i)}%)`; x.shadowColor = x.fillStyle; x.shadowBlur = 8 * dpr;
-      x.fillText('1', 0, 0);
-    } else if (i === filled && p < 1) {
-      x.fillStyle = '#fff'; x.shadowColor = '#fff'; x.shadowBlur = 12 * dpr; x.fillText(Math.floor(F.flick / 140) % 2 ? '1' : '0', 0, 0);
-    } else { x.fillStyle = 'rgba(148,138,210,.22)'; x.shadowBlur = 0; x.fillText('0', 0, 0); }
+    const [ox, oy, ang] = ovalAt(i / N);
+    x.save(); x.translate(ox, oy); x.rotate(ang);
+    if (i < filled) { const t = i / N; x.fillStyle = `hsl(${258 - t * 110} 90% ${66 + 8 * Math.sin(now / 600 + i)}%)`; x.shadowColor = x.fillStyle; x.shadowBlur = 8 * dpr; x.fillText('1', 0, 0); }
+    else if (i === filled && p < 1) { x.fillStyle = '#fff'; x.shadowColor = '#fff'; x.shadowBlur = 12 * dpr; x.fillText(Math.floor(F.flick / 140) % 2 ? '1' : '0', 0, 0); }
+    else { x.fillStyle = 'rgba(148,138,210,.24)'; x.shadowBlur = 0; x.fillText('0', 0, 0); }
     x.restore();
   }
   x.restore();

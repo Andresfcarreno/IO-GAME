@@ -70,7 +70,7 @@ export const CATALOG = [
   // cuarto / sala
   ['cama', '🛏️', 'Cama', 'floor', 1.5, 0, 1], ['lampara_pie', '🪔', 'Lámpara de pie', 'floor', 1, 0, 1], ['planta', '🪴', 'Planta', 'floor', 1.1, 0, 1],
   ['sofa', '🛋️', 'Sofá', 'floor', 1.6, 0, 2], ['tv', '📺', 'Televisor', 'floor', 1.3, 0, 2], ['cuadro', '🖼️', 'Cuadro', 'wall', 1.1, 0, 2],
-  ['cactus', '🌵', 'Cactus', 'floor', 1, 25, 1], ['reloj', '🕰️', 'Reloj antiguo', 'wall', 1, 40, 1], ['lampara', '💡', 'Lámpara colgante', 'ceiling', 1, 30, 1],
+  ['cactus', '🌵', 'Cactus', 'floor', 1, 25, 1], ['radio', '📻', 'Radio', 'floor', 1, 0, 2], ['reloj', '🕰️', 'Reloj antiguo', 'wall', 1, 40, 1], ['lampara', '💡', 'Lámpara colgante', 'ceiling', 1, 30, 1],
   ['globos', '🎈', 'Globos', 'ceiling', 1, 20, 1], ['osito', '🧸', 'Oso de peluche', 'floor', .9, 30, 1], ['tapete', '🟪', 'Tapete', 'floor', 1.2, 35, 2],
   ['guitarra', '🎸', 'Guitarra', 'wall', 1.2, 90, 3], ['disco', '🪩', 'Bola disco', 'ceiling', 1.1, 150, 4], ['vela', '🕯️', 'Vela', 'floor', .8, 15, 1],
   // cocina / comida
@@ -122,7 +122,7 @@ export function saveGame(g) { const { id, ...d } = g; S.putItem('game', d, GID);
 export const level = (g = game()) => levelOf(g.xp);
 
 /* ---------- superficies del cuarto: piso, aparador y dos repisas ---------- */
-const SHELF_OK = new Set(['planta', 'cactus', 'vela', 'osito', 'frutas', 'cafetera', 'laptop', 'consola_tv', 'palomitas', 'globo', 'flores', 'microfono', 'lampara_pie_mini', 'trofeo_mini', 'hamster', 'tortuga']);
+const SHELF_OK = new Set(['radio', 'planta', 'cactus', 'vela', 'osito', 'frutas', 'cafetera', 'laptop', 'consola_tv', 'palomitas', 'globo', 'flores', 'microfono', 'lampara_pie_mini', 'trofeo_mini', 'hamster', 'tortuga']);
 const TABLE_OK = new Set([...SHELF_OK, 'tv', 'monitor', 'acuario', 'champana', 'lampara_pie', 'escultura', 'robot', 'telescopio']);
 /** Dónde puede ir un objeto (el orden es de abajo hacia arriba). */
 export function surfacesOf(it) {
@@ -181,6 +181,11 @@ export const newItems = (g = game()) => SHOPPABLE().filter(i => i.lvl === level(
 export function collection(g = game()) {
   const all = [...CATALOG, ...WEAR]; const own = all.filter(i => g.owned[i.id]);
   return { own: own.length, total: all.length, pct: own.length / all.length };
+}
+/** Regalo del nivel 2: la radio. Devuelve true si se entregó ahora. */
+export function grantRadio() {
+  const g = game(); if (level(g) < 2 || g.owned.radio) return false;
+  g.owned.radio = 1; saveGame(g); return true;
 }
 export function buy(itemId, { deal = false } = {}) {
   const g = game(); const it = itemById(itemId); const lvl = level(g);

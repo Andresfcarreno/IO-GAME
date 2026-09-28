@@ -3,6 +3,7 @@
  * modo decorar (SELECT: elegir, mover y guardar objetos), menú (START), minimapa, efectos y sonido.
  * Teclado: flechas/WASD · Z o Espacio = A · X = B · Shift = SELECT · Enter = START. */
 import * as W from './world.js';
+import * as Pet from './pet.js';
 import { cfg } from './store.js';
 import { avatarSVG } from './avatar.js';
 
@@ -76,7 +77,7 @@ export function render() {
     const band = it.band; const on = band === 'floor' && furn && p.on && SURF[p.on] ? p.on : 'floor';
     const x = on === 'floor' ? p.x : clamp(p.x, SURF[on].x0, SURF[on].x1);
     const pos = band === 'floor' ? `bottom:${SURF[on].b}` : band === 'wall' ? `top:${wallTop(p.y ?? .35)}` : `top:var(--ceilY)`;
-    return `<button class="obj b-${band} on-${on}${it.kind === 'pet' ? ' pet' : ''}${it.kind === 'veh' ? ' veh' : ''}" data-u="${p.u}" data-y="${p.y ?? .35}" data-on="${on}" style="left:${x * 100}%;${pos};--s:${(it.s * (SURF[on]?.k || 1) * (band === 'wall' ? 1.3 : 1)).toFixed(2)}" aria-label="${esc(it.n)}" tabindex="-1"><span class="spr">${it.e}</span></button>`;
+    return `<button data-item="${p.item}" class="obj b-${band} on-${on}${it.kind === 'pet' ? ' pet' : ''}${it.kind === 'veh' ? ' veh' : ''}" data-u="${p.u}" data-y="${p.y ?? .35}" data-on="${on}" style="left:${x * 100}%;${pos};--s:${(it.s * (SURF[on]?.k || 1) * (band === 'wall' ? 1.3 : 1)).toFixed(2)}" aria-label="${esc(it.n)}" tabindex="-1"><span class="spr">${it.e}</span></button>`;
   }).join('');
   // héroe
   const look = cfg.avatar || {};
@@ -84,6 +85,7 @@ export function render() {
   if ($('heroIn').dataset.k !== key) { $('heroIn').innerHTML = avatarSVG(look, 'av'); $('heroIn').dataset.k = key; }
   const hero = $('hero');
   hero.className = 'hero ' + ['head', 'face'].map(s => g.wear[s] ? 'wear-' + g.wear[s] : '').join(' ');
+  renderPet(g);
   placeHero();
   // HUD
   const pr = W.progressOf(g.xp);
@@ -100,6 +102,13 @@ function countTo(el, to) {
   const step = t => { const k = Math.min(1, (t - t0) / d); el.textContent = Math.round(from + (to - from) * (1 - (1 - k) ** 3)); if (k < 1) requestAnimationFrame(step); };
   requestAnimationFrame(step);
 }
+function renderPet(g) {
+  const pc = $('petc'); if (!pc) return; const p = Pet.get(g);
+  pc.hidden = false; pc.classList.toggle('egg', p.stage === 0); pc.dataset.mood = p.mood;
+  $('petE').textContent = p.e; $('petB').textContent = p.mood === 'triste' ? '💧' : p.mood === 'feliz' ? '❤️' : '';
+  if (p.stage === 0) pc.style.left = '88%';
+  pc.style.setProperty('--ps', [1, .75, .9, 1.1, 1.3][p.stage]);
+}
 function renderMinimap(g, n, lvl) {
   const w = W.worldOf(n);
   const count = w.to - w.from + 1;
@@ -113,6 +122,7 @@ function placeHero() {
   const hero = $('hero');
   hero.style.left = (E.x * 100) + '%';
   hero.classList.toggle('flip', E.dir < 0);
+  const pc = $('petc'); if (pc && !pc.hidden && !pc.classList.contains('egg')) { pc.style.left = clamp(E.x - .1 * (E.dir || 1), .1, .95) * 100 + '%'; pc.classList.toggle('flip', E.dir < 0); }
 }
 
 /* ================= caminar e interacción ================= */
@@ -159,6 +169,7 @@ function interact() {
   const it = W.itemById(p.item);
   if (it.kind === 'veh') { const el = document.querySelector(`#objs .obj[data-u="${p.u}"]`); el?.classList.remove('drive'); void el?.offsetWidth; el?.classList.add('drive'); blip('door'); say(`¡${it.e} Vamos a dar una vuelta!`, 2600, cfg.name || 'Tú'); setTimeout(() => el?.classList.remove('drive'), 2300); return; }
   if (it.kind === 'pet') { act('wave', '❤️'); say(`${it.e} ¡Te quiere!`, 2200, cfg.name || 'Tú'); blip('select'); return; }
+  if (p.item === 'radio') { const on = E.hooks.onRadio?.(); act('dance', on ? '🎶' : '📻'); blip('select'); say(on ? `📻 ${on}` : '📻 Radio apagada', 2400, cfg.name || 'Tú'); return; }
   const [a, prop, line] = INTERACT[p.item] || ['wave', '✨', `${it.e} ${it.n}`];
   act(a, prop); blip('select'); say(line, 2600, cfg.name || 'Tú');
 }
@@ -435,7 +446,7 @@ function setupDrag() {
   layer.addEventListener('pointerup', up); layer.addEventListener('pointercancel', up);
   // tocar el piso: caminar hasta ahí
   $('scene').addEventListener('pointerdown', e => {
-    if (E.mode !== 'walk' || e.target.closest('.obj,.elev,#minimap,.hud,#dlg')) return;
+    if (E.mode !== 'walk' || e.target.closest('.obj,.elev,#minimap,.hud,#dlg,#petc')) return;
     const r = $('scene').getBoundingClientRect(); walkTo(clamp((e.clientX - r.left) / r.width, .07, .94));
   });
   $('elevBox').addEventListener('click', () => { if (E.mode === 'walk') walkTo(.1, () => openElevator()); });
@@ -499,6 +510,8 @@ function setupControls() {
     const w = e.target.closest('[data-ew]'); if (w) elevWorld(+w.dataset.ew);
   });
   $('minimap').addEventListener('click', () => E.hooks.onMenu?.('mapa'));
+  $('petc').addEventListener('click', e => { e.stopPropagation(); if (E.mode !== 'walk') return; const p = Pet.get(); blip('select'); $('petc').classList.remove('hop'); void $('petc').offsetWidth; $('petc').classList.add('hop');
+    say(p.stage === 0 ? `🥚 Se mueve… nace en ${p.toNext} corona${p.toNext === 1 ? '' : 's'}.` : `${p.e} ${p.name}: ${Pet.line(p)}`, 3000, p.stage ? p.name : 'Huevo'); });
   document.querySelector('.hud').addEventListener('click', e => { const h = e.target.closest('[data-hud]'); if (h && E.mode === 'walk') { blip('select'); E.hooks.onMenu?.('stats:' + h.dataset.hud); } });
   $('dlg').addEventListener('click', () => hush());
 }

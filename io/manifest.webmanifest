@@ -1,7 +1,7 @@
 {
   "name": "IO",
   "short_name": "IO",
-  "description": "IO: yo · 1 0. Un juego de hábitos que se juega en la vida real. Siempre gratis.",
+  "description": "IO: yo · 1 0. Un juego de hábitos que se juega en la vida real: tu personaje hace tus hábitos contigo. Siempre gratis.",
   "id": "/io/",
   "start_url": "/io/?source=pwa",
   "scope": "/io/",
@@ -48,9 +48,42 @@
   ],
   "shortcuts": [
     {
+      "name": "Empezar mi próximo hábito",
+      "short_name": "▶ Próximo",
+      "url": "/io/?start=next&source=shortcut",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
       "name": "Mis hábitos de hoy",
       "short_name": "Hoy",
-      "url": "/io/?source=shortcut",
+      "url": "/io/?tab=hoy&source=shortcut",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Tienda",
+      "short_name": "Tienda",
+      "url": "/io/?tab=tienda&source=shortcut",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Ranking",
+      "short_name": "Ranking",
+      "url": "/io/?tab=ranking&source=shortcut",
       "icons": [
         {
           "src": "icons/icon-192.png",

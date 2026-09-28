@@ -11,6 +11,9 @@ import { avatarSVG, editorHTML, normLook } from './avatar.js';
 import { $, esc, toast, openSheet, closeSheet } from './ui.js';
 import * as L from './lower.js';
 import * as R from './ranking.js';
+import * as Radio from './radio.js';
+import * as Rem from './remind.js';
+import * as Pet from './pet.js';
 const mmss = s => { s = Math.max(0, Math.round(s)); return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; };
 const ANIM = { read: 'sit', study: 'sit', write: 'sit', type: 'sit', talk: 'wave', float: 'float', breathe: 'float', yoga: 'flex', pray: 'float', unplug: 'dance', sleep: 'float', flex: 'flex', run: 'jump', walk: 'dance', dog: 'dance', swim: 'jump', eat: 'jump', cook: 'dance', water: 'jump', clean: 'dance', music: 'dance', draw: 'wave', jump: 'jump' };
 
@@ -40,16 +43,17 @@ function renderHabits() {
   } else $('hNext').hidden = true;
   if (!hs.length) { $('habitList').innerHTML = `<div class="empty">${H.list().length ? 'Hoy no tienes hábitos programados. Descansa 🌙' : 'Aún no tienes hábitos. Crea el primero 👇'}</div>`; }
   else $('habitList').innerHTML = hs.map(h => {
-    const st = stateOf(h); const s = H.sess(h.id); const el = H.elapsed(h.id); const p = el / (h.min * 60);
+    const st = stateOf(h); const s = H.sess(h.id); const el = H.elapsed(h.id); const cnt = H.isCount(h); const p = cnt ? (s.n || 0) / (h.meta || 1) : el / (h.min * 60);
     const streak = H.streakOf(h.id); const late = st === 'todo' && H.minutesOf(h.hora) < nowM - 30;
     const btn = st === 'claimed' ? `<span class="hb-ok">✓ +${s.reward?.xp ?? ''} XP</span>`
       : st === 'crown' ? `<button class="hb-btn crown" data-act="claim" data-id="${h.id}">👑 Activar</button>`
       : st === 'running' ? `<button class="hb-btn run" data-act="start" data-id="${h.id}">● ${mmss(h.min * 60 - el)}</button>`
       : st === 'paused' ? `<button class="hb-btn" data-act="start" data-id="${h.id}">⏯ ${mmss(h.min * 60 - el)}</button>`
+      : cnt ? (H.countWait(h.id) ? `<button class="hb-btn" data-act="count" data-id="${h.id}">⏳ ${H.countWait(h.id)} min</button>` : `<button class="hb-btn go" data-act="count" data-id="${h.id}">＋1 · ${s.n || 0}/${h.meta}</button>`)
       : `<button class="hb-btn go" data-act="start" data-id="${h.id}">▶ Empezar</button>`;
     return `<div class="hab st-${st}${late ? ' late' : ''}" data-hid="${h.id}">
       <div class="hab-ic">${ring(st === 'claimed' ? 1 : p, st === 'claimed' ? 'var(--green)' : st === 'crown' ? 'var(--amber)' : 'var(--acc2)')}<span>${st === 'crown' ? '👑' : esc(h.emoji)}</span></div>
-      <button class="hab-inf" data-act="editHabit" data-id="${h.id}"><b>${esc(h.nombre)}</b><small>${h.hora} · ${h.min} min${streak ? ` · 🔥${streak}` : ''}${late ? ' · se te pasó la hora' : ''}</small></button>
+      <button class="hab-inf" data-act="editHabit" data-id="${h.id}"><b>${esc(h.nombre)}</b><small>${h.hora} · ${cnt ? `${s.n || 0}/${h.meta} ${esc(h.unidad || '')}` : `${h.min} min`}${streak ? ` · 🔥${streak}` : ''}${late ? ' · se te pasó la hora' : ''}</small></button>
       ${btn}</div>`;
   }).join('');
   const others = H.list().filter(h => !H.scheduled(h, todayIso()));
@@ -68,7 +72,7 @@ function renderTop() {
   G.setMood(H.running() ? 'neutral' : t.claimed ? 'happy' : 'neutral');
   $('led').classList.toggle('on', !!H.running());
 }
-function renderAll() { renderTop(); renderHabits(); L.render(); G.render(); renderMini(); R.publish(); }
+function renderAll() { renderTop(); renderHabits(); L.render(); G.render(); renderMini(); R.publish(); Rem.badge(); }
 
 /* ================= mini reproductor: tu próximo hábito siempre a un toque ================= */
 let listVisible = false;
@@ -79,15 +83,25 @@ function renderMini() {
   const show = !!h && cfg.onboarded && !listVisible && !Focus.isOpen() && $('onb').hidden;
   m.classList.toggle('show', show); if (!show) return;
   const el = H.elapsed(h.id); const st = stateOf(h);
-  const p = st === 'claimed' ? 1 : el / (h.min * 60);
+  const p = st === 'claimed' ? 1 : H.isCount(h) ? (H.sess(h.id).n || 0) / (h.meta || 1) : el / (h.min * 60);
   m.innerHTML = `<div class="mi-bar"><i style="width:${Math.min(100, p * 100)}%"></i></div>
     <span class="mi-e">${st === 'crown' ? '👑' : esc(h.emoji)}</span>
-    <div class="mi-t"><b>${esc(h.nombre)}</b><small>${st === 'crown' ? 'Corona lista: actívala' : st === 'running' ? `● quedan ${mmss(h.min * 60 - el)}` : st === 'paused' ? `⏸ pausado · quedan ${mmss(h.min * 60 - el)}` : `Próximo · ${h.hora} · ${h.min} min`}</small></div>
+    <div class="mi-t"><b>${esc(h.nombre)}</b><small>${st === 'crown' ? 'Corona lista: actívala' : H.isCount(h) ? `${H.sess(h.id).n || 0}/${h.meta} ${esc(h.unidad || '')} · toca +1` : st === 'running' ? `● quedan ${mmss(h.min * 60 - el)}` : st === 'paused' ? `⏸ pausado · quedan ${mmss(h.min * 60 - el)}` : `Próximo · ${h.hora} · ${h.min} min`}</small></div>
     ${st === 'crown' ? `<button class="mi-go crown" data-act="claim" data-id="${h.id}" aria-label="Activar corona">👑</button>` : `<button class="mi-go" data-act="start" data-id="${h.id}" aria-label="${st === 'running' ? 'Abrir reloj' : 'Empezar'}">${st === 'running' ? '⤢' : '▶'}</button>`}`;
 }
 
 /* ================= reloj y corona ================= */
+/** Hábito de conteo: +1 con celebración chiquita en la consola. */
+function countHabit(id) {
+  const h = H.get(id); const r = H.count(id);
+  if (!r.ok) { if (r.wait) toast(`⏳ Espera ${r.wait} min para el siguiente (así cuenta de verdad)`, 3000); G.blip('error'); return; }
+  G.blip('coin'); try { navigator.vibrate?.(25); } catch { /* */ }
+  G.act(ANIM[H.actOf(h)] || 'jump', h.emoji); G.floatText(`+1 ${h.emoji} ${r.n}/${r.meta}`);
+  renderAll();
+  if (r.done) setTimeout(() => claimFlow(id), 700);
+}
 function startHabit(id) {
+  if (H.isCount(H.get(id))) return countHabit(id);
   Focus.open(id, { onClaim: claimFlow, onClose: () => { renderAll(); G.say('Pausado. Lo que llevas quedó guardado ⏸', 3000); } });
   renderAll();
 }
@@ -102,10 +116,8 @@ function claimFlow(id) {
   G.celebrate({ kind: ANIM[act] || 'jump', prop: H.PROP[act], xp: r.xp, bits: r.bits, fromEl: row,
     line: `¡${r.habit.nombre} completo! +${r.xp} XP y ${r.bits} bits${r.onTime ? ' (a tiempo +25%)' : ''}${r.streak > 1 ? `. Racha de ${r.streak} 🔥` : ''}.` });
   setTimeout(() => {
-    if (streakAfter > streakBefore) streakScreen(streakAfter, () => { if (r.after > r.before) G.levelUp(r.before, r.after); renderAll(); });
-    else if (r.after > r.before) G.levelUp(r.before, r.after);
-    else if (H.chestReady()) { G.say('🎁 ¡Completaste todo lo de hoy! Abre el cofre del día abajo.', 5000); L.show('hoy'); }
-    renderAll();
+    const lv = () => { if (r.after > r.before) { G.levelUp(r.before, r.after); giftRadio(); } else if (H.chestReady()) { G.say('🎁 ¡Completaste todo lo de hoy! Abre el cofre del día abajo.', 5000); L.show('hoy'); } renderAll(); };
+    if (streakAfter > streakBefore) streakScreen(streakAfter, () => petEvent(lv)); else petEvent(lv);
   }, 2400);
 }
 /** Pantalla de racha (como Duolingo): la llama crece y la semana se marca. */
@@ -116,11 +128,11 @@ function streakScreen(n, then) {
   const msg = n === 1 ? '¡Empieza tu racha! Vuelve mañana para mantenerla.' : n < 7 ? `Vas ${n} días seguidos. ¡No la rompas mañana!` : n < 30 ? `¡${n} días! Ya es parte de ti.` : `¡${n} días! Esto es leyenda. 🏆`;
   ov.innerHTML = `<div class="so-in"><div class="so-flame">🔥</div><b class="so-n" id="soN">${Math.max(0, n - 1)}</b><span class="so-l">${n === 1 ? 'día de racha' : 'días de racha'}</span>
     <div class="so-week">${days.map((d, i) => `<div class="${any(d) ? 'on' : ''}${i === 6 ? ' today' : ''}"><i>${any(d) ? '✓' : ''}</i><small>${DN[S.dateOf(d).getDay()]}</small></div>`).join('')}</div>
-    <p>${msg}</p><button class="btn-acc" id="soGo">¡Sigo! 💪</button></div>`;
+    <p>${msg}</p><button class="btn-acc" id="soGo">¡Sigo! 💪</button>${n >= 3 ? '<button class="so-share" id="soShare">📸 Presumir mi racha</button>' : ''}</div>`;
   ov.hidden = false; G.blip('level'); try { navigator.vibrate?.([30, 40, 30, 40, 120]); } catch { /* */ }
   setTimeout(() => { const e = $('soN'); if (e) { e.textContent = n; e.classList.add('bump'); } G.blip('crown'); }, 700);
   const done = () => { ov.hidden = true; ov.innerHTML = ''; then?.(); };
-  $('soGo').onclick = done; clearTimeout(streakScreen.t); streakScreen.t = setTimeout(() => { if (!ov.hidden) done(); }, 7000);
+  $('soGo').onclick = done; if ($('soShare')) $('soShare').onclick = () => { done(); L.actions.story(); }; clearTimeout(streakScreen.t); streakScreen.t = setTimeout(() => { if (!ov.hidden) done(); }, 7000);
 }
 function openChest() {
   const r = H.openChest(); if (!r) return;
@@ -137,7 +149,11 @@ function habitSheet(id) {
     <div class="emo-row">${EMOJIS.map(e => `<button class="emo${h.emoji === e ? ' on' : ''}" data-act="pickEmoji" data-e="${e}">${e}</button>`).join('')}</div>
     <input type="hidden" id="hfEmoji" value="${esc(h.emoji)}">
     <div class="field"><label for="hfName">Hábito</label><input class="inp" id="hfName" value="${esc(h.nombre)}" placeholder="Leer, meditar, ir a clase…" maxlength="40"></div>
-    <div class="row"><div class="field"><label for="hfMin">Duración (min)</label><input class="inp" id="hfMin" type="number" min="1" max="240" value="${h.min}" inputmode="numeric"></div>
+    <div class="field"><label>Tipo</label><div class="seg" id="hfTipo"><button class="${H.isCount(h) ? '' : 'on'}" data-act="hfTipo" data-v="reloj">⏱ Con reloj</button><button class="${H.isCount(h) ? 'on' : ''}" data-act="hfTipo" data-v="conteo">🔢 De conteo</button></div></div>
+    <div class="row cnt-only"${H.isCount(h) ? '' : ' hidden'}><div class="field"><label for="hfMeta">¿Cuántas veces?</label><input class="inp" id="hfMeta" type="number" min="1" max="50" value="${h.meta || 8}" inputmode="numeric"></div>
+      <div class="field"><label for="hfUni">¿De qué?</label><input class="inp" id="hfUni" value="${esc(h.unidad || 'veces')}" maxlength="14"></div>
+      <div class="field"><label for="hfPausa">Cada (min)</label><input class="inp" id="hfPausa" type="number" min="1" max="240" value="${h.pausa ?? 30}" inputmode="numeric"></div></div>
+    <div class="row"><div class="field tmr-only"${H.isCount(h) ? ' hidden' : ''}><label for="hfMin">Duración (min)</label><input class="inp" id="hfMin" type="number" min="1" max="240" value="${h.min}" inputmode="numeric"></div>
     <div class="field"><label for="hfHora">Hora</label><input class="inp" id="hfHora" type="time" value="${esc(h.hora)}"></div></div>
     <div class="field"><label>Días</label><div class="hb-days big" id="hfDays">${H.DAYS.map((d, k) => `<button class="${(h.dias || []).includes(k) ? 'on' : ''}" data-act="toggleDay" data-k="${k}">${d}</button>`).join('')}</div></div>
     <div class="field"><label for="hfAct">Tu personaje durante el reloj</label><select class="inp" id="hfAct">${Object.entries(H.ACTS).map(([k, [e, l]]) => `<option value="${k}"${k === H.actOf(h) ? ' selected' : ''}>${e} ${l}</option>`).join('')}</select></div>
@@ -170,6 +186,26 @@ function place(id, fresh = false) {
     else toast(`${it.e} quedó en tu mochila 🎒`, 3500);
     renderAll();
   }, 420);
+}
+/** Nacimiento o evolución del compañero, con su propia revelación. */
+function petEvent(then) {
+  const ev = Pet.check(); if (!ev) return then?.();
+  const el = $('reveal'); el.dataset.r = ev.type === 'hatch' ? 'raro' : 'epico';
+  el.innerHTML = `<div class="rv-in"><div class="rv-box">${ev.from}</div><p class="rv-tap">${ev.type === 'hatch' ? '¡Algo se mueve!' : '¡Está cambiando!'}</p></div>`;
+  el.hidden = false; G.blip('shake'); setTimeout(() => G.blip('shake'), 400); setTimeout(() => G.blip('shake'), 800);
+  setTimeout(() => {
+    G.blip('legend'); const p = ev.p;
+    el.innerHTML = `<div class="rv-in show"><div class="rv-rays"></div><div class="rv-item">${ev.to}</div><em class="rt r-${el.dataset.r}">${ev.type === 'hatch' ? '¡NACIÓ!' : '¡EVOLUCIONÓ!'}</em>
+      <h3>${ev.type === 'hatch' ? `Es un ${esc(p.spName.toLowerCase())}` : `${esc(p.name)} ahora es ${p.stageName.toLowerCase()}`}</h3>
+      <p>${ev.type === 'hatch' ? 'Crece con cada corona que ganes. Ponle nombre:' : `Sigue así: ${p.toNext ? `evoluciona otra vez en ${p.toNext} coronas` : 'llegó a su forma legendaria'}.`}</p>
+      ${ev.type === 'hatch' ? `<input class="inp" id="petIn" maxlength="14" value="${esc(p.name)}" style="max-width:220px;text-align:center">` : ''}
+      <div class="rv-btns"><button class="btn-acc" id="petOk">❤️ ${ev.type === 'hatch' ? 'Bienvenido' : '¡Genial!'}</button></div></div>`;
+    $('petOk').onclick = () => { if ($('petIn')?.value.trim()) Pet.rename($('petIn').value); el.hidden = true; el.innerHTML = ''; renderAll(); then?.(); };
+  }, 1300);
+}
+function giftRadio() {
+  if (!W.grantRadio()) return;
+  setTimeout(() => { G.say('🎁 ¡Nivel 2! Te ganaste una 📻 radio. Está en tu mochila: ponla en una repisa y tócala con A, o prende música en el reloj.', 8000); renderAll(); }, 4600);
 }
 function celebrate(o) {
   G.celebrate(o); renderAll();
@@ -221,6 +257,13 @@ function statsSheet(focus = 'xp') {
     ${next && pv ? `<p class="note">Tu próximo hábito, ${esc(next.emoji)} ${esc(next.nombre)} (${next.min} min), te da ≈ <b>+${pv.xp} XP</b> y <b>+${pv.bits} ◆</b> si empiezas a tiempo.</p>` : ''}
     <div class="stack"><button class="btn-ghost" data-act="tab" data-t="ranking">🏆 Ver ranking</button><button class="btn-ghost" data-act="tab" data-t="tienda">🛒 Gastar bits</button></div>`);
 }
+function calendarSheet() {
+  const hs = H.list();
+  openSheet('Tu calendario', `<p class="note">Tus hábitos como eventos que se repiten, con alarma ${+(cfg.remindLead ?? 5) ? (cfg.remindLead ?? 5) + ' min antes' : 'a la hora'}. Funcionan aunque IO esté cerrada, y al tocarlos se abre el reloj.</p>
+    <button class="btn-acc" data-act="icsAll">📅 Descargar todos (.ics)</button>
+    <p class="note">Sirve para Google Calendar, Apple Calendario y Outlook. O agrégalos uno por uno a Google:</p>
+    ${hs.map(h => `<a class="list-row" href="${Rem.googleLink(h)}" target="_blank" rel="noopener"><span>${esc(h.emoji)}</span><div><b>${esc(h.nombre)}</b><small>${h.hora} · ${h.min} min · ${(h.dias || []).length === 7 ? 'todos los días' : (h.dias || []).map(d => H.DAYS[d]).join(' ')}</small></div><em>＋ Google</em></a>`).join('') || '<div class="empty">Sin hábitos aún.</div>'}`);
+}
 function achievementsTab() { L.show('progreso'); setTimeout(() => $('achSec')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60); }
 function decoSheet(u) {
   const g = W.game(); const p = u ? W.placedOn(g, g.floor).find(q => q.u === u) : null; const it = p ? W.itemById(p.item) : null;
@@ -244,6 +287,11 @@ function settingsSheet() {
     <div class="stack" style="margin:10px 0 4px"><button class="btn-acc" data-act="saveSettings">Guardar</button>
       <button class="btn-ghost" data-act="allHabits">📋 Mis hábitos</button>
       <button class="btn-ghost" data-act="redoOnb">🎮 Rehacer configuración inicial</button></div>
+    <div class="sec-t">Recordatorios y calendario</div>
+    <label class="tog"><input type="checkbox" id="stRemind"${Rem.enabled() ? ' checked' : ''}${Rem.state() === 'unsupported' || Rem.state() === 'denied' ? ' disabled' : ''}> Avisarme a la hora de cada hábito</label>
+    <div class="field"><label for="stLead">Avisar</label><select class="inp" id="stLead">${[[0, 'A la hora exacta'], [5, '5 min antes'], [10, '10 min antes'], [15, '15 min antes']].map(([v, l]) => `<option value="${v}"${+(cfg.remindLead ?? 5) === v ? ' selected' : ''}>${l}</option>`).join('')}</select></div>
+    <p class="note">${Rem.state() === 'denied' ? '⚠️ Bloqueaste las notificaciones: actívalas en los ajustes del navegador para este sitio.' : Rem.state() === 'unsupported' ? 'Este navegador no permite notificaciones. En iPhone, instala IO en la pantalla de inicio (iOS 16.4+).' : 'Llegan mientras IO está abierta o en segundo plano. Para avisos con el celular bloqueado, agrega tus hábitos a tu calendario:'}</p>
+    <button class="btn-ghost" data-act="calendar">📅 Agregar mis hábitos al calendario</button>
     <div class="sec-t">Ranking</div>
     <label class="tog"><input type="checkbox" id="stRank"${cfg.rankOn ? ' checked' : ''}> Aparecer en el ranking mundial</label>
     <div class="field"><label for="stRankName">Nombre público</label><input class="inp" id="stRankName" value="${esc(cfg.rankName || cfg.name)}" maxlength="20"></div>
@@ -276,29 +324,35 @@ function seedDemo() {
 /* ================= acciones ================= */
 const A = {
   closeSheet, about: aboutSheet, settings: settingsSheet,
-  start: el => startHabit(el.dataset.id),
+  start: el => startHabit(el.dataset.id), count: el => countHabit(el.dataset.id),
   claim: el => claimFlow(el.dataset.id),
   chest: openChest,
   newHabit: () => habitSheet(null), editHabit: el => habitSheet(el.dataset.id), allHabits: allHabitsSheet,
   pickEmoji: el => { $('hfEmoji').value = el.dataset.e; document.querySelectorAll('.emo').forEach(b => b.classList.toggle('on', b === el)); },
   toggleDay: el => el.classList.toggle('on'),
+  hfTipo: el => { document.querySelectorAll('#hfTipo button').forEach(b => b.classList.toggle('on', b === el)); const c = el.dataset.v === 'conteo'; document.querySelector('.cnt-only').hidden = !c; document.querySelector('.tmr-only').hidden = c; },
   saveHabit: el => {
     const nombre = $('hfName').value.trim(); if (!nombre) return toast('Ponle nombre al hábito');
     const dias = [...document.querySelectorAll('#hfDays button')].map((b, k) => b.classList.contains('on') ? k : -1).filter(k => k >= 0);
     if (!dias.length) return toast('Elige al menos un día');
     const old = el.dataset.id ? H.get(el.dataset.id) : null;
     const { id: _o, ...rest } = old || {};
-    H.save({ ...rest, emoji: $('hfEmoji').value, nombre, min: parseInt($('hfMin').value) || 10, hora: $('hfHora').value || '08:00', dias, motivo: $('hfMot').value.trim(), act: $('hfAct').value }, el.dataset.id || null);
+    H.save({ ...rest, emoji: $('hfEmoji').value, nombre, min: parseInt($('hfMin').value) || 10, hora: $('hfHora').value || '08:00', dias, motivo: $('hfMot').value.trim(), act: $('hfAct').value,
+      ...(document.querySelector('#hfTipo .on')?.dataset.v === 'conteo' ? { tipo: 'conteo', meta: Math.max(1, Math.min(50, parseInt($('hfMeta').value) || 1)), unidad: $('hfUni').value.trim() || 'veces', pausa: Math.max(1, Math.min(240, parseInt($('hfPausa').value) || 15)) } : { tipo: 'reloj' }) }, el.dataset.id || null);
     closeSheet(); renderAll(); toast('Hábito guardado ✓');
   },
   delHabit: el => { if (el.dataset.sure) { H.remove(el.dataset.id); closeSheet(); renderAll(); toast('Hábito eliminado'); } else { el.dataset.sure = 1; el.textContent = '¿Seguro? Toca otra vez para eliminar'; } },
   ...L.actions,
+  calendar: calendarSheet, icsAll: async () => { const r = await Rem.exportIcs(); if (r === 'download') toast('📅 Abre el archivo para agregarlo a tu calendario', 4000); },
+  remindOn: async () => { const r = await Rem.enable(true); toast(r === 'granted' ? '🔔 Listo: te aviso a la hora' : 'No se pudieron activar las notificaciones', 3500); L.render(); },
   shop: () => { closeSheet(); L.show('tienda', { scroll: true }); }, buy: el => buy(el.dataset.id),
   bag: bagSheet, place: el => { closeSheet(); place(el.dataset.id); }, character: charSheet, map: mapSheet,
   goFloor: el => { const n = +el.dataset.n; if (n > W.level()) return toast(`🔒 Se abre en el nivel ${n}`); closeSheet(); $('screen').scrollIntoView({ behavior: 'smooth', block: 'nearest' }); setTimeout(() => G.ride(n), 350); },
   storeObj: el => { G.storeSelected(el.dataset.u); closeSheet(); toast('Guardado en la mochila 🎒'); },
   saveChar: () => { saveCfg({ avatar: editLook, name: $('chName').value.trim() || cfg.name }); closeSheet(); renderAll(); G.act('dance', '✨'); G.say('¡Nuevo look!', 2500); },
   saveSettings: async () => {
+    saveCfg({ remindLead: +$('stLead').value });
+    if ($('stRemind').checked !== Rem.enabled()) { const r = await Rem.enable($('stRemind').checked); if (r === 'denied') toast('Notificaciones bloqueadas en el navegador', 4000); }
     const wasOn = !!cfg.rankOn; const on = $('stRank').checked; const rankName = $('stRankName').value.trim().slice(0, 20) || cfg.name;
     saveCfg({ name: $('stName').value.trim() || cfg.name, sound: $('stSound').checked, wake: $('stWake').checked, rankName });
     closeSheet(); toast('Guardado ✓');
@@ -337,12 +391,15 @@ function afterOnb({ first, demo } = {}) {
 G.init({
   onMenu: k => k.startsWith('stats') ? statsSheet(k.split(':')[1]) : ({ mochila: bagSheet, tienda: () => L.show('tienda', { scroll: true }), ranking: () => L.show('ranking', { scroll: true }), progreso: () => L.show('progreso', { scroll: true }), mapa: mapSheet, personaje: charSheet, logros: achievementsTab, ajustes: settingsSheet })[k]?.(),
   onDecoMenu: u => decoSheet(u),
+  onRadio: () => { const st = Radio.toggle(W.level()); $('scene').classList.toggle('radio-on', !!st); L.render(); return st ? `${st.e} ${st.n}` : ''; },
   onFloor: () => { renderTop(); L.render(); },
 });
 L.init({ renderAll, buy, place, celebrate });
 H.closeStale();
 const shielded = H.applyShields();
+W.grantRadio();
 renderAll();
+if (cfg.onboarded) setTimeout(() => { if (!Focus.isOpen()) petEvent(); }, 2500);
 new IntersectionObserver(es => { listVisible = es.some(e => e.isIntersecting); renderMini(); }, { rootMargin: '-130px 0px -90px 0px' }).observe($('habitList'));
 setInterval(() => { if (H.running() && !Focus.isOpen()) renderMini(); }, 1000);
 if (!cfg.onboarded) openOnboarding({ onDone: afterOnb });
@@ -353,5 +410,14 @@ else {
   else { const n = H.nextUp(); G.say(n ? `Hola ${cfg.name}. Próximo: ${n.emoji} ${n.nombre} a las ${n.hora}.` : `Hola ${cfg.name}. ¡Todo listo por hoy! Camina, decora o visita tus pisos.`, 5000); }
 }
 S.sync().then(renderAll);
+Rem.start();
+{ // atajos del ícono y notificaciones: ?start=<id|next> · ?tab=<pestaña>
+  const q = new URLSearchParams(location.search); const st = q.get('start'); const tb = q.get('tab');
+  if (cfg.onboarded && (st || tb)) {
+    history.replaceState(null, '', location.pathname);
+    if (tb) L.show(tb, { scroll: true });
+    if (st) { const h = st === 'next' ? H.nextUp() : H.get(st); if (h && !H.sess(h.id).done) setTimeout(() => startHabit(h.id), 400); }
+  }
+}
 setInterval(() => { if (document.visibilityState === 'visible' && !Focus.isOpen()) { renderHabits(); renderTop(); L.badges(); } }, 20000);
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});

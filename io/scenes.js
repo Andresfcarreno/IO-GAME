@@ -47,7 +47,7 @@ const SCENES = {
 };
 
 /** Escena completa. big = modo enfoque (cielo por hora, arbolito y contador). */
-export function sceneHTML(act, look, wear = {}, { big = false } = {}) {
+export function sceneHTML(act, look, wear = {}, { big = false, pet = null } = {}) {
   const key = SCENES[act] ? act : 'jump'; const sc = SCENES[key];
   const wearCls = ['head', 'face'].map(s => (wear[s] ? 'wear-' + wear[s] : '')).join(' ');
   const h = new Date().getHours(); const tod = h >= 6 && h < 17 ? 'dia' : h >= 17 && h < 20 ? 'tarde' : 'noche';
@@ -57,6 +57,7 @@ export function sceneHTML(act, look, wear = {}, { big = false } = {}) {
     <div class="fs-back">${sc.back || ''}</div>
     <div class="fs-char ${wearCls}">${avatarSVG(look, 'av', undefined, { holdL: sc.holdL, holdR: sc.holdR })}</div>
     <div class="fs-front">${sc.front || ''}</div>
+    ${pet ? `<span class="fx-pet${pet.stage === 0 ? ' egg' : ''}" style="--ps:${[.8, .8, .95, 1.1, 1.25][pet.stage]}">${pet.e}</span>` : ''}
     ${big ? '<div class="fx-count" aria-live="off"></div><div class="fx-grow"><b>🌰</b><small>crece contigo</small></div>' : ''}
   </div>`;
 }

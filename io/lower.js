@@ -1,12 +1,16 @@
 /* IO — la segunda pantalla del Game Boy avanzado.
  * Hoy · Tienda · Ranking · Progreso · Mundo. Todo lo que antes vivía escondido en el menú START
  * ahora también está a un toque, abajo de la consola. */
-import { cfg, todayIso, addDays, dateOf } from './store.js';
+import { cfg, saveCfg, todayIso, addDays, dateOf } from './store.js';
 import * as W from './world.js';
 import * as H from './habits.js';
 import * as G from './engine.js';
 import * as R from './ranking.js';
 import { avatarSVG } from './avatar.js';
+import * as Radio from './radio.js';
+import * as Rem from './remind.js';
+import * as Share from './share.js';
+import * as Pet from './pet.js';
 import { $, esc, fmtN, toast, openSheet, closeSheet } from './ui.js';
 
 const TABS = ['hoy', 'tienda', 'ranking', 'progreso', 'mundo'];
@@ -52,6 +56,8 @@ function renderHoy() {
   $('quick').innerHTML = `
     ${d && !d.taken ? `<button class="qk qk-deal r-${W.rarityOf(d.item).id}" data-act="tab" data-t="tienda"><span class="qk-e">${d.item.e}</span><span><b>Oferta del día −30%</b><small>${esc(d.item.n)} · ◆${d.price}</small></span></button>` : ''}
     ${chase ? `<button class="qk qk-rank" data-act="tab" data-t="ranking"><span class="qk-e">🏆</span><span><b>#${chase.pos} en ${R.online() && R.joined() ? 'el ranking' : 'tu liga'}</b><small>${chase.next ? `Te faltan ${fmtN(chase.gap)} XP para pasar a ${esc(chase.next)}` : '¡Vas de primero!'}</small></span></button>` : ''}
+    ${!Rem.enabled() && Rem.state() !== 'unsupported' && Rem.state() !== 'denied' ? '<button class="qk" data-act="remindOn"><span class="qk-e">🔔</span><span><b>Activa recordatorios</b><small>te aviso a la hora de cada hábito</small></span></button>' : ''}
+    <button class="qk" data-act="calendar"><span class="qk-e">📅</span><span><b>Al calendario</b><small>tus hábitos con alarma</small></span></button>
     <button class="qk" data-act="tab" data-t="tienda"><span class="qk-e">🧩</span><span><b>Colección ${col.own}/${col.total}</b><small>${Math.round(col.pct * 100)}% completa</small></span></button>`;
 }
 function questsCard() {
@@ -265,6 +271,26 @@ function renderProg() {
 }
 
 /* ================= MUNDO ================= */
+function petCard() {
+  const p = Pet.get();
+  const chain = p.sp ? Pet.SPECIES[p.sp].chain : ['🥚', '❔', '❔', '❔', '❔'];
+  return `<div class="pg-sec pet-card"><div class="h-head"><h2>${p.stage ? esc(p.name) : 'Tu compañero'}</h2><span class="h-prog">${p.stage ? `${esc(p.spName)} · ${p.stageName}` : 'huevo'}</span></div>
+    <div class="pet-row"><span class="pet-big mood-${p.mood}${p.stage === 0 ? ' egg' : ''}">${p.e}</span>
+      <div><div class="pet-chain">${chain.map((e, i) => `<i class="${i <= p.stage ? 'on' : ''}">${i <= p.stage ? e : '❔'}</i>`).join('<b>›</b>')}</div>
+        <small>${p.toNext ? `${p.stage === 0 ? 'Nace' : 'Evoluciona a ' + p.nextName.toLowerCase()} en <b>${p.toNext}</b> corona${p.toNext === 1 ? '' : 's'}` : '¡Forma legendaria!'}</small>
+        <div class="sw-bar"><i style="width:${p.pct * 100}%"></i></div>
+        <small>Ánimo: ${p.mood === 'feliz' ? '😊 feliz, cumpliste hoy' : p.mood === 'triste' ? '😢 te extrañó ayer' : '🙂 tranquilo'}</small></div></div>
+    ${p.stage ? '<button class="btn-ghost" data-act="petName">✏️ Cambiarle el nombre</button>' : ''}</div>`;
+}
+function radioCard(lvl) {
+  const on = Radio.current();
+  if (lvl < Radio.RADIO_LVL) return `<div class="pg-sec radio-card locked"><div class="h-head"><h2>📻 Radio</h2><span class="h-prog">🔒 nivel ${Radio.RADIO_LVL}</span></div><p class="note">Sonidos para acompañar tus hábitos: lluvia, lo-fi, bosque, olas… Llega de regalo en el nivel ${Radio.RADIO_LVL}.</p></div>`;
+  return `<div class="pg-sec radio-card"><div class="h-head"><h2>📻 Radio</h2><span class="h-prog">${on ? '● sonando' : 'apagada'}</span></div>
+    <div class="rst">${Radio.STATIONS.map(st => `<button class="${on === st.id ? 'on' : ''}${lvl < st.lvl ? ' locked' : ''}" data-act="radioSt" data-id="${st.id}"${lvl < st.lvl ? ' disabled' : ''}><span>${lvl < st.lvl ? '🔒' : st.e}</span><b>${st.n}</b><small>${lvl < st.lvl ? 'nivel ' + st.lvl : on === st.id ? 'sonando' : 'tocar'}</small></button>`).join('')}</div>
+    <div class="radio-row"><label>🔈 <input type="range" min="0" max="1" step=".05" value="${cfg.radioVol ?? .6}" data-radio-vol aria-label="Volumen"></label>
+      <label class="tog"><input type="checkbox" data-radio-auto${cfg.radioAuto ? ' checked' : ''}> Prender sola en el reloj</label></div>
+    ${on ? '<button class="btn-ghost" data-act="radioOff">⏹ Apagar</button>' : ''}</div>`;
+}
 function renderWorld() {
   const g = W.game(); const lvl = W.level(g); const p = W.progressOf(g.xp); const nx = W.floorInfo(lvl + 1);
   const w = W.worldOf(g.floor); const top = Math.min(w.to, Math.max(lvl + 3, w.from + 5));
@@ -288,7 +314,9 @@ function renderWorld() {
     </div>
     <div class="pg-sec"><div class="h-head"><h2>Próximas metas</h2><span class="h-prog">nivel = piso</span></div>
       ${miles.map(([n, t]) => { const need = W.xpAt(n) - g.xp; return `<div class="mile"><i>${n}</i><b>${esc(t)}</b><small>faltan ${fmtN(need)} XP · ≈ ${Math.max(1, Math.round(need / 90))} días</small></div>`; }).join('')}</div>
-    <div class="stack"><button class="btn-ghost" data-act="map">🗺️ Mapa completo del edificio</button><button class="btn-ghost" data-act="invite">📣 Mostrar mi edificio</button></div>
+    ${petCard()}
+    ${radioCard(lvl)}
+    <div class="stack"><button class="btn-ghost" data-act="map">🗺️ Mapa completo del edificio</button><button class="btn-ghost" data-act="story">📸 Tarjeta para mis historias</button></div>
     <p class="note">Estás en el piso ${g.floor} · ${f.ic} ${esc(f.name)}. Toca un piso para tomar el ascensor.</p>`;
 }
 
@@ -299,12 +327,22 @@ export const actions = {
   item: el => itemSheet(el.dataset.id),
   buyDeal: () => { const d = W.dailyDeal(); if (d) ctx.buy(d.item.id, { deal: true }); },
   box: () => openBox(),
+  petName: () => { const n = prompt('¿Cómo se llama tu compañero?', Pet.get().name); if (n && n.trim()) { Pet.rename(n); ctx.renderAll(); toast('❤️ ¡Le encantó su nombre!'); } },
+  radioSt: el => { if (Radio.current() === el.dataset.id) Radio.stop(); else Radio.play(el.dataset.id); document.getElementById('scene')?.classList.toggle('radio-on', !!Radio.current()); G.blip('select'); renderWorld(); },
+  radioOff: () => { Radio.stop(); document.getElementById('scene')?.classList.remove('radio-on'); renderWorld(); },
   shield: () => { const r = W.buyShield(); toast(r.msg); G.blip(r.ok ? 'buy' : 'error'); if (r.ok) ctx.renderAll(); },
   quest: el => { const q = H.claimQuest(el.dataset.id); if (!q) return; G.blip('coin'); try { navigator.vibrate?.(40); } catch { /* */ } G.bitsFly(el, 6); toast(`${q.e} ¡Misión cumplida! +${q.bits}◆`); ctx.renderAll(); },
   rvClose: el => { const again = el.dataset.again; closeReveal(); if (again) openBox(); },
   rvPlace: el => { closeReveal(); ctx.place(el.dataset.id); },
   rvWear: el => { closeReveal(); const g = W.game(); const it = W.itemById(el.dataset.id); g.wear[it.slot] = it.id; W.saveGame(g); ctx.renderAll(); G.act('dance', it.e); $('screen').scrollIntoView({ behavior: 'smooth', block: 'center' }); },
   invite: () => share(inviteText()),
+  story: async () => {
+    openSheet('Tu tarjeta', '<div class="story-prev"><div class="empty">Pintando tu edificio…</div></div>');
+    const blob = await Share.storyBlob(); const url = URL.createObjectURL(blob);
+    document.querySelector('.story-prev').innerHTML = `<img src="${url}" alt="Tarjeta con tu personaje, tu edificio y tu racha">`;
+    document.getElementById('sheetBody').insertAdjacentHTML('beforeend', '<div class="stack"><button class="btn-acc" data-act="storyShare">📣 Compartir</button><p class="note">Ideal para historias de Instagram o WhatsApp. Cada persona que llega por ti ve cómo vas.</p></div>');
+  },
+  storyShare: async () => { const r = await Share.shareStory(); if (r === 'download') toast('📸 Imagen descargada: súbela a tus historias', 4000); },
   shareItem: el => { const it = W.itemById(el.dataset.id); const r = W.rarityOf(it); share(`${el.dataset.box ? 'Me salió' : 'Tengo'} ${it.e} ${it.n} (${r.n}) en IO. Lo gané cumpliendo mis hábitos, no con dinero. Piso ${W.level()} 🏢`); },
   rankScope: el => { R.state.scope = el.dataset.s; R.state.rows = []; renderRank(); loadRank(el.dataset.s); },
   rankReload: () => { R.publish(true); loadRank(); },
@@ -323,6 +361,8 @@ export function init(c) {
     if (sx === null) return; const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy; sx = null;
     if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.8 && !e.target.closest('.chips-row,.heat,.week')) { const i = TABS.indexOf(tab) + (dx < 0 ? 1 : -1); if (TABS[i]) show(TABS[i]); }
   }, { passive: true });
+  document.addEventListener('input', e => { if (e.target.matches('[data-radio-vol]')) Radio.setVolume(+e.target.value); });
+  document.addEventListener('change', e => { if (e.target.matches('[data-radio-auto]')) saveCfg({ radioAuto: e.target.checked }); });
   setInterval(() => { document.querySelectorAll('[data-countdown]').forEach(s => { s.textContent = untilMidnight(); }); }, 1000);
   show(tab, { sound: false });
   loadRank('global');

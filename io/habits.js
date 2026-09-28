@@ -9,9 +9,9 @@ import * as W from './world.js';
 /* Ejemplos por categoría: [emoji, nombre, min, hora, actividad del personaje] */
 export const CATEGORIES = [
   ['🧠', 'Mente', [['📖', 'Leer', 20, '21:00', 'read'], ['🧘', 'Meditar', 10, '07:00', 'float'], ['🌬️', 'Respirar', 1, '12:00', 'breathe'], ['✍️', 'Escribir el diario', 10, '22:00', 'write'], ['📵', 'Desconexión digital', 60, '21:30', 'unplug']]],
-  ['💪', 'Cuerpo', [['🏃', 'Hacer ejercicio', 30, '06:30', 'flex'], ['🚶', 'Caminar', 20, '17:30', 'walk'], ['🐕', 'Sacar al perro', 20, '07:30', 'dog'], ['🤸', 'Yoga', 15, '06:45', 'yoga'], ['🏊', 'Nadar', 40, '18:30', 'swim'], ['🥗', 'Comer saludable (sin pantalla)', 30, '13:00', 'eat']]],
+  ['💪', 'Cuerpo', [['🏃', 'Hacer ejercicio', 30, '06:30', 'flex'], ['🚶', 'Caminar', 20, '17:30', 'walk'], ['🐕', 'Sacar al perro', 20, '07:30', 'dog'], ['🤸', 'Yoga', 15, '06:45', 'yoga'], ['🏊', 'Nadar', 40, '18:30', 'swim'], ['🥗', 'Comer saludable (sin pantalla)', 30, '13:00', 'eat'], ['🍎', 'Comer 3 frutas', 1, '09:00', 'eat', { tipo: 'conteo', meta: 3, unidad: 'frutas', pausa: 60 }]]],
   ['🚀', 'Crecer', [['🇬🇧', 'Practicar inglés', 20, '19:00', 'talk'], ['🎓', 'Ir a clase / estudiar', 60, '18:00', 'study'], ['💻', 'Trabajo profundo', 50, '09:00', 'type'], ['🎸', 'Practicar instrumento', 30, '20:00', 'music'], ['🎨', 'Dibujar', 20, '16:00', 'draw']]],
-  ['🏠', 'Casa y calma', [['🧹', 'Ordenar la casa', 15, '10:00', 'clean'], ['🍳', 'Cocinar en casa', 30, '19:30', 'cook'], ['💧', 'Tomar agua', 1, '10:30', 'water'], ['🙏', 'Orar / agradecer', 5, '06:15', 'pray'], ['😴', 'Dormir a tiempo', 10, '22:30', 'sleep']]],
+  ['🏠', 'Casa y calma', [['🧹', 'Ordenar la casa', 15, '10:00', 'clean'], ['🍳', 'Cocinar en casa', 30, '19:30', 'cook'], ['💧', 'Tomar 8 vasos de agua', 1, '08:00', 'water', { tipo: 'conteo', meta: 8, unidad: 'vasos', pausa: 30 }], ['🙏', 'Orar / agradecer', 5, '06:15', 'pray'], ['😴', 'Dormir a tiempo', 10, '22:30', 'sleep']]],
 ];
 export const EXAMPLES = CATEGORIES.flatMap(c => c[2]);
 /** Lo que hace el personaje durante el reloj. */
@@ -38,6 +38,7 @@ export const PROP = Object.fromEntries(Object.entries(ACTS).map(([k, v]) => [k, 
 export const DAYS = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
 
 /* ---------- hábitos ---------- */
+export const isCount = h => h?.tipo === 'conteo';
 export const list = () => S.itemsOf('habit').sort((a, b) => (a.hora || '99').localeCompare(b.hora || '99'));
 export const get = id => S.getItem(id);
 export const save = (h, id = null) => S.putItem('habit', { dias: [0, 1, 2, 3, 4, 5, 6], ...h, min: Math.max(1, Math.min(240, +h.min || 10)) }, id);
@@ -91,6 +92,21 @@ export function checkDone(id) {
   if (r && r.hid === id) S.putItem('run', {}, RUN);
   return true;
 }
+/** Hábito de conteo: suma uno si ya pasó la pausa mínima. */
+export function count(id) {
+  const h = get(id); if (!isCount(h)) return { ok: false };
+  const iso = todayIso(); const l = log(iso); const s = l.s[id] || { el: 0, done: false, claimed: false, n: 0 };
+  if (s.done) return { ok: false, done: true };
+  const gap = (h.pausa ?? 15) * 60000; const now = Date.now();
+  if (s.last && now - s.last < gap) return { ok: false, wait: Math.ceil((gap - (now - s.last)) / 60000) };
+  if (!s.n) { const d = new Date(); s.onTime = Math.abs(d.getHours() * 60 + d.getMinutes() - minutesOf(h.hora)) <= 30; s.startedAt = now; }
+  s.n = (s.n || 0) + 1; s.last = now;
+  if (s.n >= (h.meta || 1)) { s.done = true; s.doneAt = now; }
+  l.s[id] = s; saveLog(iso, l);
+  return { ok: true, n: s.n, meta: h.meta || 1, done: s.done };
+}
+/** Minutos para el próximo toque permitido (0 = ya). */
+export function countWait(id) { const h = get(id); const s = sess(id); if (!isCount(h) || !s.last || s.done) return 0; return Math.max(0, Math.ceil(((h.pausa ?? 15) * 60000 - (Date.now() - s.last)) / 60000)); }
 /** Si el reloj quedó corriendo de ayer, se cierra ahí (no se regalan minutos). */
 export function closeStale() {
   const r = running(); if (!r || r.date === todayIso()) return;
@@ -119,7 +135,7 @@ export function dayStreak() {
   return n;
 }
 export function rewardOf(h, s, streak) {
-  let xp = Math.max(5, Math.min(120, h.min)), bits = Math.max(3, Math.round(h.min / 2));
+  let xp = isCount(h) ? Math.max(5, Math.min(40, 4 * (h.meta || 1))) : Math.max(5, Math.min(120, h.min)), bits = Math.max(3, Math.round(xp / 2));
   if (s.onTime) { xp = Math.round(xp * 1.25); bits = Math.round(bits * 1.25); }
   const st = Math.min(streak, 10);
   return { xp: xp + st * 2, bits: bits + st, onTime: !!s.onTime, streak };
@@ -131,7 +147,7 @@ export function claim(id) {
   if (!h || !s?.done || s.claimed) return null;
   const r = rewardOf(h, s, streakOf(id) + 1);
   const g = W.game(); const before = W.levelOf(g.xp);
-  g.xp += r.xp; g.bits += r.bits; g.stats.minutes += h.min; g.stats.sessions += 1;
+  g.xp += r.xp; g.bits += r.bits; g.stats.minutes += isCount(h) ? 0 : h.min; g.stats.sessions += 1;
   addWeekXp(g, r.xp); g.stats.best = Math.max(g.stats.best || 0, r.streak);
   W.saveGame(g);
   s.claimed = true; s.reward = r; l.s[id] = s; saveLog(iso, l);

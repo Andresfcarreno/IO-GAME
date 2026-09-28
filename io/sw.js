@@ -1,7 +1,7 @@
 /* IO — service worker: la app funciona sin conexión. */
-const VERSION = 'io-v10.0.0';
+const VERSION = 'io-v11.0.0';
 const SHELL = [
-  './', 'index.html', 'styles.css', 'app.js', 'store.js', 'world.js', 'habits.js', 'engine.js', 'focus.js', 'onboarding.js', 'avatar.js', 'ui.js', 'lower.js', 'ranking.js', 'config.js', 'scenes.js',
+  './', 'index.html', 'styles.css', 'app.js', 'store.js', 'world.js', 'habits.js', 'engine.js', 'focus.js', 'onboarding.js', 'avatar.js', 'ui.js', 'lower.js', 'ranking.js', 'config.js', 'scenes.js', 'radio.js', 'remind.js',
   'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',
 ];
 self.addEventListener('install', e => { e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
@@ -19,4 +19,14 @@ self.addEventListener('fetch', e => {
   // red primero para que las actualizaciones lleguen; caché si no hay conexión
   e.respondWith(fetch(e.request).then(async r => { if (r.ok) (await caches.open(VERSION)).put(e.request, r.clone()); return r; })
     .catch(async () => (await caches.match(e.request, { ignoreSearch: true })) || caches.match('index.html')));
+});
+// tocar una notificación abre IO (o la trae al frente) y arranca el hábito
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const url = new URL(e.notification.data?.url || './', self.registration.scope).href;
+  e.waitUntil(clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+    const c = list.find(w => w.url.includes('/io/'));
+    if (c) { c.navigate(url).catch(() => {}); return c.focus(); }
+    return clients.openWindow(url);
+  }));
 });

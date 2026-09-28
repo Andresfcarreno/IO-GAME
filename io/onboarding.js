@@ -33,10 +33,10 @@ const picked = n => d.habits.findIndex(x => x.nombre === n);
 
 function exampleCards() {
   const [, , list] = H.CATEGORIES[cat];
-  return list.map(([e, n, m, h]) => {
+  return list.map(([e, n, m, h, , cf]) => {
     const on = picked(n) >= 0;
     return `<button class="ex-card${on ? ' on' : ''}" data-o="ex" data-n="${esc(n)}" aria-pressed="${on}">
-      <span class="ex-e">${e}</span><b>${esc(n)}</b><small>${fmtMin(m)} · ${h}</small><i>${on ? '✓' : '＋'}</i></button>`;
+      <span class="ex-e">${e}</span><b>${esc(n)}</b><small>${cf?.tipo === 'conteo' ? `${cf.meta} ${cf.unidad}` : fmtMin(m)} · ${h}</small><i>${on ? '✓' : '＋'}</i></button>`;
   }).join('');
 }
 function timeline() {
@@ -50,7 +50,7 @@ function timeline() {
 function habitCard(h, i) {
   const open = d.open === i; const act = H.ACTS[h.act] ? h.act : H.guessAct(h.nombre, h.emoji);
   const head = `<div class="hc-head"><button class="hc-e" data-o="edit" data-i="${i}" aria-label="Editar">${esc(h.emoji)}</button>
-      <button class="hc-t" data-o="edit" data-i="${i}"><b>${esc(h.nombre || 'Nuevo hábito')}</b><small>🕘 ${esc(h.hora)} · ⏱ ${fmtMin(h.min)} · ${daysLabel(h.dias)}</small></button>
+      <button class="hc-t" data-o="edit" data-i="${i}"><b>${esc(h.nombre || 'Nuevo hábito')}</b><small>🕘 ${esc(h.hora)} · ${h.tipo === 'conteo' ? `🔢 ${h.meta} ${esc(h.unidad)}` : `⏱ ${fmtMin(h.min)}`} · ${daysLabel(h.dias)}</small></button>
       <button class="hc-x" data-o="del" data-i="${i}" aria-label="Quitar">✕</button></div>`;
   if (!open) return `<div class="hc" data-i="${i}">${head}</div>`;
   return `<div class="hc open" data-i="${i}">${head}
@@ -62,9 +62,13 @@ function habitCard(h, i) {
       <label class="hc-l">¿A qué hora?</label>
       <div class="pick">${MOMENTS.map(([e, l, t]) => `<button class="${h.hora === t ? 'on' : ''}" data-o="hora" data-i="${i}" data-v="${t}">${e} ${l}<small>${t}</small></button>`).join('')}
         <label class="pick-own">✎<input type="time" data-f="hora" data-i="${i}" value="${esc(h.hora)}" aria-label="Otra hora"></label></div>
-      <label class="hc-l">¿Cuánto tiempo? <em>el reloj debe llegar al final</em></label>
+      ${h.tipo === 'conteo' ? `<label class="hc-l">¿Cuántas veces al día? <em>un toque por vez, con pausa entre toques</em></label>
+      <div class="pick">${[2, 3, 5, 8, 10].map(m => `<button class="${+h.meta === m ? 'on' : ''}" data-o="meta" data-i="${i}" data-v="${m}">${m} ${esc(h.unidad || '')}</button>`).join('')}</div>
+      <label class="hc-l">Mínimo entre cada una</label>
+      <div class="pick">${[5, 15, 30, 60, 120].map(m => `<button class="${+h.pausa === m ? 'on' : ''}" data-o="pausa" data-i="${i}" data-v="${m}">${fmtMin(m)}</button>`).join('')}</div>` : `      <label class="hc-l">¿Cuánto tiempo? <em>el reloj debe llegar al final</em></label>
       <div class="pick">${MINS.map(m => `<button class="${+h.min === m ? 'on' : ''}" data-o="min" data-i="${i}" data-v="${m}">${fmtMin(m)}</button>`).join('')}
         <label class="pick-own">✎<input type="number" min="1" max="240" data-f="min" data-i="${i}" value="${esc(h.min)}" inputmode="numeric" aria-label="Otros minutos"></label></div>
+`}
       <label class="hc-l">¿Qué días?</label>
       <div class="pick">${[['Todos', ALL], ['Lun–Vie', WEEK], ['Fin de semana', WKND]].map(([l, v]) => `<button class="${sameDays(h.dias, v) ? 'on' : ''}" data-o="days" data-i="${i}" data-v="${v.join(',')}">${l}</button>`).join('')}</div>
       <div class="hb-days">${H.DAYS.map((dd, k) => `<button class="${h.dias.includes(k) ? 'on' : ''}" data-o="day" data-i="${i}" data-k="${k}" aria-label="día ${dd}">${dd}</button>`).join('')}</div>
@@ -160,7 +164,7 @@ function finish() {
   saveCfg({ name: d.name || 'Player 1', avatar: d.look, onboarded: true, since: cfg.since || todayIso() });
   const keep = new Set();
   d.habits.filter(h => h.nombre.trim()).forEach(h => {
-    const it = H.save({ nombre: h.nombre.trim(), emoji: h.emoji || '⭐', min: h.min, hora: h.hora || '08:00', dias: h.dias?.length ? h.dias : [...ALL], motivo: h.motivo || '', act: h.act || H.guessAct(h.nombre, h.emoji) }, h.id || null);
+    const it = H.save({ nombre: h.nombre.trim(), emoji: h.emoji || '⭐', min: h.min, hora: h.hora || '08:00', dias: h.dias?.length ? h.dias : [...ALL], motivo: h.motivo || '', act: h.act || H.guessAct(h.nombre, h.emoji), ...(h.tipo === 'conteo' ? { tipo: 'conteo', meta: h.meta || 1, unidad: h.unidad || 'veces', pausa: h.pausa ?? 15 } : {}) }, h.id || null);
     keep.add(it.id);
   });
   H.list().forEach(h => { if (!keep.has(h.id)) H.remove(h.id); });
@@ -208,7 +212,7 @@ document.addEventListener('click', e => {
   if (o === 'cat') { cat = +el.dataset.k; document.querySelectorAll('.cat-tabs button').forEach((b, k) => b.classList.toggle('on', k === cat)); $('exGrid').innerHTML = exampleCards(); return; }
   if (o === 'ex') {
     const ex = H.EXAMPLES.find(x => x[1] === el.dataset.n); const k = picked(ex[1]);
-    if (k >= 0) { d.habits.splice(k, 1); d.open = -1; } else addHabit({ emoji: ex[0], nombre: ex[1], min: ex[2], hora: ex[3], act: ex[4] });
+    if (k >= 0) { d.habits.splice(k, 1); d.open = -1; } else addHabit({ emoji: ex[0], nombre: ex[1], min: ex[2], hora: ex[3], act: ex[4], ...(ex[5] || {}) });
     return redrawRoutine();
   }
   if (o === 'edit') { d.open = d.open === i ? -1 : i; return redrawRoutine(i); }
@@ -217,6 +221,8 @@ document.addEventListener('click', e => {
   if (o === 'emoji') { h.emoji = el.dataset.v; h._emoji = true; if (!h._act) h.act = H.guessAct(h.nombre, h.emoji); return redrawRoutine(i); }
   if (o === 'hora') { h.hora = el.dataset.v; return redrawRoutine(i); }
   if (o === 'min') { h.min = +el.dataset.v; return redrawRoutine(i); }
+  if (o === 'meta') { h.meta = +el.dataset.v; return redrawRoutine(i); }
+  if (o === 'pausa') { h.pausa = +el.dataset.v; return redrawRoutine(i); }
   if (o === 'days') { h.dias = el.dataset.v.split(',').map(Number); return redrawRoutine(i); }
   if (o === 'day') { const k = +el.dataset.k; h.dias = h.dias.includes(k) ? h.dias.filter(x => x !== k) : [...h.dias, k].sort(); if (!h.dias.length) h.dias = [k]; return redrawRoutine(i); }
 });
