@@ -20,6 +20,33 @@ IO es un **juego de hábitos que se juega en la vida real**. Es una app web inst
    - Ganas **XP** y **bits** ◆. Si empezaste a tiempo (±30 min de la hora) ganas +25%, y las rachas suman más.
 4. **🎁 Día perfecto.** Si completas todos los hábitos del día, abres el cofre.
 
+## v11: todo lo del plan (menos tiendas)
+
+**Página de lanzamiento: `/io/lanzamiento/`**
+- **Contenido:** la historia en 9 capítulos con capturas reales, el cronograma, cómo instalar gratis (Android, iPhone y computador, con botón de instalar cuando el navegador lo permite), el crowdfunding y la lista de espera.
+- **Lista de espera:** usa **Netlify Forms** (formulario `lista-espera`, con anti-spam y código de referido). Las inscripciones se ven en el panel de Netlify → *Forms*.
+
+**En la app:**
+
+| Qué | Cómo funciona |
+|---|---|
+| ⏱ Reloj dentro del Game Boy | Reloj **ovalado** de unos y ceros y la escena en la misma pantalla. Abajo, donde irían los botones: coach, premio y pausa |
+| 📻 Radio | Regalo del nivel 2. 8 estaciones generadas en vivo (lluvia, 8-bit, lo-fi, bosque, olas, cafetería, chimenea, espacio) que se abren por nivel. Se prende en el cuarto con A, desde el reloj o desde Mundo |
+| 🔔 Recordatorios | Notificación a la hora (o 5, 10 o 15 min antes), con frases según la actividad |
+| 📅 Calendario | Exportar todo a `.ics` con alarma o hábito por hábito a Google Calendar. Al tocar el evento se abre el reloj |
+| Atajos del ícono y número de pendientes | Atajos `▶ Próximo hábito`, Tienda y Ranking. Número de pendientes en el ícono. Los enlaces aceptan `?start=` y `?tab=` |
+| 📸 Tarjeta para historias | 1080×1920 con tu personaje, tu edificio, tu racha, tus minutos y tus coronas |
+| 🔢 Hábitos de conteo | Ej. 8 vasos de agua: un toque por vez, con pausa mínima entre toques; corona al llegar a la meta |
+| 🐣 Mascota | Huevo que nace a las 3 coronas y evoluciona a las 15, 45 y 120. Cuatro especies. Se pone triste si fallas, nunca se muere. Vive en el cuarto y te anima en el reloj |
+| 🏆 Social | Visitar el cuarto de otros desde el ranking, likes ❤️ semanales, **ligas** de Bronce a Diamante (los 5 primeros suben, los 5 últimos bajan) y **salas para enfocarse juntos** con código o enlace `?sala=`. Sin servidor te acompaña un bot 🤖 |
+| ⏳ Temporadas | Objetos que solo se venden en su mes (Halloween, Navidad, Amor y amistad, Cometas…), marcados LIMITADO |
+| 🌧️ Clima real | Opcional, usa Open-Meteo sin llave. Lluvia, nieve, nubes o tormenta en tu ventana, y la temperatura |
+| 💜 Diario de ánimo | Después de cada corona, “¿cómo te sentiste?” y una línea. En Progreso ves qué hábitos te hacen bien |
+| 🧠 Coach IO | Lee tus últimas 2 semanas y propone ajustes con botón **Aplicar**: hacerlo más pequeño, mover la hora, subirle o proteger la racha |
+| 🎮 Temas de consola | Menta, Sandía, Atómico, Medianoche, Oro y Arcoíris, que se abren subiendo de nivel |
+
+Para activar likes y salas, corre el bloque **SOCIAL** de `supabase/schema.sql`.
+
 ## v10: cuarto con muebles, ascensor nuevo y modo enfoque vivo
 
 - **Un cuarto de verdad.** Tiene zócalo, techo con lámpara, cortinas, **dos repisas** y un **aparador** bajo la ventana.
@@ -148,6 +175,14 @@ io/
 ├── engine.js       # motor 2D: caminar, ascensor, decorar, menú START, efectos, sonido
 ├── focus.js        # modo enfoque (anillo 1/0, pausa con motivos, corona)
 ├── scenes.js       # 23 escenas: el personaje hace tu hábito mientras corre el reloj
+├── radio.js        # radio con sonidos generados en vivo
+├── remind.js       # recordatorios, calendario .ics / Google, número en el ícono
+├── share.js        # tarjeta para historias
+├── pet.js          # la mascota que evoluciona
+├── social.js       # likes, ligas, salas juntos
+├── coach.js        # consejos a partir de tus datos
+├── weather.js      # clima real en la ventana
+├── lanzamiento/    # página pública: historia, instalar, crowdfunding, lista de espera
 ├── habits.js       # hábitos, temporizador, recompensas, rachas
 ├── world.js        # niveles, edificios, pisos, catálogo, logros
 ├── avatar.js       # personaje por partes + editor

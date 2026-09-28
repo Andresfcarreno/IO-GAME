@@ -278,7 +278,8 @@ function decoSheet(u) {
 function aboutSheet() {
   openSheet('IO', `<div class="io-intro small"><div class="io-big"><span class="logo-flip"><span class="lf lf-a">IO</span><span class="lf lf-b">10</span></span></div>
     <div class="io-def"><b>IO</b><span>se lee “yo”. Eres tú, frente a tu espejo.</span><b>1 0</b><span>el código binario con el que se escribe todo.</span><b>1</b><span>lo que haces.</span><b>0</b><span>lo que aún no. Cada día eliges cuál escribir.</span></div>
-    <p class="note">IO es un juego que solo se gana viviendo. Siempre gratis y sin anuncios. Nada se compra con dinero: todo se gana haciendo.</p></div>`);
+    <p class="note">IO es un juego que solo se gana viviendo. Siempre gratis y sin anuncios. Nada se compra con dinero: todo se gana haciendo.</p>
+    <a class="btn-acc" href="lanzamiento/" style="display:block;text-align:center;text-decoration:none">🚀 Cómo nació IO y lista de espera</a></div>`);
 }
 function settingsSheet() {
   openSheet('Ajustes', `
@@ -303,6 +304,7 @@ function settingsSheet() {
     <div class="field"><label for="stKey">Anon key</label><input class="inp" id="stKey" value="${esc(cfg.supaKey)}" autocomplete="off"></div>
     <p class="note">Estado: ${S.status.supabase === 'ok' ? '✅ sincronizado' : S.status.supabase === 'error' ? '⚠️ ' + esc(S.status.error) : 'solo en este dispositivo'}. Corre <code>supabase/schema.sql</code> una vez.</p>
     <button class="btn-ghost" data-act="testSupa">Probar conexión</button>
+    <a class="btn-ghost" href="lanzamiento/" style="display:block;text-align:center;text-decoration:none;margin-top:14px">🚀 Lanzamiento: historia, cómo instalar y lista de espera</a>
     <div class="sec-t">Respaldo</div>
     <div class="stack"><button class="btn-ghost" data-act="exportBackup">⬇️ Exportar</button><button class="btn-ghost" data-act="importBackup">⬆️ Importar</button>
     <button class="btn-ghost danger" data-act="wipe">Borrar todo y empezar de cero</button></div>`);
