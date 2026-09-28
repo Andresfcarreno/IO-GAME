@@ -1,169 +1,90 @@
-# IO — tu vida en un espejo
+# IO — el código de tu vida
 
-IO es un diario personal con finanzas: una app web instalable (PWA) que funciona en Android, iPhone y PC. Tu avatar estilo Sims refleja cómo vas en los cuatro pilares:
+**IO** se lee “yo”, y también es **1 0**: el código binario con el que se escribe todo. **1** es lo que haces y **0** lo que aún no.
 
-| Pilar | Qué mide | De dónde salen los datos |
-|---|---|---|
-| 💰 **Finanzas** | balance del mes, presupuesto variable, pagos fijos | Telegram, la app, CSV del banco, alertas del correo, Google Sheet histórico |
-| 💪 **Salud** | sueño, agua, ejercicio, pasos, ánimo | botones rápidos, “dormí 7h”, Telegram |
-| 💬 **Social** | cuánto hace que no hablas con cada persona vs. cada cuánto quieres | “llamé a mamá”, botón 💬 |
-| 🧠 **Mente** | diario y ánimo de la semana | diario, dictado por voz |
+IO es un **juego de hábitos que se juega en la vida real**. Es una app web instalable (PWA) para Android, iPhone y PC. **Siempre es gratis y no tiene anuncios. Nada se compra con dinero: todo se gana haciendo.**
 
-**Es una sola pantalla que se scrollea**, en este orden: avatar y necesidades → Hoy/Semana/Mes → transacciones (lista infinita) → calendario (toca un día) → gastos programados → metas → salud → relaciones → diario → categorías → conexiones.
+## Cómo funciona
 
-## 🎮 El juego (se juega en la vida real)
+1. **Configuración inicial.** Creas tu personaje y eliges tus hábitos. Cada hábito tiene **hora**, **duración** y **días**. Opcionalmente escribes tu **porqué**.
+2. **Temporizador obligatorio.** A la hora de tu hábito tocas ▶ y se abre el **modo enfoque** a pantalla completa:
+   - Un anillo se va escribiendo en 1 y 0, con una lluvia binaria suave de fondo y el tiempo restante también en binario.
+   - Tu personaje hace la actividad mientras corre el reloj.
+   - El tiempo se calcula con marcas de tiempo, así que **sigue contando aunque bloquees el celular**. Sirve para leer un libro de papel, ir al gym o a una clase.
+   - **Se puede pausar, pero no terminar antes.** Al pausar, IO te recuerda tu motivo. Lo que llevas se guarda.
+3. **👑 Corona.** Cuando el reloj llega al final aparece la corona. Al activarla:
+   - El personaje celebra en la consola con animación, confeti de unos y ceros y sonido 8-bit.
+   - Ganas **XP** y **bits** ◆. Si empezaste a tiempo (±30 min de la hora) ganas +25%, y las rachas suman más.
+4. **🎁 Día perfecto.** Si completas todos los hábitos del día, abres el cofre.
 
-La tarjeta del avatar es una **consola**. La pantalla muestra tu cuarto y tu avatar, con un HUD de nivel, XP, monedas 🪙 y racha 🔥. Debajo están las **misiones de hoy**, que salen de tu vida real:
+## La consola (Game Boy de verdad)
 
-| Misión | Se cumple cuando | Recompensa |
-|---|---|---|
-| 🧾 Registrar movimientos | registras algo (o marcas “hoy no gasté”) | 10 XP · 6🪙 |
-| 🛡️ Cerrar bajo el presupuesto diario | a partir de las 8pm, si tu gasto variable del día quedó bajo el límite | 30 XP · 15🪙 |
-| 💧 Agua · 🏋️ Moverte · 😴 Dormir | llegas a tus metas diarias | 15–25 XP |
-| 🧘 Check-in de ánimo · 📝 Diario | lo haces en la app | 10–20 XP |
-| 💬 Hablar con tu gente | a quien le toca según “cada cuántos días” | 20 XP · 12🪙 |
-| 🎯 Avanzar en una meta | haces un aporte hoy | 25 XP · 15🪙 |
-| ⭐ Hábitos · 📅 Agenda | los marcas como hechos | 10–15 XP |
-| 🎁 Cofre del día | completas todas las misiones | 50 XP · 30🪙 |
+| Control | Caminando | Menús y ascensor | Modo decorar |
+|---|---|---|---|
+| ✥ ◀ ▶ | caminar (mantén presionado) | moverse | elegir objeto / moverlo |
+| ✥ ▲ | entrar al ascensor si estás en la puerta | subir | subir o bajar cuadros |
+| ✥ ▼ | sentarse | bajar | — |
+| **A** | usar objeto cercano (cama, piano, pesas, vehículo…) | elegir / viajar | levantar / soltar |
+| **B** | bailar | salir | cancelar / salir |
+| **SELECT** | modo decorar | siguiente edificio (en el ascensor) | salir |
+| **START** | menú: mochila, tienda, mapa, personaje, logros, ajustes | cerrar | opciones del objeto |
 
-Cuando cumples una misión, el personaje reacciona (salta, baila, levanta pesas, toma agua…), hay confeti, las monedas vuelan al HUD y suena un sonido 8-bit que se puede apagar en ⚙️. Si registras algo por Telegram, la misión queda lista con el botón **Reclamar 🎁**.
+- **Teclado:** flechas o WASD, **Z** o espacio = A, **X** = B, **Shift** = SELECT, **Enter** = START.
+- **Pantalla táctil:** tocas el piso para caminar, tocas un objeto para ir a usarlo y tocas la puerta para tomar el ascensor. En modo decorar arrastras los objetos con el dedo.
 
-**Tu edificio.** Cada nivel abre pisos nuevos y te puedes mover entre ellos con el ascensor (▲▼ en la cruceta, o tocando un piso en la sección *Tu edificio*). La vista por la ventana cambia con la altura. Cada piso trae una ventaja:
+## El mundo: nivel = piso
 
-| Piso | Nivel | Ventaja |
-|---|---|---|
-| 1 · Tu cuarto | 1 | aquí empieza todo |
-| 2 · Sala | 2 | misiones con tu gente +50% monedas |
-| G · Garaje | 3 | vehículos (bici → moto → carro → Jeep → deportivo) · cofre +10🪙 |
-| 3 · Gimnasio | 4 | misiones de salud +50% XP |
-| 4 · Oficina | 5 | misiones de dinero y metas +50% XP |
-| 6 · Terraza | 7 | diario y ánimo +50% XP |
-| 9 · Piscina | 9 | cofre +1🪙 por cada día de racha |
-| 20 · Penthouse | 12 | todas las misiones +25% monedas |
-| R · Azotea | 15 | cofre doble · helicóptero 🚁 |
+Cada nivel abre un piso nuevo. El edificio crece en lujo y no se acaba:
 
-La **tienda** vende muebles para cada piso, vehículos, mascotas (te siguen a cualquier piso) y accesorios para el personaje. Nada se compra con dinero. Hay 13 **logros** (rachas, cofres, contactos, diario, primer vehículo, llegar al penthouse…). **A** hace la acción del piso en el que estás: en el garaje sales a dar una vuelta, en el gimnasio levantas pesas, en la azotea despegas.
+| Edificio | Pisos | Ascensor | Destacados |
+|---|---|---|---|
+| Edificio Barrio | 1–10 | madera | cuarto, sala, **garaje (3)**, cocina, gimnasio, biblioteca, jardín, oficina, juegos, **garaje doble (10)** |
+| Torre Centro | 11–25 | acero | piscina (15), spa (20), terraza (25) |
+| Rascacielos IO | 26–50 | cristal y oro | cine (30), galería (35), observatorio (40), hangar (45), **helipuerto (50)** |
+| Ciudad en las nubes | 51–75 | oro | jardín en las nubes (60), mirador (75) |
+| Estación orbital | 76–100 | neón | puente de mando (100) |
+| Sectores sin fin | 101+ | neón | un mundo nuevo cada 25 pisos |
 
-**El nombre.** IO se lee “yo”, y también es **1 0**: el código binario, el código de la vida. El logo se refleja como en un espejo y gira entre IO y 10.
+- **La vista por la ventana cambia con la altura:** calle, techos, ciudad, skyline, nubes y espacio.
+- **La progresión es lenta a propósito:** el nivel 10 llega en unas 2 semanas y el 50 en unos 9 meses de hábitos diarios.
 
-La **configuración inicial** aparece antes del dashboard (y se puede repetir desde ⚙️). Ahí defines quién eres y cómo es tu personaje (cuerpo masculino, femenino o neutro; piel, peinado, barba, ojos, ropa y colores), qué te dice que vas bien (tus prioridades, que deciden qué misiones aparecen), tus finanzas y pagos fijos, tus 3 personas más cercanas, tus metas de salud y hábitos, tus metas grandes y tu agenda. La agenda acepta un calendario `.ics` exportado de Google Calendar.
+**Tienda.** Tiene unos 90 objetos: muebles, plantas, arte, tecnología, vehículos (bici → moto → carro → Jeep → deportivo → helicóptero → nave) y mascotas que caminan solas, más ropa y accesorios para el personaje.
+- Los vehículos van en los garajes, el hangar y el helipuerto.
+- Todo se coloca y se mueve en 2D. Lo que no usas queda en la mochila.
 
-## Qué hay de nuevo respecto a v4
+**Personaje.** 2D vectorial con sombreado y piernas y brazos que caminan. Puedes elegir:
+- Cuerpo (masculino, femenino o neutro) y complexión.
+- 8 tonos de piel.
+- 10 peinados con 12 colores.
+- Barba, color de ojos y rasgos (pecas, lunar, rubor).
+- 6 tipos de ropa arriba, 3 abajo y color de zapatos.
 
-- **Captura universal** (botón verde **+ Registrar** o 🎙️): texto libre, **dictado por voz**, **foto de recibo**, **pantallazo del banco**, **PDF** o **alerta del correo pegada**. Claude separa todo lo que dijiste: “fui al gym 40 min y gasté 12 en un batido” = salud + gasto. Antes de guardar puedes revisar y editar cada registro.
-- **Funciona sin IA y sin conexión**: si no hay key de Claude, un parser local entiende lo básico (“gasté 25 en Walmart”, “dormí 7 horas”). Lo que registras queda en el dispositivo y se sube a Supabase cuando hay red. Ya no se pierde nada si la red falla.
-- **Avatar vivo**: 5 estados de ánimo (se agregó *cansado* si dormiste menos de 5h), barras de necesidades tipo Sims, nivel y XP, racha 🔥, la ventana cambia con la hora, la planta se marchita si descuidas la salud y aparece un trofeo cuando cumples una meta. Puedes personalizar la piel, el pelo y el hoodie. **La lógica de “preocupado” sigue siendo generosa**: solo con balance negativo o presupuesto variable por encima de 115%.
-- **Metas** con anillos de progreso, **gastos fijos** con “✓ Pagado” (no cuentan contra el presupuesto variable), barra de presupuesto con marcador del ritmo ideal y proyección a fin de mes.
-- **Importador de CSV bancario** con las reglas de integridad: las transferencias entre tus cuentas (NBC ↔ Wealthsimple, mismo monto) se omiten, los otros INTERAC (p. ej. a Diana) sí cuentan, la pensión nunca se registra aparte y se omite lo que ya estaba registrado.
-- **Chat con IO** 🔮 con streaming y con contexto de toda tu vida (finanzas, salud, relaciones, metas, diario). Trae preguntas rápidas: “¿Cómo voy este mes?”, “Plan para ahorrar $300”…
-- **App instalable**: ícono, pantalla completa, funciona sin conexión y en Android aparece en el menú **Compartir** (compartes el pantallazo del banco y va directo a IO).
-- **Telegram sin Make.com**: una Edge Function de Supabase recibe el webhook, lee texto, **fotos y PDFs**, y guarda directo. Se acabaron el bug de `{{3.data.content[1].text}}` y los límites de operaciones de Make.
-- **Seguridad**: la key de Supabase ya no está en el código. Se configura en ⚙️ Ajustes y se guarda solo en tu dispositivo. La key de Anthropic sigue viviendo solo en `sessionStorage` (`io_k`).
-
-## Estructura
+## Archivos
 
 ```
 io/
-├── index.html            # la pantalla
-├── styles.css            # sistema de diseño (paleta y tipografías de v4)
-├── app.js                # render, pilares, captura, chat, calendario…
-├── store.js              # datos local-first + Supabase + Sheet + demo
-├── ai.js                 # Claude (SDK oficial) + parser local de respaldo
-├── importer.js           # CSV del banco con reglas de integridad
-├── game.js               # niveles, edificio, tienda, logros, animaciones y sonido
-├── avatar.js             # el personaje por partes + editor
-├── onboarding.js         # configuración inicial
-├── sw.js                 # offline + share target
-├── manifest.webmanifest  # app instalable
-├── icons/
-└── supabase/
-    ├── schema.sql        # transactions + io_items + telegram_links
-    └── functions/
-        ├── _shared/brain.ts   # parseo con Claude + guardado (compartido)
-        ├── telegram/          # webhook del bot (texto, fotos, PDFs, /hoy /mes /salud)
-        ├── ingest/            # alertas del correo, atajos de iPhone, etc.
-        └── fijos/             # gastos fijos automáticos (cron diario)
+├── index.html      # consola + hábitos de hoy + tu semana
+├── styles.css      # retro moderno: pixel font, scanlines, skins por edificio
+├── app.js          # une todo: lista de hábitos, corona, cofre, tienda, mapa, ajustes, demo
+├── engine.js       # motor 2D: caminar, ascensor, decorar, menú START, efectos, sonido
+├── focus.js        # modo enfoque (anillo 1/0, pausa con motivos, corona)
+├── habits.js       # hábitos, temporizador, recompensas, rachas
+├── world.js        # niveles, edificios, pisos, catálogo, logros
+├── avatar.js       # personaje por partes + editor
+├── onboarding.js   # configuración inicial
+├── store.js        # datos local-first + sincronización opcional con Supabase
+├── sw.js           # funciona sin conexión
+└── supabase/schema.sql
 ```
 
-La app no necesita build. Se sirve tal cual desde `/io/` en el mismo sitio de Netlify (`meetaistaff.com/io/`), con `noindex` y sin enlaces desde la landing.
+**Sin build.** Se sirve tal cual desde `/io/`. Todo se guarda en el dispositivo. Para sincronizar entre dispositivos: corre `supabase/schema.sql` y pega la URL y la anon key en ⚙️ Ajustes.
 
-## Puesta en marcha (en orden)
+> La versión anterior (finanzas, Telegram y relaciones) está en el historial de git, en el commit `9ab2545`.
 
-### 0. Seguridad primero (pendiente del handoff)
-1. **Regenera el token del bot**: en Telegram, con @BotFather → `/revoke`.
-2. **Regenera la API key de Anthropic** en console.anthropic.com y revoca la anterior.
-3. **No publiques la URL y la anon key de Supabase juntas** mientras las políticas estén abiertas: con ambas, cualquiera puede leer tus movimientos. La app ya no las trae en el código.
+## Próximos pasos sugeridos
 
-### 1. Supabase
-1. Abre SQL Editor, pega [`supabase/schema.sql`](supabase/schema.sql) y dale Run. Crea `io_items` y agrega la política de borrar. Si `transactions` ya existe, la deja como está.
-2. En la app: ⚙️ → **Project URL** + **anon key** → *Probar conexión* → *Guardar*. El punto del encabezado debe decir **en vivo**.
-3. Opcional: pega el CSV publicado del Google Sheet para ver también el histórico anterior a Supabase.
-
-### 2. Telegram con Supabase (reemplaza Make)
-```bash
-npm i -g supabase            # o brew install supabase/tap/supabase
-supabase login
-supabase link --project-ref itiqtoymktqxxmvckmyz
-supabase secrets set ANTHROPIC_API_KEY=sk-ant-NUEVA \
-  TELEGRAM_BOT_TOKEN=NUEVO_TOKEN \
-  TELEGRAM_WEBHOOK_SECRET=$(openssl rand -hex 24) \
-  INGEST_SECRET=$(openssl rand -hex 24)
-supabase functions deploy telegram --no-verify-jwt
-supabase functions deploy ingest   --no-verify-jwt
-supabase functions deploy fijos    --no-verify-jwt
-
-# Conectar el webhook (usa el mismo TELEGRAM_WEBHOOK_SECRET)
-curl "https://api.telegram.org/botNUEVO_TOKEN/setWebhook" \
-  -d url=https://itiqtoymktqxxmvckmyz.supabase.co/functions/v1/telegram \
-  -d secret_token=EL_SECRET
-```
-4. Escríbele cualquier cosa al bot. Te va a responder con tu `chat_id`. Guárdalo con `supabase secrets set TELEGRAM_ALLOWED_CHAT_IDS=123456789`. Mientras no esté configurado, el bot no guarda nada.
-5. **Apaga el escenario de Make** para que no se registre todo doble.
-6. En la app: ⚙️ → *Usuario del bot*, para tener el botón “Abrir en Telegram”.
-
-Opcionales: `IO_MODEL` (por defecto `claude-opus-5`), `IO_NAME`, `IO_TZ` (por defecto `America/Toronto`).
-
-### 3. Alertas del correo (automático, gratis)
-Crea un proyecto en [script.google.com](https://script.google.com) con tu Gmail y pega esto:
-
-```js
-const URL = 'https://itiqtoymktqxxmvckmyz.supabase.co/functions/v1/ingest';
-const SECRET = 'TU_INGEST_SECRET';
-// Ajusta la búsqueda al remitente de las alertas de tu banco:
-const QUERY = 'from:(alertes@bnc.ca OR notifications@wealthsimple.com) newer_than:2d -label:io-procesado';
-
-function revisarAlertas() {
-  const label = GmailApp.getUserLabelByName('io-procesado') || GmailApp.createLabel('io-procesado');
-  for (const thread of GmailApp.search(QUERY, 0, 20)) {
-    for (const msg of thread.getMessages()) {
-      const text = `Asunto: ${msg.getSubject()}\nFecha: ${msg.getDate()}\n\n${msg.getPlainBody()}`.slice(0, 8000);
-      UrlFetchApp.fetch(URL, { method: 'post', contentType: 'application/json',
-        headers: { 'x-io-secret': SECRET }, payload: JSON.stringify({ text, source: 'correo' }) });
-    }
-    thread.addLabel(label);
-  }
-}
-```
-Después, en Activadores (⏰), agrega `revisarAlertas` → *Basado en tiempo* → cada 10 minutos.
-
-### 4. Gastos fijos automáticos (opcional)
-Los fijos (renta, YMCA, Fizz, seguro…) se editan en la app: *Gastos programados → Editar fijos*. Hay dos formas de usarlos:
-- **Manual**: aparecen como pendientes y los marcas con “✓ Pagado”.
-- **Automático**: programa la función `fijos` con el bloque `cron.schedule` del final de `schema.sql`. Cada día inserta los fijos que vencen y todavía no aparecen pagados. Esto reemplaza el intento con Feeder+Iterator en Make, que no funcionó.
-
-### 5. Instalar en el celular
-- **Android (Chrome)**: abre `https://meetaistaff.com/io/` → menú ⋮ → **Instalar app**.
-- **iPhone (Safari)**: Compartir ⬆️ → **Agregar a pantalla de inicio**.
-
-## Reglas de producto que se mantienen
-- Una sola pantalla vertical, nunca carrusel de pantallas.
-- Orden: avatar → chips → transacciones (infinita) → calendario (bottom sheet por día) → programados → lo demás.
-- El avatar no vive ansioso: *preocupado* solo con balance negativo o presupuesto variable >115%.
-- La key de Anthropic nunca va al código: solo `sessionStorage['io_k']`.
-- La pensión nunca se registra aparte. Las transferencias NBC ↔ Wealthsimple del mismo monto son internas.
-
-## Siguientes pasos sugeridos
-1. **Google Auth + políticas RLS por usuario** (el SQL de migración está en `schema.sql`) → multiusuario (Diana, Juan) usando `telegram_links`.
-2. Notas de voz en Telegram (transcribir y luego pasarlas a `parse`).
-3. Integración con Apple Health / Google Fit (pasos y sueño automáticos) mediante Atajos de iPhone → `ingest`.
-4. Notificaciones push (recordatorio del diario por la noche y alertas de pagos fijos).
+- **Notificaciones a la hora de cada hábito.** Web Push, que necesita un pequeño backend.
+- **Login con Google y sincronización por usuario.** Así el progreso te sigue a cualquier celular.
+- **Publicar en tiendas.** Con TWA/Bubblewrap para Google Play y Capacitor para iOS.
+- **IO+ (suscripción opcional, ~$9/mes).** Solo cosas que no rompan la regla de oro, por ejemplo temas visuales, estadísticas avanzadas, retos con amigos y respaldo en la nube. **Nunca bits, XP ni objetos por dinero.**
+- **Más contenido:** eventos de temporada, más pisos especiales, clima en las ventanas y NPCs vecinos.

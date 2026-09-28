@@ -1,7 +1,7 @@
 {
   "name": "IO",
   "short_name": "IO",
-  "description": "IO: yo · 1 0 · el código de tu vida. Finanzas, salud y relaciones como un juego que se juega en la vida real.",
+  "description": "IO: yo · 1 0. Un juego de hábitos que se juega en la vida real. Siempre gratis.",
   "id": "/io/",
   "start_url": "/io/?source=pwa",
   "scope": "/io/",
@@ -15,10 +15,10 @@
   "theme_color": "#09090f",
   "lang": "es",
   "categories": [
-    "finance",
     "health",
     "lifestyle",
-    "productivity"
+    "productivity",
+    "games"
   ],
   "icons": [
     {
@@ -48,20 +48,9 @@
   ],
   "shortcuts": [
     {
-      "name": "Registrar",
-      "short_name": "Registrar",
-      "url": "/io/?add=1",
-      "icons": [
-        {
-          "src": "icons/icon-192.png",
-          "sizes": "192x192"
-        }
-      ]
-    },
-    {
-      "name": "Hablar con IO",
-      "short_name": "Chat",
-      "url": "/io/?chat=1",
+      "name": "Mis hábitos de hoy",
+      "short_name": "Hoy",
+      "url": "/io/?source=shortcut",
       "icons": [
         {
           "src": "icons/icon-192.png",
@@ -69,26 +58,5 @@
         }
       ]
     }
-  ],
-  "share_target": {
-    "action": "/io/share",
-    "method": "POST",
-    "enctype": "multipart/form-data",
-    "params": {
-      "title": "title",
-      "text": "text",
-      "url": "url",
-      "files": [
-        {
-          "name": "file",
-          "accept": [
-            "image/*",
-            "application/pdf",
-            "text/csv",
-            ".csv"
-          ]
-        }
-      ]
-    }
-  }
+  ]
 }
