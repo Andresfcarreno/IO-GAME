@@ -20,6 +20,29 @@ IO es un **juego de hábitos que se juega en la vida real**. Es una app web inst
    - Ganas **XP** y **bits** ◆. Si empezaste a tiempo (±30 min de la hora) ganas +25%, y las rachas suman más.
 4. **🎁 Día perfecto.** Si completas todos los hábitos del día, abres el cofre.
 
+## v10: cuarto con muebles, ascensor nuevo y modo enfoque vivo
+
+- **Un cuarto de verdad.** Tiene zócalo, techo con lámpara, cortinas, **dos repisas** y un **aparador** bajo la ventana.
+  - Lo pequeño (velas, cactus, plantas, laptop, TV, acuario…) va en repisas o en el aparador. En modo decorar se cambia con ▲▼, o arrastrándolo con el dedo.
+  - Los cuadros de la pared se ven más grandes.
+- **Ascensor nuevo.**
+  - Display ámbar que dice dónde estás y a dónde vas.
+  - Torre del edificio en corte, con los pisos y el nombre de cada cuarto.
+  - Tarjeta del piso elegido: qué hay, o cuánto XP falta para abrirlo.
+  - En el viaje, la cabina con tu cara baja o sube por el hueco mientras el display cuenta los pisos.
+- **HUD tocable.** Tocar el nivel, la barra de XP, los bits o la racha abre **Tu progreso**: qué es cada cosa, cuánto llevas, cuánto falta para el siguiente piso y cómo se gana.
+- **Modo enfoque vivo.**
+  - Escenario grande con cielo según la hora.
+  - Paisaje en capas para caminar, correr y sacar al perro.
+  - Sillón y gato para leer, luz, paloma y velas para orar, escritorio para estudiar y escribir.
+  - Rutina que cambia sola para el ejercicio (press, sentadillas, jumping jacks, curl).
+  - Contador en vivo (páginas, km, reps, respiraciones) y un **arbolito que crece** con tu progreso.
+  - **Coach** en una burbuja grande: hitos (empezar, 1 min, 5 min, 25/50/75%, último minuto, cuenta regresiva) y frases según la actividad.
+- **Pop.**
+  - Logo IO y etiqueta del Game Boy en colores que cambian, con borde arcoíris en la pantalla.
+  - Los bits suben contando.
+  - Pantalla de **racha** estilo Duolingo, con la llama y la semana marcada.
+
 ## Tu personaje hace tu hábito
 
 Mientras corre el reloj, el personaje hace lo mismo que tú, en **23 escenas** animadas:

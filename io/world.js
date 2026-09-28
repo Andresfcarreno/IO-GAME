@@ -32,7 +32,7 @@ export const worldsUpTo = floor => { const out = []; for (let f = 1; f <= Math.m
 
 /* ---------- pisos ---------- */
 export const ROOMS = {
-  cuarto: { n: 'Tu cuarto', ic: '🛏️', starter: [['cama', .62], ['lampara_pie', .88], ['planta', .32]] },
+  cuarto: { n: 'Tu cuarto', ic: '🛏️', starter: [['cama', .46], ['lampara_pie', .88], ['planta', .32]] },
   sala: { n: 'Sala', ic: '🛋️', starter: [['sofa', .55], ['tv', .85], ['cuadro', .5, .35]] },
   garaje: { n: 'Garaje', ic: '🚗', cap: 1, starter: [['bici', .6], ['herramientas', .88, .4]] },
   garaje2: { n: 'Garaje doble', ic: '🏎️', cap: 2, starter: [['bici', .45], ['herramientas', .9, .4]] },
@@ -114,16 +114,32 @@ export const titleOf = lvl => TITLES.filter(([l]) => lvl >= l).pop()[1];
 const GID = 'io:game';
 export function game() {
   const g = S.getItem(GID) || { xp: 0, bits: 60, floor: 1, placed: {}, owned: {}, wear: {}, chest: {}, stats: { minutes: 0, sessions: 0 }, seen: 1, deals: {}, wk: {} };
-  g.placed ||= {}; g.owned ||= {}; g.wear ||= {}; g.chest ||= {}; g.stats ||= { minutes: 0, sessions: 0 }; g.deals ||= {}; g.wk ||= {}; g.shielded ||= {}; g.quests ||= {};
+  g.placed ||= {}; g.owned ||= {};
+  if (!g.room2) { g.room2 = 1; for (const [n, list] of Object.entries(g.placed)) if (roomHasFurniture(+n)) list.forEach(p => { const on = STARTER_ON[p.item]; if (on && !p.on) { p.on = on[0]; p.x = on[1]; } if (p.item === 'cama' && p.x > .55) p.x = .46; }); } g.wear ||= {}; g.chest ||= {}; g.stats ||= { minutes: 0, sessions: 0 }; g.deals ||= {}; g.wk ||= {}; g.shielded ||= {}; g.quests ||= {};
   return g;
 }
 export function saveGame(g) { const { id, ...d } = g; S.putItem('game', d, GID); }
 export const level = (g = game()) => levelOf(g.xp);
 
+/* ---------- superficies del cuarto: piso, aparador y dos repisas ---------- */
+const SHELF_OK = new Set(['planta', 'cactus', 'vela', 'osito', 'frutas', 'cafetera', 'laptop', 'consola_tv', 'palomitas', 'globo', 'flores', 'microfono', 'lampara_pie_mini', 'trofeo_mini', 'hamster', 'tortuga']);
+const TABLE_OK = new Set([...SHELF_OK, 'tv', 'monitor', 'acuario', 'champana', 'lampara_pie', 'escultura', 'robot', 'telescopio']);
+/** Dónde puede ir un objeto (el orden es de abajo hacia arriba). */
+export function surfacesOf(it) {
+  if (!it || it.band !== 'floor' || it.kind === 'veh') return ['floor'];
+  const out = ['floor'];
+  if (TABLE_OK.has(it.id)) out.push('table');
+  if (SHELF_OK.has(it.id)) out.push('shelf2', 'shelf1');
+  return out;
+}
+export const roomHasFurniture = n => { const f = floorInfo(n); return !f.open && !['piscina', 'helipuerto', 'hangar'].includes(f.type); };
+const STARTER_ON = { planta: ['shelf2', .36], tv: ['table', .74], monitor: ['table', .72], frutas: ['table', .7], palomitas: ['table', .78], globo: ['shelf1', .4], vela: ['shelf2', .44], flores: ['shelf1', .34] };
+
 /** Objetos del piso; la primera visita coloca los muebles iniciales (regalo: pasan a ser tuyos). */
 export function placedOn(g, n) {
   if (!g.placed[n]) {
-    g.placed[n] = floorInfo(n).starter.map(([item, x, y]) => ({ u: S.uid(), item, x, y: y ?? null }));
+    const furn = roomHasFurniture(n);
+    g.placed[n] = floorInfo(n).starter.map(([item, x, y]) => { const on = furn && STARTER_ON[item]; return on ? { u: S.uid(), item, x: on[1], y: null, on: on[0] } : { u: S.uid(), item, x, y: y ?? null }; });
     g.placed[n].forEach(p => { g.owned[p.item] = (g.owned[p.item] || 0) + 1; });
     saveGame(g);
   }

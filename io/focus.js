@@ -3,7 +3,7 @@
  * Se puede pausar, no terminar antes: sin reloj completo no hay corona. */
 import * as H from './habits.js';
 import { cfg } from './store.js';
-import { sceneHTML } from './scenes.js';
+import { sceneHTML, runScene } from './scenes.js';
 import * as W from './world.js';
 import { blip } from './engine.js';
 
@@ -19,13 +19,50 @@ const MOTIVOS = [
   'Tu racha depende de este momento.',
   'Cada minuto completo es un piso más alto en tu edificio.',
 ];
-const CHEERS = ['Quédate aquí. El reloj sigue contando aunque bloquees la pantalla.', '25% ✦ Ya arrancaste, que es lo más difícil.', '50% ✦ Mitad del camino. Tu personaje sigue contigo.', '75% ✦ Recta final. La corona ya se ve.'];
+/* ---------- coach: tu personaje te habla mientras corre el reloj ---------- */
+const COACH = {
+  all: ['Tú puedes. Un minuto a la vez.', 'Respira. Estás construyendo a quien quieres ser.', 'Nadie lo está haciendo por ti. Y lo estás haciendo.', 'Cada segundo cuenta: 1 > 0.', 'Tu personaje no se rinde. Tú tampoco.', 'Quédate. La corona te espera 👑', 'Esto es disciplina en tiempo real.', 'El tú de mañana ya te está aplaudiendo.', 'No pienses en terminar. Piensa en este minuto.'],
+  read: ['Una página más. Solo una.', 'Cada libro te hace más grande por dentro.', 'Leer es entrenar la mente. Sigue.'],
+  study: ['Lo que aprendes hoy nadie te lo quita.', 'Concéntrate en una cosa. Solo esa.', 'Tu cerebro está haciendo pesas ahora mismo.'],
+  write: ['Escribe sin juzgar. Después se corrige.', 'Tus ideas merecen papel.', 'Una frase más. Ahí va saliendo.'],
+  type: ['Trabajo profundo: sin notificaciones, sin afán.', 'Una tarea a la vez. Así se hacen las grandes.', 'Estás en la zona. Quédate ahí.'],
+  talk: ['Equivocarse también es practicar.', 'Cada palabra nueva abre una puerta.', 'You got this! 💪'],
+  float: ['Suelta los pensamientos. Vuelve a la respiración.', 'Aquí y ahora. Nada más.', 'La calma también se entrena.'],
+  breathe: ['Inhala en 4… exhala en 4.', 'Deja que los hombros bajen.', 'Cada respiración te devuelve a ti.'],
+  yoga: ['Estira sin forzar. Tu cuerpo te lo agradece.', 'Equilibrio por fuera, equilibrio por dentro.'],
+  pray: ['Aquí no hay afán. Solo tú y Dios.', 'Agradece tres cosas de hoy.', 'Suelta lo que no controlas.', 'Habla con el corazón. Te escucha.'],
+  unplug: ['El mundo puede esperar. Tú primero.', 'Sin pantalla, la vida se ve en alta definición.'],
+  sleep: ['Descansar también es ganar.', 'Mañana te lo vas a agradecer.'],
+  flex: ['¡Una rep más! ¡Vamos!', 'El dolor de hoy es la fuerza de mañana.', 'Aprieta, respira, sigue.', 'Tu cuerpo puede más de lo que crees.'],
+  run: ['Paso a paso, kilómetro a kilómetro.', 'Mantén el ritmo. Respira por la nariz.', '¡Vas volando! 🏃'],
+  walk: ['Mira el cielo. Esto también es vida.', 'Caminar aclara la mente.', 'Cada paso suma.'],
+  dog: ['Tu perro está feliz. Tú también deberías 🐕', 'Paseo juntos: los dos ganan.', 'Huele las flores, como él.'],
+  swim: ['Brazada larga, respiración tranquila.', 'Un largo más.'],
+  eat: ['Mastica despacio. Saborea.', 'Comer sin pantalla también es un hábito.'],
+  cook: ['Cocinar es cuidarte.', 'Huele delicioso desde aquí.'],
+  clean: ['Espacio ordenado, mente ordenada.', 'Un rincón a la vez.'],
+  music: ['Repite la parte difícil. Ahí se mejora.', 'Tus dedos están aprendiendo aunque no lo notes.'],
+  draw: ['No tiene que ser perfecto. Tiene que ser tuyo.', 'Cada trazo cuenta.'],
+};
+/** Hitos: se dicen una sola vez y con más énfasis. */
+function milestone(el, rem, dur, done) {
+  const M = [
+    ['start', el >= 8 && dur > 90, '¡Arrancamos! Lo más difícil ya lo hiciste: empezar. 💜'],
+    ['m1', el >= 60 && dur > 150, '1 minuto ✓ Ya estás en ritmo.'],
+    ['m5', el >= 300 && dur > 600, '5 minutos. Esto ya es un hábito en marcha 🔥'],
+    ['p25', el / dur >= .25 && dur >= 240, '25% ✦ Un cuarto del camino. ¡Sigue así!'],
+    ['p50', el / dur >= .5 && dur >= 120, '¡MITAD! 🔥 Ya vas de bajada.'],
+    ['p75', el / dur >= .75 && dur >= 240, '75% · La corona ya se ve 👑'],
+    ['last', rem <= 60 && dur >= 180, '¡Último minuto! Aguanta, ya casi.'],
+  ];
+  return M.find(([k, ok]) => ok && !done.has(k));
+}
 const fmt = s => { s = Math.max(0, Math.ceil(s)); const m = Math.floor(s / 60), r = s % 60; return `${String(m).padStart(2, '0')}:${String(r).padStart(2, '0')}`; };
-let F = { id: null, raf: 0, rainT: 0, wake: null, onClaim: null, onClose: null, flick: 0 };
+let F = { id: null, raf: 0, rainT: 0, wake: null, onClaim: null, onClose: null, flick: 0, scene: null, said: new Set(), lastSay: 0, act: 'jump' };
 
 export function open(id, { onClaim, onClose } = {}) {
   const h = H.get(id); if (!h) return;
-  F = { ...F, id, onClaim, onClose, stage: -1 };
+  F = { ...F, id, onClaim, onClose, said: new Set(), lastSay: 0 };
   if (!H.sess(id).done) { H.start(id); blip('start'); }
   const act = H.actOf(h);
   const fc = $('focus');
@@ -34,8 +71,8 @@ export function open(id, { onClaim, onClose } = {}) {
     <div class="fc-top"><span class="fc-emoji">${esc(h.emoji)}</span><div><b>${esc(h.nombre)}</b><small id="fcSub"></small></div></div>
     <div class="fc-ring"><canvas id="fcRing" aria-hidden="true"></canvas>
       <div class="fc-center"><div class="fc-time" id="fcTime">--:--</div><div class="fc-bin" id="fcBin" title="Minutos restantes en binario"></div><div class="fc-pct" id="fcPct"></div></div></div>
-    <div class="fc-stage"><div class="fc-act">${esc((cfg.name || 'Tu personaje').toUpperCase())} · ${esc((H.ACTS[act] || H.ACTS.jump)[1].toUpperCase())} CONTIGO</div>${sceneHTML(act, cfg.avatar, W.game().wear)}</div>
-    <p class="fc-msg" id="fcMsg">Quédate aquí. El reloj sigue contando aunque bloquees la pantalla.</p>
+    <div class="fc-stage"><div class="fc-act">${esc((cfg.name || 'Tu personaje').toUpperCase())} · ${esc((H.ACTS[act] || H.ACTS.jump)[1].toUpperCase())} CONTIGO</div>${sceneHTML(act, cfg.avatar, W.game().wear, { big: true })}
+      <div class="fc-coach" id="fcMsg"><p id="fcCoachT">Quédate aquí. El reloj sigue contando aunque bloquees la pantalla.</p></div></div>
     <div class="fc-prize" id="fcPrize"></div>
     <div class="fc-actions"><button class="fc-pause" id="fcPause">⏸ Pausar</button></div>
     <div class="fc-modal" id="fcModal" hidden></div>
@@ -43,6 +80,12 @@ export function open(id, { onClaim, onClose } = {}) {
   fc.hidden = false; document.body.style.overflow = 'hidden';
   $('fcPause').onclick = askPause;
   const pv = H.preview(id); if (pv) $('fcPrize').innerHTML = `Al terminar: <span>👑</span><b>+${pv.xp} XP</b><i>+${pv.bits} ◆</i>${pv.onTime ? '<span>⏰ a tiempo</span>' : ''}`;
+  F.act = act; F.scene = runScene(fc.querySelector('.fs'), act);
+  { // al retomar, los hitos que ya pasaron no se repiten: solo se dice el último
+    const dur = h.min * 60, el0 = H.elapsed(id); let m, last = null;
+    while ((m = milestone(el0, dur - el0, dur, F.said))) { F.said.add(m[0]); last = m; }
+    if (last && el0 > 20) { F.lastSay = performance.now(); setTimeout(() => say(`De vuelta 💜 ${last[2]}`, true), 300); }
+  }
   wake(true); rain(); loop();
   document.addEventListener('visibilitychange', onVis);
 }
@@ -70,14 +113,29 @@ function loop() {
   const end = new Date(Date.now() + rem * 1000);
   $('fcSub').textContent = rem > 0 ? `${h.min} min · termina a las ${end.toTimeString().slice(0, 5)}` : '¡Completo!';
   drawRing(p);
-  const st = Math.floor(p * 4); // 0..4: ánimos a 25, 50 y 75%
-  if (st !== F.stage) { if (F.stage >= 0 && st > F.stage && st < 4) { blip('coin'); try { navigator.vibrate?.(30); } catch { /* */ } } F.stage = st; $('fcMsg').textContent = CHEERS[st] || ''; }
+  F.scene?.update(p, el);
+  coach(el, rem, dur);
   if (rem <= 0) { H.checkDone(F.id); return showDone(h); }
   F.raf = requestAnimationFrame(loop);
 }
+function say(txt, hot = false, big = false) {
+  const b = $('fcMsg'); const t = $('fcCoachT'); if (!b || t.textContent === txt) return;
+  t.textContent = txt; b.classList.toggle('hot', hot); b.classList.toggle('count', big);
+  b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop');
+}
+function coach(el, rem, dur) {
+  const now = performance.now();
+  if (rem <= 10 && rem > 0 && dur >= 30) { say(`${Math.ceil(rem)}`, true, true); if (F.tick !== Math.ceil(rem)) { F.tick = Math.ceil(rem); blip('menu'); } return; }
+  const m = milestone(el, rem, dur, F.said);
+  if (m) { F.said.add(m[0]); F.lastSay = now; say(m[2], true); if (m[0] !== 'start') { blip('coin'); try { navigator.vibrate?.(35); } catch { /* */ } } return; }
+  if (now - F.lastSay > 26000 && el > 5) {
+    F.lastSay = now; const pool = [...(COACH[F.act] || []), ...COACH.all]; F.ci = ((F.ci ?? Math.floor(Math.random() * pool.length)) + 1) % pool.length;
+    say(pool[F.ci].replace('{n}', cfg.name || ''));
+  }
+}
 function drawRing(p) {
   const c = $('fcRing'); if (!c) return;
-  const size = Math.min(innerWidth - 32, innerHeight * .38, 330); const dpr = devicePixelRatio || 1;
+  const size = Math.min(innerWidth * .62, innerHeight * .27, 260); const dpr = devicePixelRatio || 1;
   if (c.width !== Math.round(size * dpr)) { c.width = c.height = Math.round(size * dpr); c.style.width = c.style.height = size + 'px'; }
   const x = c.getContext('2d'); const S = c.width; const R = S * .44; const N = 72;
   x.clearRect(0, 0, S, S); x.save(); x.translate(S / 2, S / 2);
@@ -133,7 +191,7 @@ function showDone(h) {
   const r = H.preview(F.id);
   const fs = document.querySelector('#focus .fs'); if (fs) fs.dataset.mood = 'excited'; $('focus').classList.add('won');
   try { navigator.vibrate?.([60, 40, 120]); } catch { /* */ }
-  $('fcPause').hidden = true; $('fcMsg').textContent = ''; $('fcPrize').innerHTML = '';
+  $('fcPause').hidden = true; say('¡Lo lograste! 👑 Activa tu corona.', true); $('fcPrize').innerHTML = '';
   $('fcDone').innerHTML = `<div class="fc-crown">👑</div><b>¡${esc(h.nombre)} completo!</b>
     <p>${h.min} ${h.min === 1 ? 'minuto' : 'minutos'} de verdad.${r?.onTime ? ' ⏰ ¡A tiempo! +25%' : ''}${r?.streak > 1 ? ` · 🔥 racha de ${r.streak}` : ''}</p>
     <button class="fc-claim" id="fcClaim">👑 Activar corona · +${r?.xp ?? 0} XP · +${r?.bits ?? 0} ◆</button>`;

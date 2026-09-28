@@ -294,7 +294,7 @@ function renderWorld() {
 
 /* ================= acciones ================= */
 export const actions = {
-  tab: el => show(el.dataset.t, { scroll: true }),
+  tab: el => { closeSheet(); show(el.dataset.t, { scroll: true }); },
   shopCat: el => { shopCat = el.dataset.c; G.blip('menu'); renderShop(); },
   item: el => itemSheet(el.dataset.id),
   buyDeal: () => { const d = W.dailyDeal(); if (d) ctx.buy(d.item.id, { deal: true }); },

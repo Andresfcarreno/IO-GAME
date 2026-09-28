@@ -41,8 +41,12 @@
       <div class="screen" id="screen">
         <div class="scene" id="scene" data-skin="barrio" data-type="cuarto" data-view="calle" data-time="dia">
           <div class="wall"></div>
+          <div class="wains" aria-hidden="true"></div>
           <div class="wall-trim"></div>
+          <div class="ceil" aria-hidden="true"><i class="lampc"></i></div>
           <div class="win" id="win"><i class="sun"></i><i class="stars"></i><i class="v v1"></i><i class="v v2"></i><i class="v v3"></i></div>
+          <div class="curt" aria-hidden="true"><i></i><i></i></div>
+          <div class="furn-set" aria-hidden="true"><i class="shf s1"></i><i class="shf s2"></i><div class="sideboard"><i></i><i></i></div></div>
           <div class="floor"></div>
           <div class="rug"></div>
           <div class="elev" id="elevBox" role="button" aria-label="Ascensor">
@@ -55,10 +59,10 @@
           <div class="fx" id="fx" aria-hidden="true"></div>
         </div>
         <div class="hud">
-          <span class="hud-lv">LV<b id="lvlN">1</b></span>
-          <div class="hud-xp"><div class="hud-xp-fill" id="xpFill"></div></div>
-          <span class="hud-bits"><i>◆</i><b id="bitsN">0</b></span>
-          <span class="hud-streak" id="streakN">🔥0</span>
+          <button class="hud-lv" data-hud="xp" aria-label="Nivel y XP">LV<b id="lvlN">1</b></button>
+          <button class="hud-xp" data-hud="xp" aria-label="Barra de XP"><div class="hud-xp-fill" id="xpFill"></div><span class="hud-xp-t" id="xpT"></span></button>
+          <button class="hud-bits" data-hud="bits" aria-label="Bits"><i>◆</i><b id="bitsN">0</b></button>
+          <button class="hud-streak" id="streakN" data-hud="racha" aria-label="Racha">🔥0</button>
         </div>
         <div class="floor-tag" id="floorTag">PISO 1</div>
         <button class="minimap" id="minimap" aria-label="Mapa del edificio"></button>
@@ -66,11 +70,11 @@
         <div class="deco-bar" id="decoBar" hidden></div>
         <div class="gb-menu" id="gbMenu" hidden></div>
         <div class="elev-panel" id="elevPanel" hidden></div>
-        <div class="elev-ride" id="elevRide" hidden><div class="ride-ind"><span id="rideArrow">▲</span><b id="rideNum">1</b></div><div class="ride-doors"><i></i><i></i></div></div>
+        <div class="elev-ride" id="elevRide" hidden></div>
         <div class="crown-drop" id="crownDrop" hidden>👑</div>
         <div class="lvlup" id="lvlup" hidden></div>
       </div>
-      <div class="bezel-label"><span class="led" id="led"></span><span>IO</span><em>1·0</em><span>SYSTEM</span><small>life edition</small></div>
+      <div class="bezel-label"><span class="led" id="led"></span><span class="bz-io">IO</span><em>1·0</em><span>SYSTEM</span><small>life edition</small></div>
     </div>
     <div class="controls">
       <div class="dpad" role="group" aria-label="Cruceta">
@@ -134,6 +138,7 @@
 <div class="focus" id="focus" role="dialog" aria-modal="true" aria-label="Temporizador" hidden></div>
 <div class="onb" id="onb" role="dialog" aria-modal="true" aria-label="Configuración inicial" hidden></div>
 <div class="mini" id="mini" aria-live="polite"></div>
+<div class="streak-ov" id="streakOv" role="dialog" aria-modal="true" aria-label="Racha" hidden></div>
 <div class="reveal" id="reveal" role="dialog" aria-modal="true" aria-label="Caja sorpresa" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <input type="file" id="backupIn" accept="application/json,.json" hidden>

@@ -69,12 +69,14 @@ export function render() {
   $('elevNum').textContent = n;
   $('floorTag').textContent = `${n === 1 ? 'PISO 1' : 'PISO ' + n} · ${f.name.toUpperCase()}`;
   // objetos
-  const objs = W.placedOn(g, n);
+  const objs = W.placedOn(g, n); const furn = W.roomHasFurniture(n);
+  scene.classList.toggle('furn', furn);
   $('objs').innerHTML = objs.map(p => {
     const it = W.itemById(p.item); if (!it) return '';
-    const band = it.band;
-    const pos = band === 'floor' ? `bottom:var(--floorY)` : band === 'wall' ? `top:${wallTop(p.y ?? .35)}` : `top:var(--ceilY)`;
-    return `<button class="obj b-${band}${it.kind === 'pet' ? ' pet' : ''}${it.kind === 'veh' ? ' veh' : ''}" data-u="${p.u}" data-y="${p.y ?? .35}" style="left:${p.x * 100}%;${pos};--s:${it.s}" aria-label="${esc(it.n)}" tabindex="-1"><span class="spr">${it.e}</span></button>`;
+    const band = it.band; const on = band === 'floor' && furn && p.on && SURF[p.on] ? p.on : 'floor';
+    const x = on === 'floor' ? p.x : clamp(p.x, SURF[on].x0, SURF[on].x1);
+    const pos = band === 'floor' ? `bottom:${SURF[on].b}` : band === 'wall' ? `top:${wallTop(p.y ?? .35)}` : `top:var(--ceilY)`;
+    return `<button class="obj b-${band} on-${on}${it.kind === 'pet' ? ' pet' : ''}${it.kind === 'veh' ? ' veh' : ''}" data-u="${p.u}" data-y="${p.y ?? .35}" data-on="${on}" style="left:${x * 100}%;${pos};--s:${(it.s * (SURF[on]?.k || 1) * (band === 'wall' ? 1.3 : 1)).toFixed(2)}" aria-label="${esc(it.n)}" tabindex="-1"><span class="spr">${it.e}</span></button>`;
   }).join('');
   // héroe
   const look = cfg.avatar || {};
@@ -85,10 +87,18 @@ export function render() {
   placeHero();
   // HUD
   const pr = W.progressOf(g.xp);
-  $('lvlN').textContent = lvl; $('xpFill').style.width = (pr.pct * 100).toFixed(1) + '%'; $('xpFill').parentElement.title = `${pr.into}/${pr.need} XP`;
-  $('bitsN').textContent = g.bits;
+  $('lvlN').textContent = lvl; $('xpFill').style.width = (pr.pct * 100).toFixed(1) + '%'; $('xpFill').parentElement.title = `${pr.into}/${pr.need} XP`; $('xpT').textContent = `${pr.into}/${pr.need}`;
+  countTo($('bitsN'), g.bits);
   renderMinimap(g, n, lvl);
   hints();
+}
+/** Los números suben contando, como monedas cayendo. */
+function countTo(el, to) {
+  const from = +el.dataset.v || 0; el.dataset.v = to;
+  if (!el.textContent || from === to || reduced()) { el.textContent = to; return; }
+  const t0 = performance.now(), d = Math.min(900, 250 + Math.abs(to - from) * 8);
+  const step = t => { const k = Math.min(1, (t - t0) / d); el.textContent = Math.round(from + (to - from) * (1 - (1 - k) ** 3)); if (k < 1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
 }
 function renderMinimap(g, n, lvl) {
   const w = W.worldOf(n);
@@ -127,7 +137,7 @@ function loop(t) {
       E.dir = d; E.x = clamp(E.x + d * .3 * dt, .07, .94); placeHero(); hints();
       $('hero').classList.add('walking');
     } else if (E.mode === 'deco' && E.deco.moving) moveSel(d * .35 * dt, 0);
-  } else if ((E.held === 'up' || E.held === 'down') && E.mode === 'deco' && E.deco.moving) moveSel(0, (E.held === 'up' ? -1 : 1) * .5 * dt);
+  } else if ((E.held === 'up' || E.held === 'down') && E.mode === 'deco' && E.deco.moving && decoObjs()[E.deco.sel] && W.itemById(decoObjs()[E.deco.sel].item).band === 'wall') moveSel(0, (E.held === 'up' ? -1 : 1) * .5 * dt);
   else $('hero')?.classList.remove('walking');
   E.raf = requestAnimationFrame(loop);
 }
@@ -178,25 +188,42 @@ function closeElevator() {
   $('scene').classList.remove('doors-open'); E.mode = 'walk'; E.x = .2; placeHero(); hints();
 }
 function renderElevPanel() {
-  const lvl = W.level(); const w = E.elevWorld; const cur = floorNow();
-  const worlds = W.worldsUpTo(Math.max(lvl, w.to));
-  let btns = '';
-  for (let k = w.from; k <= w.to; k++) {
-    const f = W.floorInfo(k);
-    btns += `<button class="eb${k <= lvl ? '' : ' locked'}${k === E.elevSel ? ' sel' : ''}${k === cur ? ' cur' : ''}" data-floor="${k}" title="${esc(f.name)}">${k <= lvl ? k : '🔒'}</button>`;
+  const g = W.game(); const lvl = W.level(g); const w = E.elevWorld; const cur = floorNow(); const selN = E.elevSel;
+  const worlds = W.worldsUpTo(Math.max(lvl, w.to)); const wi = worlds.findIndex(x => x.id === w.id);
+  const count = w.to - w.from + 1; const bh = Math.max(9, Math.min(26, Math.floor(262 / count)));
+  let bands = '';
+  for (let k = w.to; k >= w.from; k--) {
+    const f = W.floorInfo(k); const open = k <= lvl;
+    bands += `<button class="tw-b${open ? '' : ' locked'}${k === selN ? ' sel' : ''}${k === cur ? ' cur' : ''}${k === lvl + 1 ? ' next' : ''}" data-floor="${k}" style="height:${bh}px" aria-label="Piso ${k}">
+      <i>${k}</i>${bh >= 16 ? `<span>${open ? f.ic : '🔒'}</span>` : ''}${bh >= 22 && open ? `<em class="tw-n">${esc(f.name)}</em>` : ''}${k === cur ? `<em class="tw-car">${avatarSVG(cfg.avatar, 'av', '28 2 64 64')}</em>` : ''}</button>`;
   }
-  const sel = W.floorInfo(E.elevSel);
-  const wi = worlds.findIndex(x => x.id === w.id);
+  const sel = W.floorInfo(selN); const open = selN <= lvl;
+  const objs = open && g.placed[selN] ? g.placed[selN].map(p => W.itemById(p.item)?.e).filter(Boolean) : [];
+  const need = W.xpAt(selN) - g.xp;
+  const dir = selN > cur ? '▲' : selN < cur ? '▼' : '●';
   $('elevPanel').innerHTML = `
-    <div class="ep-top"><button class="ep-w" data-ew="-1" ${wi <= 0 ? 'disabled' : ''}>◀</button><div><small>EDIFICIO ${w.id}</small><b>${esc(w.n)}</b></div><button class="ep-w" data-ew="1" ${w.from > lvl ? 'disabled' : ''}>▶</button></div>
-    <div class="ep-grid" data-skin="${w.skin}">${btns}</div>
-    <div class="ep-info">${E.elevSel <= lvl ? `${sel.ic} Piso ${E.elevSel} · ${esc(sel.name)}` : `🔒 Piso ${E.elevSel} · se abre en el nivel ${E.elevSel}`}</div>
-    <div class="ep-help">✥ elegir · A subir/bajar · B salir</div>`;
+    <div class="ev-disp"><span class="ev-arrow${selN !== cur ? ' go' : ''}">${dir}</span><b>${String(selN).padStart(2, '0')}</b><div><small>ESTÁS EN EL ${cur}</small><strong>${esc(w.n.toUpperCase())}</strong></div></div>
+    <div class="ev-main">
+      <div class="ev-tower" data-skin="${w.skin}">
+        <div class="ev-wsw"><button data-ew="-1" ${wi <= 0 ? 'disabled' : ''} aria-label="Edificio anterior">◀</button><small>${w.from}–${w.to}</small><button data-ew="1" ${w.to >= lvl + 25 ? 'disabled' : ''} aria-label="Edificio siguiente">▶</button></div>
+        <div class="ev-roof"></div><div class="ev-bands">${bands}</div><div class="ev-lobby">LOBBY</div>
+      </div>
+      <div class="ev-card${open ? '' : ' locked'}">
+        <div class="ev-ic">${open ? sel.ic : '🔒'}</div>
+        <small>PISO ${selN}</small><b>${esc(sel.name)}</b>
+        <span class="ev-w">${esc(sel.world.n)}${sel.cap ? ` · 🚗×${sel.cap}` : ''}</span>
+        ${open ? `<div class="ev-objs">${objs.length ? objs.slice(0, 8).join(' ') : '<em>Aún sin visitar · trae regalos</em>'}</div>`
+          : `<div class="ev-lock">Se abre en el <b>nivel ${selN}</b><small>faltan ${need.toLocaleString('es-CO')} XP</small><div class="ev-bar"><i style="width:${Math.min(100, g.xp / W.xpAt(selN) * 100)}%"></i></div></div>`}
+        <button class="ev-go" data-go="${selN}" ${!open || selN === cur ? 'disabled' : ''}>${selN === cur ? 'Aquí estás' : open ? `${dir} Ir al ${selN}` : 'Bloqueado'}</button>
+      </div>
+    </div>
+    <div class="ep-help">▲▼ piso · ◀▶ edificio · A ir · B salir</div>`;
   $('elevPanel').hidden = false;
+  $('elevPanel').querySelector('.tw-b.sel')?.scrollIntoView({ block: 'nearest' });
 }
 function elevMove(dx, dy) {
-  const w = E.elevWorld; const cols = 5;
-  let k = E.elevSel + dx + dy * -cols;
+  if (dx) return elevWorld(dx);
+  const w = E.elevWorld; const k = E.elevSel + dy;
   if (k < w.from || k > w.to) { blip('error'); return; }
   E.elevSel = k; blip('menu'); renderElevPanel();
 }
@@ -204,7 +231,7 @@ function elevWorld(d) {
   const lvl = W.level(); const worlds = W.worldsUpTo(Math.max(lvl, E.elevWorld.to + 25));
   const i = worlds.findIndex(x => x.id === E.elevWorld.id) + d;
   if (i < 0 || i >= worlds.length || (d > 0 && worlds[i].from > lvl + 25)) { blip('error'); return; }
-  E.elevWorld = worlds[i]; E.elevSel = clamp(E.elevSel, E.elevWorld.from, E.elevWorld.to); if (E.elevSel < E.elevWorld.from || E.elevSel > E.elevWorld.to) E.elevSel = E.elevWorld.from;
+  E.elevWorld = worlds[i]; E.elevSel = clamp(Math.min(lvl, E.elevWorld.to), E.elevWorld.from, E.elevWorld.to);
   blip('menu'); renderElevPanel();
 }
 export function ride(target) {
@@ -212,28 +239,41 @@ export function ride(target) {
   if (target > lvl) { blip('error'); say(`🔒 El piso ${target} se abre cuando llegues al nivel ${target}. Cada hábito completo te acerca.`, 3800); return; }
   if (target === cur) { closeElevator(); return; }
   $('elevPanel').hidden = true; E.mode = 'ride';
-  const r = $('elevRide'); const w = W.worldOf(target);
-  r.dataset.elev = w.elev; r.hidden = false;
-  const num = $('rideNum'); const arrow = $('rideArrow');
-  arrow.textContent = target > cur ? '▲' : '▼';
-  const steps = Math.min(18, Math.abs(target - cur)); let i = 0;
-  const tick = setInterval(() => {
-    i++; const v = Math.round(cur + (target - cur) * (i / steps)); num.textContent = v; blip('step');
-    if (i >= steps) {
-      clearInterval(tick); blip('ding');
-      setTimeout(() => {
-        const g = W.game(); g.floor = target; W.saveGame(g);
-        E.x = .09; E.dir = 1; render();
-        r.hidden = true; $('hero').classList.remove('inside');
-        $('scene').classList.add('doors-open');
-        setTimeout(() => { $('scene').classList.remove('doors-open'); }, 900);
-        walkTo(.24, () => { E.mode = 'walk'; hints(); });
-        const f = W.floorInfo(target);
-        say(`${f.ic} Piso ${target} · ${f.name}${f.world.from === target ? ` — bienvenido a ${f.world.n}` : ''}.`, 3500);
-        E.hooks.onFloor?.(target);
-      }, 380);
-    }
-  }, Math.max(45, 900 / Math.max(steps, 1)));
+  const r = $('elevRide'); const w = W.worldOf(target); const up = target > cur;
+  const lo = Math.min(cur, target), hi = Math.max(cur, target); const span = hi - lo;
+  const ticks = []; for (let k = hi; k >= lo; k--) if (span <= 14 || k === lo || k === hi || (k - lo) % Math.ceil(span / 12) === 0) ticks.push(k);
+  const pos = k => (hi === lo ? 0 : (hi - k) / (hi - lo)) * 100;
+  const dur = Math.min(3200, 900 + span * 90);
+  r.dataset.elev = w.elev; r.dataset.dir = up ? 'up' : 'down';
+  r.innerHTML = `<div class="rd-shaft"><div class="rd-cables"></div>${ticks.map(k => `<i class="rd-tick" style="top:${pos(k)}%"><b>${k}</b><span>${W.floorInfo(k).ic}</span></i>`).join('')}
+      <div class="rd-car" id="rdCar" style="top:${pos(cur)}%"><div class="rd-face">${avatarSVG(cfg.avatar, 'av', '28 2 64 64')}</div></div></div>
+    <div class="rd-info"><div class="rd-disp"><span>${up ? '▲' : '▼'}</span><b id="rideNum">${cur}</b></div>
+      <small id="rideName">${esc(W.floorInfo(cur).name)}</small>
+      <div class="rd-dest"><small>DESTINO</small><b>${W.floorInfo(target).ic} Piso ${target}</b><em>${esc(W.floorInfo(target).name)}</em></div>
+      ${w.from === target && target > 1 ? `<div class="rd-new">✨ ${esc(w.n)}</div>` : ''}</div>`;
+  r.hidden = false; blip('door');
+  const car = $('rdCar'); car.style.transition = `top ${dur}ms cubic-bezier(.55,0,.35,1)`;
+  requestAnimationFrame(() => requestAnimationFrame(() => { car.style.top = pos(target) + '%'; }));
+  const t0 = performance.now(); let last = cur;
+  const tick = () => {
+    const t = Math.min(1, (performance.now() - t0) / dur); const e = t < .5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
+    const v = Math.round(cur + (target - cur) * e);
+    if (v !== last) { last = v; $('rideNum').textContent = v; $('rideName').textContent = W.floorInfo(v).name; blip('step'); }
+    if (t < 1) return requestAnimationFrame(tick);
+    blip('ding'); r.classList.add('arrived');
+    setTimeout(() => {
+      const g = W.game(); g.floor = target; W.saveGame(g);
+      E.x = .09; E.dir = 1; render();
+      r.hidden = true; r.classList.remove('arrived'); $('hero').classList.remove('inside');
+      $('scene').classList.add('doors-open');
+      setTimeout(() => { $('scene').classList.remove('doors-open'); }, 900);
+      walkTo(.24, () => { E.mode = 'walk'; hints(); });
+      const f = W.floorInfo(target);
+      say(`${f.ic} Piso ${target} · ${f.name}${f.world.from === target ? ` — bienvenido a ${f.world.n}` : ''}.`, 3500);
+      E.hooks.onFloor?.(target);
+    }, 650);
+  };
+  requestAnimationFrame(tick);
 }
 function walkTo(x, done) {
   const hero = $('hero'); hero.classList.add('walking');
@@ -277,15 +317,47 @@ function decoUI() {
   const it = p ? W.itemById(p.item) : null;
   $('decoBar').hidden = false;
   $('decoBar').innerHTML = !list.length ? `<b>MODO DECORAR</b><span>Este piso está vacío · START → poner algo de la mochila</span>`
-    : E.deco.moving ? `<b>MOVIENDO ${it.e} ${esc(it.n.toUpperCase())}</b><span>✥ mover · A soltar · B cancelar</span>`
+    : E.deco.moving ? `<b>MOVIENDO ${it.e} ${esc(it.n.toUpperCase())}</b><span>◀▶ mover · ${it.band === 'wall' ? '▲▼ subir/bajar' : W.surfacesOf(it).length > 1 ? '▲▼ repisa/aparador/piso' : ''} · A soltar · B cancelar</span>`
     : `<b>MODO DECORAR · ${it.e} ${esc(it.n)}</b><span>◀▶ elegir · A mover · START opciones · B salir</span>`;
 }
 const wallTop = y => `calc(var(--wallTop) + ${(y * 100).toFixed(1)}% * var(--wallK))`;
+/* superficies del cuarto (fracciones de la escena): piso, aparador bajo la ventana y dos repisas */
+const SURF = {
+  floor: { x0: .22, x1: .95, b: 'var(--floorY)', k: 1 },
+  table: { x0: .62, x1: .88, b: 'calc(var(--floorY) + 38px)', k: .82, max: 3 },
+  shelf2: { x0: .29, x1: .49, b: '47.5%', k: .7, max: 3 },
+  shelf1: { x0: .29, x1: .49, b: '65.5%', k: .7, max: 3 },
+};
+function surfOptions(p) {
+  const it = W.itemById(p.item); if (!W.roomHasFurniture(floorNow())) return ['floor'];
+  const others = W.placedOn(W.game(), floorNow()).filter(q => q.u !== p.u);
+  return W.surfacesOf(it).filter(s => s === 'floor' || others.filter(q => q.on === s).length < SURF[s].max);
+}
+function applySurf(el, it, on) {
+  el.dataset.on = on; el.className = el.className.replace(/\bon-\w+/, 'on-' + on);
+  el.style.bottom = SURF[on].b; el.style.setProperty('--s', (it.s * SURF[on].k).toFixed(2));
+  const x = clamp(parseFloat(el.style.left) / 100, SURF[on].x0, SURF[on].x1); el.style.left = x * 100 + '%';
+}
+/** Un hueco libre en la repisa o el aparador (3 puestos por superficie). */
+function freeSlot(on, skipU = null) {
+  const S = SURF[on]; const w = (S.x1 - S.x0) / 3;
+  const used = W.placedOn(W.game(), floorNow()).filter(q => q.on === on && q.u !== skipU).map(q => q.x);
+  const slots = [0, 1, 2].map(i => S.x0 + w * (i + .5));
+  return slots.find(x => used.every(u => Math.abs(u - x) > w * .6)) ?? slots[1];
+}
+function cycleSurf(dir) {
+  const p = decoObjs()[E.deco.sel]; if (!p) return;
+  const el = document.querySelector(`#objs .obj[data-u="${p.u}"]`); const it = W.itemById(p.item);
+  const opts = surfOptions(p); const i = opts.indexOf(el.dataset.on || 'floor') + dir;
+  if (i < 0 || i >= opts.length) { blip('error'); if (opts.length === 1) say(`${it.e} va en el piso. Lo pequeño (velas, plantas, cactus, TV…) va en repisas o en el aparador.`, 3500); return; }
+  applySurf(el, it, opts[i]); if (opts[i] !== 'floor') el.style.left = freeSlot(opts[i], p.u) * 100 + '%'; blip('place');
+}
 function moveSel(dx, dy) {
   const p = decoObjs()[E.deco.sel]; if (!p) return;
   const el = document.querySelector(`#objs .obj[data-u="${p.u}"]`); if (!el) return;
   const it = W.itemById(p.item);
-  el.style.left = clamp(parseFloat(el.style.left) / 100 + dx, .2, .95) * 100 + '%';
+  const sf = it.band === 'floor' ? SURF[el.dataset.on || 'floor'] : { x0: .2, x1: .95 };
+  el.style.left = clamp(parseFloat(el.style.left) / 100 + dx, sf.x0, sf.x1) * 100 + '%';
   if (it.band === 'wall' && dy) { const y = clamp(parseFloat(el.dataset.y) + dy, 0, 1); el.dataset.y = y; el.style.top = wallTop(y); }
 }
 function decoA() {
@@ -301,6 +373,7 @@ function saveDecoPositions() {
     const p = list.find(q => q.u === el.dataset.u); if (!p) return;
     p.x = parseFloat(el.style.left) / 100;
     if (el.classList.contains('b-wall')) p.y = parseFloat(el.dataset.y);
+    if (el.classList.contains('b-floor')) { if (el.dataset.on && el.dataset.on !== 'floor') p.on = el.dataset.on; else delete p.on; }
   });
   g.stats.moved = (g.stats.moved || 0) + 1;
   W.saveGame(g);
@@ -308,7 +381,7 @@ function saveDecoPositions() {
 function decoB() {
   if (E.deco.moving) { // cancelar: volver a la posición original
     const o = E.deco.orig; const el = document.querySelector(`#objs .obj[data-u="${o.u}"]`);
-    if (el) { el.style.left = o.x * 100 + '%'; if (o.y != null && W.itemById(o.item).band === 'wall') { el.dataset.y = o.y; el.style.top = wallTop(o.y); } }
+    if (el) { el.style.left = o.x * 100 + '%'; const it = W.itemById(o.item); if (o.y != null && it.band === 'wall') { el.dataset.y = o.y; el.style.top = wallTop(o.y); } if (it.band === 'floor') applySurf(el, it, o.on && SURF[o.on] ? o.on : 'floor'); }
     E.deco.moving = false; blip('back'); decoUI(); return;
   }
   saveDecoPositions(); exitDeco();
@@ -326,8 +399,10 @@ export function placeFromBag(itemId) {
   const g = W.game(); const n = floorNow(); const it = W.itemById(itemId);
   const why = W.canPlaceHere(g, it, n); if (why) { say(why, 4200); blip('error'); return false; }
   const p = { u: Math.random().toString(36).slice(2, 9), item: itemId, x: clamp(E.x + .12, .22, .9), y: it.band === 'wall' ? .35 : null };
+  const up = surfOptions(p).filter(s => s !== 'floor').reverse()[0]; // lo pequeño va directo a una repisa libre
+  if (up) { p.on = up; p.x = freeSlot(up); }
   W.placedOn(g, n).push(p); W.saveGame(g); render();
-  enterDeco(p.u); say(`Mueve ${it.e} con ◀ ▶ y suelta con A.`, 3500);
+  enterDeco(p.u); say(W.surfacesOf(it).length > 1 && W.roomHasFurniture(n) ? `Mueve ${it.e} con ◀ ▶ · ▲▼ repisa, aparador o piso · A suelta.` : `Mueve ${it.e} con ◀ ▶ y suelta con A.`, 4000);
   return true;
 }
 // arrastrar con el dedo en modo decorar
@@ -343,6 +418,13 @@ function setupDrag() {
     if (!drag) return;
     const x = clamp((e.clientX - drag.rect.left) / drag.rect.width, .2, .95);
     drag.o.style.left = x * 100 + '%';
+    if (drag.o.classList.contains('b-floor')) {
+      const p = decoObjs()[E.deco.sel]; const it = W.itemById(p.item); const opts = surfOptions(p);
+      const yb = (drag.rect.bottom - e.clientY) / drag.rect.height;
+      const want = yb > .6 ? 'shelf1' : yb > .43 ? 'shelf2' : yb > .26 ? 'table' : 'floor';
+      const on = opts.includes(want) && x >= SURF[want].x0 - .04 && x <= SURF[want].x1 + .04 ? want : 'floor';
+      if (on !== drag.o.dataset.on) applySurf(drag.o, it, on); else if (on !== 'floor') drag.o.style.left = clamp(x, SURF[on].x0, SURF[on].x1) * 100 + '%';
+    }
     if (drag.o.classList.contains('b-wall')) {
       const cs = getComputedStyle($('scene')); const top = parseFloat(cs.getPropertyValue('--wallTop')) || 64; const k = parseFloat(cs.getPropertyValue('--wallK')) || .45;
       const y = clamp((e.clientY - drag.rect.top - top - 16) / (drag.rect.height * k), 0, 1);
@@ -379,7 +461,7 @@ function press(btn) {
     if (!E.deco.moving && (btn === 'left' || btn === 'right')) { const n = decoObjs().length; if (n) { E.deco.sel = (E.deco.sel + (btn === 'left' ? -1 : 1) + n) % n; blip('menu'); decoUI(); } }
     else if (btn === 'a') decoA(); else if (btn === 'b' || btn === 'select') decoB(); else if (btn === 'start') decoStart();
     else if (E.deco.moving && btn === 'left') moveSel(-.03, 0); else if (E.deco.moving && btn === 'right') moveSel(.03, 0);
-    else if (E.deco.moving && (btn === 'up' || btn === 'down')) moveSel(0, btn === 'up' ? -.08 : .08);
+    else if (E.deco.moving && (btn === 'up' || btn === 'down')) { const p = decoObjs()[E.deco.sel]; if (p && W.itemById(p.item).band === 'floor') cycleSurf(btn === 'up' ? 1 : -1); else moveSel(0, btn === 'up' ? -.08 : .08); }
     return;
   }
   // caminando
@@ -404,7 +486,7 @@ function setupControls() {
   });
   const map = { ArrowLeft: 'left', a: 'left', ArrowRight: 'right', d: 'right', ArrowUp: 'up', w: 'up', ArrowDown: 'down', s: 'down', z: 'a', ' ': 'a', x: 'b', Shift: 'select', Enter: 'start' };
   addEventListener('keydown', e => {
-    if (e.target.closest('input,textarea,select') || document.querySelector('.sheet.open,.focus:not([hidden]),.onb:not([hidden]),.reveal:not([hidden])')) return;
+    if (e.target.closest('input,textarea,select') || document.querySelector('.sheet.open,.focus:not([hidden]),.onb:not([hidden]),.reveal:not([hidden]),.streak-ov:not([hidden])')) return;
     const k = map[e.key]; if (!k) return; e.preventDefault();
     if (!e.repeat) press(k);
     if (['left', 'right', 'up', 'down'].includes(k)) E.held = k;
@@ -412,10 +494,12 @@ function setupControls() {
   addEventListener('keyup', e => { const k = map[e.key]; if (k && E.held === k) E.held = null; });
   $('gbMenu').addEventListener('click', e => { const b = e.target.closest('[data-menu]'); if (b) chooseMenu(b.dataset.menu); else if (e.target === $('gbMenu')) closeMenu(); });
   $('elevPanel').addEventListener('click', e => {
-    const b = e.target.closest('[data-floor]'); if (b) { E.elevSel = +b.dataset.floor; renderElevPanel(); ride(E.elevSel); return; }
+    const b = e.target.closest('[data-floor]'); if (b) { E.elevSel = +b.dataset.floor; blip('menu'); renderElevPanel(); return; }
+    const go = e.target.closest('[data-go]'); if (go && !go.disabled) { ride(+go.dataset.go); return; }
     const w = e.target.closest('[data-ew]'); if (w) elevWorld(+w.dataset.ew);
   });
   $('minimap').addEventListener('click', () => E.hooks.onMenu?.('mapa'));
+  document.querySelector('.hud').addEventListener('click', e => { const h = e.target.closest('[data-hud]'); if (h && E.mode === 'walk') { blip('select'); E.hooks.onMenu?.('stats:' + h.dataset.hud); } });
   $('dlg').addEventListener('click', () => hush());
 }
 

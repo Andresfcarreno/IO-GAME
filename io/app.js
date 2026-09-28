@@ -92,7 +92,9 @@ function startHabit(id) {
   renderAll();
 }
 function claimFlow(id) {
+  const streakBefore = H.dayStreak();
   const r = H.claim(id); if (!r) { renderAll(); return; }
+  const streakAfter = H.dayStreak();
   try { navigator.vibrate?.([40, 30, 90]); } catch { /* */ }
   renderAll();
   const row = document.querySelector(`.hab[data-hid="${id}"]`);
@@ -100,10 +102,25 @@ function claimFlow(id) {
   G.celebrate({ kind: ANIM[act] || 'jump', prop: H.PROP[act], xp: r.xp, bits: r.bits, fromEl: row,
     line: `¡${r.habit.nombre} completo! +${r.xp} XP y ${r.bits} bits${r.onTime ? ' (a tiempo +25%)' : ''}${r.streak > 1 ? `. Racha de ${r.streak} 🔥` : ''}.` });
   setTimeout(() => {
-    if (r.after > r.before) G.levelUp(r.before, r.after);
+    if (streakAfter > streakBefore) streakScreen(streakAfter, () => { if (r.after > r.before) G.levelUp(r.before, r.after); renderAll(); });
+    else if (r.after > r.before) G.levelUp(r.before, r.after);
     else if (H.chestReady()) { G.say('🎁 ¡Completaste todo lo de hoy! Abre el cofre del día abajo.', 5000); L.show('hoy'); }
     renderAll();
   }, 2400);
+}
+/** Pantalla de racha (como Duolingo): la llama crece y la semana se marca. */
+function streakScreen(n, then) {
+  const ov = $('streakOv'); const DN = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+  const days = [...Array(7)].map((_, i) => S.addDays(todayIso(), i - 6));
+  const any = d => Object.values(H.log(d).s).some(x => x.claimed) || W.game().shielded?.[d];
+  const msg = n === 1 ? '¡Empieza tu racha! Vuelve mañana para mantenerla.' : n < 7 ? `Vas ${n} días seguidos. ¡No la rompas mañana!` : n < 30 ? `¡${n} días! Ya es parte de ti.` : `¡${n} días! Esto es leyenda. 🏆`;
+  ov.innerHTML = `<div class="so-in"><div class="so-flame">🔥</div><b class="so-n" id="soN">${Math.max(0, n - 1)}</b><span class="so-l">${n === 1 ? 'día de racha' : 'días de racha'}</span>
+    <div class="so-week">${days.map((d, i) => `<div class="${any(d) ? 'on' : ''}${i === 6 ? ' today' : ''}"><i>${any(d) ? '✓' : ''}</i><small>${DN[S.dateOf(d).getDay()]}</small></div>`).join('')}</div>
+    <p>${msg}</p><button class="btn-acc" id="soGo">¡Sigo! 💪</button></div>`;
+  ov.hidden = false; G.blip('level'); try { navigator.vibrate?.([30, 40, 30, 40, 120]); } catch { /* */ }
+  setTimeout(() => { const e = $('soN'); if (e) { e.textContent = n; e.classList.add('bump'); } G.blip('crown'); }, 700);
+  const done = () => { ov.hidden = true; ov.innerHTML = ''; then?.(); };
+  $('soGo').onclick = done; clearTimeout(streakScreen.t); streakScreen.t = setTimeout(() => { if (!ov.hidden) done(); }, 7000);
 }
 function openChest() {
   const r = H.openChest(); if (!r) return;
@@ -182,6 +199,27 @@ function charSheet() {
     <div class="field"><label for="chName">Nombre</label><input class="inp" id="chName" value="${esc(cfg.name)}" maxlength="20"></div>
     <div id="chEditor">${editorHTML(editLook, charTab)}</div>
     <div class="stack" style="margin-top:14px"><button class="btn-acc" data-act="saveChar">Guardar personaje</button></div>`);
+}
+/** Tocar el HUD: qué es XP, bits y racha, cuánto llevas y cuánto falta. */
+function statsSheet(focus = 'xp') {
+  const g = W.game(); const lvl = W.level(g); const pr = W.progressOf(g.xp); const nx = W.floorInfo(lvl + 1);
+  const streak = H.dayStreak(); const next = H.nextUp(); const pv = next ? H.rewardOf(next, { onTime: true }, H.streakOf(next.id) + 1) : null;
+  const rk = R.state.rows.findIndex(r => r.me); const pos = rk >= 0 ? rk + 1 : R.state.me?.pos;
+  openSheet('Tu progreso', `
+    <div class="pg-hero"><div class="pg-face ${['head', 'face'].map(s => g.wear[s] ? 'wear-' + g.wear[s] : '').join(' ')}" data-mood="happy">${avatarSVG(cfg.avatar, 'av', '28 2 64 64')}</div>
+      <div><small>${esc(W.titleOf(lvl).toUpperCase())} · NIVEL ${lvl}</small><b>${esc(cfg.name || 'Player 1')}</b>
+        <div class="pg-xp"><i style="width:${pr.pct * 100}%"></i></div><span>${pr.into}/${pr.need} XP · faltan <b style="display:inline;font-size:12px">${pr.need - pr.into} XP</b> para el piso ${lvl + 1} ${nx.ic} ${esc(nx.name)}</span></div></div>
+    <div class="ex-tiles">
+      <div class="ext ext-xp${focus === 'xp' ? ' hl' : ''}"><span class="ext-ic">⭐</span><div><b>XP · experiencia</b><p>Sube tu nivel, y tu nivel es tu piso. Solo se gana completando hábitos con el reloj. No se gasta nunca.</p></div><strong>${g.xp.toLocaleString('es-CO')}<small>total · ${H.weekXp(g)} esta semana</small></strong></div>
+      <div class="ext ext-bits${focus === 'bits' ? ' hl' : ''}"><span class="ext-ic">◆</span><div><b>Bits · tus monedas</b><p>Se ganan con cada corona, cofres, retos y misiones. Se gastan en la tienda: muebles, ropa, cajas sorpresa y escudos.</p></div><strong>${g.bits.toLocaleString('es-CO')}<small>${(g.stats.spent || 0).toLocaleString('es-CO')} invertidos</small></strong></div>
+      <div class="ext ext-racha${focus === 'racha' ? ' hl' : ''}"><span class="ext-ic">🔥</span><div><b>Racha</b><p>Días seguidos cumpliendo al menos un hábito. Cada día de racha suma más XP y bits (hasta +10). Los días de descanso no la rompen.</p></div><strong>${streak}<small>🛡️ ${g.shields || 0}/${W.SHIELD.max} escudos</small></strong></div>
+      <div class="ext ext-rank"><span class="ext-ic">🏆</span><div><b>Ranking</b><p>Tu XP total te pone en la tabla mundial; la semanal se reinicia cada lunes.</p></div><strong>${pos ? '#' + pos : '—'}<small>${R.online() ? 'mundial' : 'liga de práctica'}</small></strong></div>
+    </div>
+    <div class="sec-t">CÓMO SE GANA</div>
+    <table class="earn"><tr><td>👑 Cada minuto de hábito</td><td>+1 XP · +½ ◆</td></tr><tr><td>⏰ Empezar a tiempo (±30 min)</td><td>+25%</td></tr><tr><td>🔥 Cada día de racha</td><td>+2 XP · +1 ◆</td></tr>
+      <tr><td>🎁 Día perfecto (cofre)</td><td>+25 XP · +15 ◆ o más</td></tr><tr><td>⚡ Reto semanal</td><td>+50 XP · +100 ◆</td></tr></table>
+    ${next && pv ? `<p class="note">Tu próximo hábito, ${esc(next.emoji)} ${esc(next.nombre)} (${next.min} min), te da ≈ <b>+${pv.xp} XP</b> y <b>+${pv.bits} ◆</b> si empiezas a tiempo.</p>` : ''}
+    <div class="stack"><button class="btn-ghost" data-act="tab" data-t="ranking">🏆 Ver ranking</button><button class="btn-ghost" data-act="tab" data-t="tienda">🛒 Gastar bits</button></div>`);
 }
 function achievementsTab() { L.show('progreso'); setTimeout(() => $('achSec')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60); }
 function decoSheet(u) {
@@ -297,7 +335,7 @@ function afterOnb({ first, demo } = {}) {
   if (first) { G.act('dance', '👋'); G.say(`¡Bienvenido, ${cfg.name}! Este es tu cuarto en el piso 1. Cumple tus hábitos con el reloj para subir de piso. ▶ Empieza el primero abajo.`, 9000); }
 }
 G.init({
-  onMenu: k => ({ mochila: bagSheet, tienda: () => L.show('tienda', { scroll: true }), ranking: () => L.show('ranking', { scroll: true }), progreso: () => L.show('progreso', { scroll: true }), mapa: mapSheet, personaje: charSheet, logros: achievementsTab, ajustes: settingsSheet })[k]?.(),
+  onMenu: k => k.startsWith('stats') ? statsSheet(k.split(':')[1]) : ({ mochila: bagSheet, tienda: () => L.show('tienda', { scroll: true }), ranking: () => L.show('ranking', { scroll: true }), progreso: () => L.show('progreso', { scroll: true }), mapa: mapSheet, personaje: charSheet, logros: achievementsTab, ajustes: settingsSheet })[k]?.(),
   onDecoMenu: u => decoSheet(u),
   onFloor: () => { renderTop(); L.render(); },
 });
