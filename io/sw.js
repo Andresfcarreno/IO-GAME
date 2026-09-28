@@ -1,7 +1,7 @@
 /* IO — service worker: la app funciona sin conexión. */
-const VERSION = 'io-v7.0.0';
+const VERSION = 'io-v8.0.0';
 const SHELL = [
-  './', 'index.html', 'styles.css', 'app.js', 'store.js', 'world.js', 'habits.js', 'engine.js', 'focus.js', 'onboarding.js', 'avatar.js',
+  './', 'index.html', 'styles.css', 'app.js', 'store.js', 'world.js', 'habits.js', 'engine.js', 'focus.js', 'onboarding.js', 'avatar.js', 'ui.js', 'lower.js', 'ranking.js', 'config.js',
   'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',
 ];
 self.addEventListener('install', e => { e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });

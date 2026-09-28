@@ -90,23 +90,34 @@
       </div>
     </div>
     <p class="ctl-help">✥ caminar · puerta ◧ = ascensor · <b>A</b> usar · <b>SELECT</b> decorar · <b>START</b> menú</p>
-  </section>
 
-  <!-- HÁBITOS DE HOY -->
-  <section class="card" id="habitsCard">
-    <div class="h-head"><h2>Hábitos de hoy</h2><span class="h-prog" id="dayProg"></span></div>
-    <div class="day-bar"><i id="dayFill"></i></div>
-    <div class="h-next" id="hNext"></div>
-    <div class="h-list" id="habitList"></div>
-    <div id="chestBox"></div>
-    <button class="btn-add" data-act="newHabit">＋ Nuevo hábito</button>
-  </section>
-
-  <!-- TU SEMANA -->
-  <section class="card" id="weekCard">
-    <div class="h-head"><h2>Tu semana</h2><span class="h-prog" id="weekSum"></span></div>
-    <div class="week" id="week"></div>
-    <div class="stats" id="stats"></div>
+    <!-- GAME BOY AVANZADO: la consola se abre y abajo aparece la segunda pantalla -->
+    <div class="hinge" aria-hidden="true"><i></i><span class="grille"></span><i></i></div>
+    <div class="lower" id="lower">
+      <nav class="ltabs" id="ltabs" role="tablist" aria-label="Pantalla inferior">
+        <button role="tab" data-tab="hoy" class="on"><i>🏠</i><span>Hoy</span><em id="bdg-hoy" hidden></em></button>
+        <button role="tab" data-tab="tienda"><i>🛒</i><span>Tienda</span><em id="bdg-tienda" hidden></em></button>
+        <button role="tab" data-tab="ranking"><i>🏆</i><span>Ranking</span><em id="bdg-ranking" hidden></em></button>
+        <button role="tab" data-tab="progreso"><i>📈</i><span>Progreso</span><em id="bdg-progreso" hidden></em></button>
+        <button role="tab" data-tab="mundo"><i>🏢</i><span>Mundo</span><em id="bdg-mundo" hidden></em></button>
+      </nav>
+      <div class="lscreen" id="lscreen">
+        <section class="lpane" id="p-hoy" data-pane="hoy">
+          <div class="h-head"><h2>Hábitos de hoy</h2><span class="h-prog" id="dayProg"></span></div>
+          <div class="day-bar"><i id="dayFill"></i></div>
+          <div class="h-next" id="hNext"></div>
+          <div class="h-list" id="habitList"></div>
+          <div id="chestBox"></div>
+          <button class="btn-add" data-act="newHabit">＋ Nuevo hábito</button>
+          <div id="hoyWeekly"></div>
+          <div class="quick" id="quick"></div>
+        </section>
+        <section class="lpane" id="p-tienda" data-pane="tienda" hidden></section>
+        <section class="lpane" id="p-ranking" data-pane="ranking" hidden></section>
+        <section class="lpane" id="p-progreso" data-pane="progreso" hidden></section>
+        <section class="lpane" id="p-mundo" data-pane="mundo" hidden></section>
+      </div>
+    </div>
   </section>
 
   <footer class="foot"><span class="bin">01001001 01001111</span><span>IO · siempre gratis · nada se compra con dinero</span></footer>
@@ -122,6 +133,7 @@
 
 <div class="focus" id="focus" role="dialog" aria-modal="true" aria-label="Temporizador" hidden></div>
 <div class="onb" id="onb" role="dialog" aria-modal="true" aria-label="Configuración inicial" hidden></div>
+<div class="reveal" id="reveal" role="dialog" aria-modal="true" aria-label="Caja sorpresa" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <input type="file" id="backupIn" accept="application/json,.json" hidden>
 

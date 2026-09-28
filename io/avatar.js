@@ -135,7 +135,7 @@ const ACC = `
  <g class="acc acc-sombrero"><rect x="44" y="-1" width="32" height="24" rx="2.5" fill="#111827"/><rect x="44" y="15" width="32" height="5" fill="#7c5cff"/><rect x="33" y="21" width="54" height="5.5" rx="2.7" fill="#111827"/></g>
  <g class="acc acc-corona"><path d="M41 25L44 6L52.5 16L60 2L67.5 16L76 6L79 25Z" fill="#fbbf24" stroke="#b45309" stroke-width="1.3" stroke-linejoin="round"/><circle cx="60" cy="18" r="2.6" fill="#ef4444"/><circle cx="48" cy="20.5" r="1.7" fill="#22d3ee"/><circle cx="72" cy="20.5" r="1.7" fill="#22d3ee"/></g>`;
 
-export function avatarSVG(look, cls = 'av') {
+export function avatarSVG(look, cls = 'av', vb = '0 0 120 200') {
   const L = { ...normLook(look), _id: ++seq };
   const k = { delgado: .88, medio: 1, robusto: 1.16 }[L.build] || 1;
   const S = L.skin, SD = shade(S, -0.22), SL = shade(S, 0.14);
@@ -143,7 +143,7 @@ export function avatarSVG(look, cls = 'av') {
   const T = L.topColor, TD = shade(T, -0.28), TL = shade(T, 0.5);
   const f = L.body === 'f';
   const tor = torso(L, k, T, TD, TL);
-  return `<svg class="${cls}" viewBox="0 0 120 200" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Tu personaje">
+  return `<svg class="${cls}" viewBox="${vb}" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Tu personaje">
   <defs>
     <radialGradient id="sg${L._id}" cx=".42" cy=".36" r=".75"><stop offset="0" stop-color="${SL}"/><stop offset=".62" stop-color="${S}"/><stop offset="1" stop-color="${SD}"/></radialGradient>
     <linearGradient id="tg${L._id}" x1="0" x2="1"><stop offset="0" stop-color="#000" stop-opacity=".22"/><stop offset=".45" stop-color="#000" stop-opacity="0"/><stop offset=".8" stop-color="#fff" stop-opacity=".06"/><stop offset="1" stop-color="#000" stop-opacity=".18"/></linearGradient>

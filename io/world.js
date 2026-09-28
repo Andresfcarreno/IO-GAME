@@ -104,11 +104,17 @@ export const WEAR = [
 ].map(([id, e, n, slot, price, lvl]) => ({ id, e, n, slot, price, lvl, kind: 'wear' }));
 export const itemById = id => CATALOG.find(i => i.id === id) || WEAR.find(i => i.id === id);
 
+/** Semana ISO-ish que empieza el lunes: 'YYYY-MM-DD' del lunes. */
+export function weekKey(iso = S.todayIso()) { const d = S.dateOf(iso); const k = (d.getDay() + 6) % 7; return S.addDays(iso, -k); }
+/** Títulos por nivel (se ven en el ranking). */
+export const TITLES = [[1, 'Novato'], [5, 'Vecino'], [11, 'Constructor'], [26, 'Arquitecto'], [40, 'Magnate'], [51, 'Piloto'], [76, 'Astronauta'], [101, 'Leyenda']];
+export const titleOf = lvl => TITLES.filter(([l]) => lvl >= l).pop()[1];
+
 /* ---------- estado del juego ---------- */
 const GID = 'io:game';
 export function game() {
-  const g = S.getItem(GID) || { xp: 0, bits: 60, floor: 1, placed: {}, owned: {}, wear: {}, chest: {}, stats: { minutes: 0, sessions: 0 }, seen: 1 };
-  g.placed ||= {}; g.owned ||= {}; g.wear ||= {}; g.chest ||= {}; g.stats ||= { minutes: 0, sessions: 0 };
+  const g = S.getItem(GID) || { xp: 0, bits: 60, floor: 1, placed: {}, owned: {}, wear: {}, chest: {}, stats: { minutes: 0, sessions: 0 }, seen: 1, deals: {}, wk: {} };
+  g.placed ||= {}; g.owned ||= {}; g.wear ||= {}; g.chest ||= {}; g.stats ||= { minutes: 0, sessions: 0 }; g.deals ||= {}; g.wk ||= {};
   return g;
 }
 export function saveGame(g) { const { id, ...d } = g; S.putItem('game', d, GID); }
@@ -135,16 +141,70 @@ export function canPlaceHere(g, it, n) {
   if (placedOn(g, n).length >= 9) return 'Este piso está lleno. Guarda algo en la mochila primero.';
   return '';
 }
-export function buy(itemId) {
+/* ---------- tienda: rarezas, oferta del día, caja sorpresa, colección ---------- */
+export const RARITY = [
+  { id: 'comun', n: 'Común', max: 100, w: 60 }, { id: 'raro', n: 'Raro', max: 400, w: 28 },
+  { id: 'epico', n: 'Épico', max: 1500, w: 10 }, { id: 'legend', n: 'Legendario', max: Infinity, w: 2 },
+];
+/** Rareza por precio; los regalos de piso (precio 0) valen por su nivel. */
+export function rarityOf(it) {
+  const v = it.price || it.lvl * 30;
+  return RARITY.find(r => v < r.max) || RARITY[3];
+}
+const hash = str => { let h = 2166136261; for (const c of str) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; };
+export const SHOPPABLE = () => [...CATALOG.filter(i => i.price > 0), ...WEAR];
+/** Oferta del día: igual para todos ese día, -30%, dentro de tu nivel (+3 para antojar). */
+export function dailyDeal(g = game(), iso = S.todayIso()) {
+  const lvl = level(g);
+  const pool = SHOPPABLE().filter(i => i.lvl <= lvl + 3 && !(i.kind === 'wear' && g.owned[i.id]));
+  if (!pool.length) return null;
+  const it = pool[hash(iso + ':' + Math.floor(lvl / 5)) % pool.length];
+  return { item: it, price: Math.max(1, Math.round(it.price * .7)), taken: !!(g.deals || {})[iso] };
+}
+export const newItems = (g = game()) => SHOPPABLE().filter(i => i.lvl === level(g) || i.lvl === level(g) - 1);
+export function collection(g = game()) {
+  const all = [...CATALOG, ...WEAR]; const own = all.filter(i => g.owned[i.id]);
+  return { own: own.length, total: all.length, pct: own.length / all.length };
+}
+export function buy(itemId, { deal = false } = {}) {
   const g = game(); const it = itemById(itemId); const lvl = level(g);
   if (!it) return { ok: false, msg: 'No existe' };
-  if (lvl < it.lvl) return { ok: false, msg: `🔒 Se desbloquea en el nivel ${it.lvl}` };
-  if (g.bits < it.price) return { ok: false, msg: `Te faltan ${it.price - g.bits} bits. Cumple un hábito y vuelve 💪` };
   if (it.kind === 'wear' && g.owned[itemId]) { g.wear[it.slot] = g.wear[it.slot] === itemId ? null : itemId; saveGame(g); return { ok: true, msg: g.wear[it.slot] ? `${it.e} puesto` : `${it.e} guardado` }; }
-  g.bits -= it.price; g.owned[itemId] = (g.owned[itemId] || 0) + 1;
+  const d = deal ? dailyDeal(g) : null;
+  const useDeal = d && d.item.id === itemId && !d.taken;
+  const price = useDeal ? d.price : it.price;
+  if (!useDeal && lvl < it.lvl) return { ok: false, msg: `🔒 Se desbloquea en el nivel ${it.lvl}` };
+  if (g.bits < price) return { ok: false, msg: `Te faltan ${price - g.bits} bits. Cumple un hábito y vuelve 💪` };
+  g.bits -= price; g.owned[itemId] = (g.owned[itemId] || 0) + 1;
+  if (useDeal) { g.deals = { ...(g.deals || {}), [S.todayIso()]: itemId }; }
   if (it.kind === 'wear') g.wear[it.slot] = itemId;
+  g.stats.spent = (g.stats.spent || 0) + price;
   saveGame(g);
-  return { ok: true, bought: true, msg: `${it.e} ${it.n} es tuyo` };
+  return { ok: true, bought: true, price, msg: `${it.e} ${it.n} es tuyo` };
+}
+/** Caja sorpresa: rareza al azar (60/28/10/2), prefiere lo que aún no tienes. */
+export const BOX_PRICE = 150;
+export function mysteryBox(rand = Math.random) {
+  const g = game(); const lvl = level(g);
+  if (lvl < 2) return { ok: false, msg: '🔒 La caja sorpresa se abre en el nivel 2' };
+  if (g.bits < BOX_PRICE) return { ok: false, msg: `Te faltan ${BOX_PRICE - g.bits} bits para la caja 🎁` };
+  let roll = rand() * 100, rar = RARITY[0];
+  for (const r of RARITY) { if (roll < r.w) { rar = r; break; } roll -= r.w; }
+  const order = [rar, ...RARITY.filter(r => r !== rar).reverse()];
+  let pool = [];
+  for (const r of order) {
+    const all = SHOPPABLE().filter(i => rarityOf(i) === r && i.lvl <= lvl + 10 && !(i.kind === 'wear' && g.owned[i.id]));
+    const fresh = all.filter(i => !g.owned[i.id]);
+    pool = fresh.length ? fresh : all;
+    if (pool.length) { rar = r; break; }
+  }
+  if (!pool.length) return { ok: false, msg: 'Ya tienes todo 🤯' };
+  const it = pool[Math.floor(rand() * pool.length)];
+  const isNew = !g.owned[it.id];
+  g.bits -= BOX_PRICE; g.owned[it.id] = (g.owned[it.id] || 0) + 1;
+  g.stats.boxes = (g.stats.boxes || 0) + 1; g.stats.spent = (g.stats.spent || 0) + BOX_PRICE;
+  saveGame(g);
+  return { ok: true, item: it, rarity: rar, isNew };
 }
 
 /* ---------- logros ---------- */

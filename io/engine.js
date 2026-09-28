@@ -32,13 +32,14 @@ export function blip(kind = 'coin') {
       error: [[220, .09], [196, .12]], ding: [[1318, .25], [1046, .4]], door: [[140, .12]], level: [[523, .1], [659, .1], [784, .1], [1047, .25]],
       crown: [[784, .08], [988, .08], [1175, .08], [1568, .3]], buy: [[392, .06], [523, .06], [659, .12]], start: [[440, .08], [660, .12]],
       done: [[523, .12], [659, .12], [784, .12], [1047, .12], [1319, .35]], step: [[90, .03]], place: [[330, .05], [247, .08]],
+      shake: [[160, .05], [190, .05]], rare: [[659, .07], [880, .07], [1175, .2]], legend: [[523, .07], [659, .07], [784, .07], [1047, .07], [1319, .07], [1568, .07], [2093, .45]], tab: [[1175, .03]],
     }[kind] || [[988, .1]];
     let t = ac.currentTime;
     seq.forEach(([f, d]) => {
       const o = ac.createOscillator(), g = ac.createGain();
-      o.type = kind === 'ding' ? 'triangle' : kind === 'door' || kind === 'step' ? 'sawtooth' : 'square';
+      o.type = kind === 'ding' || kind === 'tab' ? 'triangle' : kind === 'door' || kind === 'step' || kind === 'shake' ? 'sawtooth' : 'square';
       o.frequency.setValueAtTime(f, t);
-      g.gain.setValueAtTime(kind === 'step' ? .015 : .045, t); g.gain.exponentialRampToValueAtTime(.0008, t + d);
+      g.gain.setValueAtTime(kind === 'step' || kind === 'tab' ? .02 : .045, t); g.gain.exponentialRampToValueAtTime(.0008, t + d);
       o.connect(g).connect(ac.destination); o.start(t); o.stop(t + d + .02); t += d * .85;
     });
   } catch { /* sin audio */ }
@@ -244,7 +245,7 @@ function walkTo(x, done) {
 }
 
 /* ================= menú START (estilo Game Boy) ================= */
-const MENU = [['continuar', 'Continuar'], ['mochila', '🎒 Mochila'], ['tienda', '🛒 Tienda'], ['mapa', '🗺️ Mapa'], ['personaje', '🧍 Personaje'], ['logros', '🏅 Logros'], ['ajustes', '⚙️ Ajustes']];
+const MENU = [['continuar', 'Continuar'], ['mochila', '🎒 Mochila'], ['tienda', '🛒 Tienda'], ['ranking', '🏆 Ranking'], ['progreso', '📈 Progreso'], ['mapa', '🗺️ Mapa'], ['personaje', '🧍 Personaje'], ['logros', '🏅 Logros'], ['ajustes', '⚙️ Ajustes']];
 function openMenu() {
   hush(); E.mode = 'menu'; E.menuIdx = 0; blip('start'); renderMenu();
 }
@@ -402,7 +403,7 @@ function setupControls() {
   });
   const map = { ArrowLeft: 'left', a: 'left', ArrowRight: 'right', d: 'right', ArrowUp: 'up', w: 'up', ArrowDown: 'down', s: 'down', z: 'a', ' ': 'a', x: 'b', Shift: 'select', Enter: 'start' };
   addEventListener('keydown', e => {
-    if (e.target.closest('input,textarea,select') || document.querySelector('.sheet.open,.focus:not([hidden]),.onb:not([hidden])')) return;
+    if (e.target.closest('input,textarea,select') || document.querySelector('.sheet.open,.focus:not([hidden]),.onb:not([hidden]),.reveal:not([hidden])')) return;
     const k = map[e.key]; if (!k) return; e.preventDefault();
     if (!e.repeat) press(k);
     if (['left', 'right', 'up', 'down'].includes(k)) E.held = k;

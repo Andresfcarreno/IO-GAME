@@ -110,6 +110,7 @@ export function claim(id) {
   const r = rewardOf(h, s, streakOf(id) + 1);
   const g = W.game(); const before = W.levelOf(g.xp);
   g.xp += r.xp; g.bits += r.bits; g.stats.minutes += h.min; g.stats.sessions += 1;
+  addWeekXp(g, r.xp); g.stats.best = Math.max(g.stats.best || 0, r.streak);
   W.saveGame(g);
   s.claimed = true; s.reward = r; l.s[id] = s; saveLog(iso, l);
   return { ...r, habit: h, before, after: W.levelOf(g.xp) };
@@ -124,7 +125,7 @@ export function openChest() {
   const t = today(); const g = W.game(); if (!chestReady()) return null;
   const before = W.levelOf(g.xp);
   const r = { xp: 25 + 5 * t.total, bits: 15 + 5 * t.total };
-  g.xp += r.xp; g.bits += r.bits; g.chest[todayIso()] = true; W.saveGame(g);
+  g.xp += r.xp; g.bits += r.bits; g.chest[todayIso()] = true; addWeekXp(g, r.xp); W.saveGame(g);
   return { ...r, before, after: W.levelOf(g.xp) };
 }
 /** Últimos 7 días por hábito: ok | miss | off | hoy */
@@ -136,4 +137,50 @@ export function nextUp() {
   const now = new Date(); const m = now.getHours() * 60 + now.getMinutes();
   const pend = forDay().filter(h => !sess(h.id).done);
   return pend.find(h => minutesOf(h.hora) >= m - 30) || pend[0] || null;
+}
+
+
+/* ---------- semana: XP semanal (ranking) y reto semanal ---------- */
+function addWeekXp(g, xp) {
+  const k = W.weekKey();
+  if (g.wk?.k !== k) g.wk = { k, xp: 0, claimed: false };
+  g.wk.xp += xp;
+}
+export const weekXp = (g = W.game()) => (g.wk?.k === W.weekKey() ? g.wk.xp : 0);
+/** Reto semanal: cumple el 80% de lo programado esta semana (mínimo 3). */
+export function weekChallenge() {
+  const k = W.weekKey(); const days = [...Array(7)].map((_, i) => addDays(k, i)); const hs = list();
+  let planned = 0, done = 0;
+  days.forEach(d => hs.forEach(h => { if (scheduled(h, d)) { planned++; if (sess(h.id, d).claimed) done++; } }));
+  const target = Math.max(3, Math.ceil(planned * .8));
+  const g = W.game(); const claimed = g.wk?.k === k && !!g.wk.claimed;
+  const left = Math.max(0, 7 - days.indexOf(todayIso()) - 1);
+  return { k, done, target, planned, pct: Math.min(1, done / target), ready: done >= target && !claimed, claimed, daysLeft: left, reward: { xp: 50, bits: 100 } };
+}
+export function claimWeekly() {
+  const c = weekChallenge(); if (!c.ready) return null;
+  const g = W.game(); const before = W.levelOf(g.xp);
+  if (g.wk?.k !== c.k) g.wk = { k: c.k, xp: 0, claimed: false };
+  g.xp += c.reward.xp; g.bits += c.reward.bits; g.wk.xp += c.reward.xp; g.wk.claimed = true; W.saveGame(g);
+  return { ...c.reward, before, after: W.levelOf(g.xp) };
+}
+/** Metas del mes por hábito: minutos hechos vs programados. */
+export function monthGoals(iso = todayIso()) {
+  const d0 = dateOf(iso); const first = `${iso.slice(0, 8)}01`;
+  const dim = new Date(d0.getFullYear(), d0.getMonth() + 1, 0).getDate();
+  const days = [...Array(dim)].map((_, i) => addDays(first, i));
+  return list().map(h => {
+    const plan = days.filter(d => scheduled(h, d)).length;
+    const done = days.filter(d => sess(h.id, d).claimed).length;
+    return { h, plan, done, minutes: done * h.min, goal: plan * h.min, pct: plan ? done / plan : 0 };
+  });
+}
+/** Mapa de calor: últimas N semanas, 1 si ese día reclamaste algo. */
+export function heatmap(weeks = 12) {
+  const start = addDays(W.weekKey(), -7 * (weeks - 1));
+  return [...Array(weeks)].map((_, w) => [...Array(7)].map((_, d) => {
+    const iso = addDays(start, w * 7 + d);
+    const n = Object.values(log(iso).s).filter(x => x.claimed).length;
+    return { iso, n, future: iso > todayIso() };
+  }));
 }

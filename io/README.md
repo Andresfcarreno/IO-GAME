@@ -32,6 +32,30 @@ IO es un **juego de hábitos que se juega en la vida real**. Es una app web inst
 - **Teclado:** flechas o WASD, **Z** o espacio = A, **X** = B, **Shift** = SELECT, **Enter** = START.
 - **Pantalla táctil:** tocas el piso para caminar, tocas un objeto para ir a usarlo y tocas la puerta para tomar el ascensor. En modo decorar arrastras los objetos con el dedo.
 
+## Game Boy avanzado: la segunda pantalla
+
+Debajo de los controles, la consola se abre (bisagra y parlante) y aparece una **segunda pantalla** con cinco pestañas. Se cambian tocando o deslizando, y el menú START también lleva a ellas:
+
+| Pestaña | Qué tiene |
+|---|---|
+| 🏠 **Hoy** | Hábitos del día con su reloj, cofre, reto semanal y accesos rápidos (oferta, tu puesto en el ranking, colección) |
+| 🛒 **Tienda** | Bits y colección, **oferta del día** (−30%, igual para todos, con cuenta regresiva), **caja sorpresa** (◆150: común 60%, raro 28%, épico 10%, legendario 2%), rarezas con brillo, etiquetas NUEVO, ficha de cada objeto con “probar” para la ropa y botón para presumir |
+| 🏆 **Ranking** | Top 100 global y semanal (se reinicia el lunes), podio con la cara de cada jugador, títulos por nivel (Novato → Leyenda) y “te faltan X XP para pasar a…” |
+| 📈 **Progreso** | Reto semanal (80% de lo programado, premio ◆100 + 50 XP), tu semana, metas del mes por hábito, 12 semanas en 1 y 0, estadísticas y logros |
+| 🏢 **Mundo** | Tu personaje y título, la torre del edificio actual (toca un piso para ir), próximas metas y mapa completo |
+
+### Ranking mundial
+
+- Cada jugador entra con una **cuenta anónima de Supabase**: sin correo ni contraseña, solo un nombre público. Unirse es opcional y se puede salir en ⚙️ Ajustes.
+- Solo se publica nombre, nivel, XP, XP de la semana, racha y personaje. Nada de los hábitos.
+- **Para activarlo:**
+  1. En Supabase activa *Authentication → Sign In / Providers → Allow anonymous sign-ins*.
+  2. Corre el bloque `io_ranking` de `supabase/schema.sql`.
+  3. Pon la URL y la anon key en `io/config.js`.
+- La RLS deja leer a todos, pero cada quien solo escribe su propia fila.
+- Mientras no esté conectado, IO muestra una **liga de práctica con bots 🤖**, marcados como bots, nunca personas inventadas.
+- **Pendiente para un ranking a prueba de trampas:** validar el XP en el servidor (Edge Function), porque hoy lo calcula el dispositivo.
+
 ## El mundo: nivel = piso
 
 Cada nivel abre un piso nuevo. El edificio crece en lujo y no se acaba:
@@ -63,7 +87,11 @@ Cada nivel abre un piso nuevo. El edificio crece en lujo y no se acaba:
 
 ```
 io/
-├── index.html      # consola + hábitos de hoy + tu semana
+├── index.html      # consola + segunda pantalla (Hoy, Tienda, Ranking, Progreso, Mundo)
+├── lower.js        # la segunda pantalla: tienda, caja sorpresa, ranking, progreso, mundo
+├── ranking.js      # ranking con login anónimo de Supabase + liga de práctica
+├── config.js       # URL y anon key del ranking compartido
+├── ui.js           # toast, hojas y utilidades
 ├── styles.css      # retro moderno: pixel font, scanlines, skins por edificio
 ├── app.js          # une todo: lista de hábitos, corona, cofre, tienda, mapa, ajustes, demo
 ├── engine.js       # motor 2D: caminar, ascensor, decorar, menú START, efectos, sonido

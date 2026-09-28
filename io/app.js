@@ -8,12 +8,11 @@ import * as Focus from './focus.js';
 import { openOnboarding } from './onboarding.js';
 import { avatarSVG, editorHTML, normLook } from './avatar.js';
 
-const $ = id => document.getElementById(id);
-const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+import { $, esc, toast, openSheet, closeSheet } from './ui.js';
+import * as L from './lower.js';
+import * as R from './ranking.js';
 const mmss = s => { s = Math.max(0, Math.round(s)); return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; };
 const ANIM = { read: 'sit', float: 'float', flex: 'flex', eat: 'jump', talk: 'wave', type: 'sit', music: 'dance', walk: 'dance', write: 'sit', clean: 'dance', jump: 'jump' };
-let toastT;
-function toast(msg, ms = 2600) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), ms); }
 
 /* ================= hábitos de hoy ================= */
 function stateOf(h) {
@@ -60,14 +59,6 @@ function renderHabits() {
     : H.chestReady() ? '<button class="chest ready" data-act="chest">🎁 ¡Día perfecto! Abrir cofre</button>'
     : t.total >= 2 ? `<div class="chest">🎁 Cofre del día: completa todos tus hábitos (${t.claimed}/${t.total})</div>` : '';
 }
-function renderWeek() {
-  const w = H.week(); const g = W.game();
-  const DN = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
-  $('week').innerHTML = w.rows.length ? `<div class="wk-row wk-h"><span></span>${w.days.map(d => `<i>${DN[S.dateOf(d).getDay()]}</i>`).join('')}</div>` + w.rows.map(r => `<div class="wk-row"><span title="${esc(r.h.nombre)}">${esc(r.h.emoji)} ${esc(r.h.nombre)}</span>${r.cells.map(c => `<i class="c-${c}"></i>`).join('')}</div>`).join('') : '<div class="empty">Aquí verás tu semana.</div>';
-  const streak = H.dayStreak();
-  $('weekSum').textContent = `🔥 ${streak} ${streak === 1 ? 'día' : 'días'}`;
-  $('stats').innerHTML = `<div><b>${g.stats.minutes}</b><span>minutos de hábitos</span></div><div><b>${g.stats.sessions}</b><span>hábitos completos</span></div><div><b>${W.level(g)}</b><span>piso más alto</span></div>`;
-}
 function renderTop() {
   const g = W.game();
   $('hdrLvl').textContent = `NV ${W.level(g)} · ◆ ${g.bits}`;
@@ -77,7 +68,7 @@ function renderTop() {
   G.setMood(H.running() ? 'neutral' : t.claimed ? 'happy' : 'neutral');
   $('led').classList.toggle('on', !!H.running());
 }
-function renderAll() { renderTop(); renderHabits(); renderWeek(); G.render(); }
+function renderAll() { renderTop(); renderHabits(); L.render(); G.render(); R.publish(); }
 
 /* ================= reloj y corona ================= */
 function startHabit(id) {
@@ -93,7 +84,7 @@ function claimFlow(id) {
     line: `¡${r.habit.nombre} completo! +${r.xp} XP y ${r.bits} bits${r.onTime ? ' (a tiempo +25%)' : ''}${r.streak > 1 ? `. Racha de ${r.streak} 🔥` : ''}.` });
   setTimeout(() => {
     if (r.after > r.before) G.levelUp(r.before, r.after);
-    else if (H.chestReady()) G.say('🎁 ¡Completaste todo lo de hoy! Abre el cofre del día abajo.', 5000);
+    else if (H.chestReady()) { G.say('🎁 ¡Completaste todo lo de hoy! Abre el cofre del día abajo.', 5000); L.show('hoy'); }
     renderAll();
   }, 2400);
 }
@@ -104,8 +95,6 @@ function openChest() {
 }
 
 /* ================= sheets ================= */
-function openSheet(title, html) { $('sheetTitle').textContent = title; $('sheetBody').innerHTML = html; $('sheetBody').scrollTop = 0; $('sheetOv').classList.add('open'); $('sheet').classList.add('open'); document.body.style.overflow = 'hidden'; }
-function closeSheet() { $('sheetOv').classList.remove('open'); $('sheet').classList.remove('open'); document.body.style.overflow = ''; }
 
 const EMOJIS = ['📖', '🧘', '🏃', '🏋️', '🥗', '🇬🇧', '💻', '🎓', '🎸', '🚶', '✍️', '🧹', '📵', '🌬️', '🎨', '🙏', '💤', '🧠', '🍳', '💧', '🚴', '🏊', '📚', '⭐'];
 function habitSheet(id) {
@@ -127,31 +116,27 @@ function allHabitsSheet() {
     <button class="btn-acc" data-act="newHabit" style="margin-top:12px">＋ Nuevo hábito</button>`);
 }
 
-/* tienda, mochila, mapa, personaje, logros */
-let shopTab = 'muebles';
-function shopSheet(tab = shopTab) {
-  shopTab = tab; const g = W.game(); const lvl = W.level(g); const n = g.floor; const here = W.floorInfo(n);
-  const items = tab === 'ropa' ? W.WEAR : W.CATALOG.filter(i => tab === 'vehiculos' ? i.kind === 'veh' : tab === 'mascotas' ? i.kind === 'pet' : i.kind === 'mueble' && i.price > 0);
-  const sorted = [...items].sort((a, b) => a.lvl - b.lvl || a.price - b.price);
-  openSheet('Tienda', `
-    <div class="shop-top"><span class="wallet">◆ ${g.bits} bits</span><span class="hint">Piso ${n} · ${esc(here.name)}</span></div>
-    <div class="tabs">${[['muebles', '🛋️ Muebles'], ['vehiculos', '🚗 Vehículos'], ['mascotas', '🐾 Mascotas'], ['ropa', '🧢 Ropa']].map(([k, l]) => `<button class="${k === tab ? 'on' : ''}" data-act="shopTab" data-t="${k}">${l}</button>`).join('')}</div>
-    <div class="grid">${sorted.map(i => {
-      const locked = lvl < i.lvl; const own = i.kind === 'wear' ? !!g.owned[i.id] : W.bagCount(g, i.id);
-      const worn = i.kind === 'wear' && g.wear[i.slot] === i.id;
-      return `<button class="it${locked ? ' locked' : ''}${worn ? ' on' : ''}" data-act="buy" data-id="${i.id}"><span class="e">${i.e}</span><span class="n">${esc(i.n)}</span>
-        <span class="p">${worn ? 'PUESTO' : i.kind === 'wear' && own ? 'TUYO · PONER' : locked ? `🔒 NV ${i.lvl}` : `◆ ${i.price}`}</span>${own && i.kind !== 'wear' ? `<span class="bag">×${own}</span>` : ''}</button>`;
-    }).join('')}</div>
-    <p class="note">Los bits se ganan completando hábitos con el reloj. Nada se compra con dinero. Lo que compres aparece en este piso y lo mueves con <b>SELECT</b>.${tab === 'vehiculos' ? ' Los vehículos van en el garaje (piso 3), el garaje doble (10), el hangar (45) y el helipuerto (50).' : ''}</p>`);
-}
-function buy(id) {
-  const it = W.itemById(id); const r = W.buy(id);
+/* compras (la tienda vive en la pantalla de abajo: lower.js) */
+function buy(id, opts = {}) {
+  const it = W.itemById(id); const r = W.buy(id, opts);
   if (!r.ok) { toast(r.msg); G.blip('error'); return; }
-  G.blip('buy');
-  if (it.kind === 'wear') { G.render(); G.act('dance', it.e); shopSheet(); toast(r.msg); renderTop(); return; }
-  closeSheet(); renderTop();
-  if (!G.placeFromBag(id)) toast(`${it.e} quedó en tu mochila`, 3500);
-  else G.act('jump', it.e);
+  G.blip('buy'); closeSheet(); renderAll();
+  if (it.kind === 'wear') { G.act('dance', it.e); toast(r.msg); $('screen').scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+  place(id, true);
+}
+/** Lleva el objeto a la consola: sube la pantalla y entra a modo decorar. */
+function place(id, fresh = false) {
+  const it = W.itemById(id);
+  $('screen').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  setTimeout(() => {
+    if (G.placeFromBag(id)) { G.act('jump', it.e); G.confetti(24); if (fresh) G.floatText(`${it.e} ¡nuevo!`); }
+    else toast(`${it.e} quedó en tu mochila 🎒`, 3500);
+    renderAll();
+  }, 420);
+}
+function celebrate(o) {
+  G.celebrate(o); renderAll();
+  setTimeout(() => { if (o.after > o.before) G.levelUp(o.before, o.after); renderAll(); }, 2400);
 }
 function bagSheet() {
   const g = W.game(); const items = W.CATALOG.filter(i => W.bagCount(g, i.id) > 0);
@@ -178,10 +163,7 @@ function charSheet() {
     <div id="chEditor">${editorHTML(editLook, charTab)}</div>
     <div class="stack" style="margin-top:14px"><button class="btn-acc" data-act="saveChar">Guardar personaje</button></div>`);
 }
-function achSheet() {
-  const g = W.game(); const a = W.achievements(g, { streak: H.dayStreak() });
-  openSheet(`Logros · ${a.filter(x => x.done).length}/${a.length}`, `<div class="ach-grid">${a.sort((x, y) => y.done - x.done).map(x => `<div class="ach${x.done ? ' done' : ''}"><span class="e">${x.e}</span><span class="n">${esc(x.n)}</span><span class="v">${x.done ? '✓' : `${x.v}/${x.goal}`}</span></div>`).join('')}</div>`);
-}
+function achievementsTab() { L.show('progreso'); setTimeout(() => $('achSec')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60); }
 function decoSheet(u) {
   const g = W.game(); const p = u ? W.placedOn(g, g.floor).find(q => q.u === u) : null; const it = p ? W.itemById(p.item) : null;
   openSheet('Decorar', `<div class="stack">
@@ -204,6 +186,10 @@ function settingsSheet() {
     <div class="stack" style="margin:10px 0 4px"><button class="btn-acc" data-act="saveSettings">Guardar</button>
       <button class="btn-ghost" data-act="allHabits">📋 Mis hábitos</button>
       <button class="btn-ghost" data-act="redoOnb">🎮 Rehacer configuración inicial</button></div>
+    <div class="sec-t">Ranking</div>
+    <label class="tog"><input type="checkbox" id="stRank"${cfg.rankOn ? ' checked' : ''}> Aparecer en el ranking mundial</label>
+    <div class="field"><label for="stRankName">Nombre público</label><input class="inp" id="stRankName" value="${esc(cfg.rankName || cfg.name)}" maxlength="20"></div>
+    <p class="note">${R.online() ? 'Solo se publica tu nombre público, nivel, XP, racha y personaje. Nada de tus hábitos.' : 'El ranking mundial aún no está conectado: juegas la liga de práctica con bots 🤖.'}</p>
     <div class="sec-t">Sincronizar entre dispositivos (opcional)</div>
     <div class="field"><label for="stUrl">Supabase URL</label><input class="inp" id="stUrl" value="${esc(cfg.supaUrl)}" placeholder="https://xxxx.supabase.co"></div>
     <div class="field"><label for="stKey">Anon key</label><input class="inp" id="stKey" value="${esc(cfg.supaKey)}" autocomplete="off"></div>
@@ -218,12 +204,14 @@ function settingsSheet() {
 function seedDemo() {
   const pick = [0, 1, 2, 3, 12];
   const ids = pick.map(k => { const [e, n, m, h, act] = H.EXAMPLES[k]; return H.save({ emoji: e, nombre: n, min: m, hora: h, act, dias: [0, 1, 2, 3, 4, 5, 6], motivo: '' }).id; });
-  const g = W.game(); g.xp = W.xpAt(7) + 40; g.bits = 900; g.stats = { minutes: 640, sessions: 31 }; g.floor = 1; W.saveGame(g);
+  const g = W.game(); g.xp = W.xpAt(7) + 40; g.bits = 900; g.stats = { minutes: 640, sessions: 31, best: 9, spent: 420, boxes: 1 }; g.floor = 1;
+  g.owned = { ...g.owned, cactus: 1, gato: 1, gorra: 1 }; g.wear = { head: 'gorra' }; g.wk = { k: W.weekKey(), xp: 140, claimed: false };
+  W.saveGame(g);
   const l = { s: {} }; // hoy: meditar ya reclamado, ejercicio completo esperando su corona
   l.s[ids[1]] = { el: 600, done: true, claimed: true, onTime: true, reward: { xp: 16, bits: 7 } };
   l.s[ids[2]] = { el: 1800, done: true, claimed: false, onTime: true };
   S.putItem('log', l, `log:${todayIso()}`);
-  for (let i = 1; i <= 4; i++) { const d = S.addDays(todayIso(), -i); const ll = { s: {} }; ids.slice(0, 3 + (i % 2)).forEach(id => { ll.s[id] = { el: 60, done: true, claimed: true }; }); S.putItem('log', ll, `log:${d}`); }
+  for (let i = 1; i <= 60; i++) { const d = S.addDays(todayIso(), -i); const ll = { s: {} }; const n = i <= 9 ? 3 + (i % 2) : (i * 7) % 5; ids.slice(0, n).forEach(id => { ll.s[id] = { el: 60, done: true, claimed: true }; }); S.putItem('log', ll, `log:${d}`); }
   saveCfg({ demo: true, onboarded: true, name: cfg.name || 'Player 1' });
 }
 
@@ -246,12 +234,19 @@ const A = {
     closeSheet(); renderAll(); toast('Hábito guardado ✓');
   },
   delHabit: el => { if (el.dataset.sure) { H.remove(el.dataset.id); closeSheet(); renderAll(); toast('Hábito eliminado'); } else { el.dataset.sure = 1; el.textContent = '¿Seguro? Toca otra vez para eliminar'; } },
-  shop: () => shopSheet(), shopTab: el => shopSheet(el.dataset.t), buy: el => buy(el.dataset.id),
-  bag: bagSheet, place: el => { closeSheet(); G.placeFromBag(el.dataset.id); },
+  ...L.actions,
+  shop: () => { closeSheet(); L.show('tienda', { scroll: true }); }, buy: el => buy(el.dataset.id),
+  bag: bagSheet, place: el => { closeSheet(); place(el.dataset.id); }, character: charSheet, map: mapSheet,
   goFloor: el => { const n = +el.dataset.n; if (n > W.level()) return toast(`🔒 Se abre en el nivel ${n}`); closeSheet(); $('screen').scrollIntoView({ behavior: 'smooth', block: 'nearest' }); setTimeout(() => G.ride(n), 350); },
   storeObj: el => { G.storeSelected(el.dataset.u); closeSheet(); toast('Guardado en la mochila 🎒'); },
   saveChar: () => { saveCfg({ avatar: editLook, name: $('chName').value.trim() || cfg.name }); closeSheet(); renderAll(); G.act('dance', '✨'); G.say('¡Nuevo look!', 2500); },
-  saveSettings: () => { saveCfg({ name: $('stName').value.trim() || cfg.name, sound: $('stSound').checked, wake: $('stWake').checked }); closeSheet(); toast('Guardado ✓'); },
+  saveSettings: async () => {
+    const wasOn = !!cfg.rankOn; const on = $('stRank').checked; const rankName = $('stRankName').value.trim().slice(0, 20) || cfg.name;
+    saveCfg({ name: $('stName').value.trim() || cfg.name, sound: $('stSound').checked, wake: $('stWake').checked, rankName });
+    closeSheet(); toast('Guardado ✓');
+    try { if (on && (!wasOn || R.online())) await R.join(rankName); else if (!on && wasOn) await R.leave(); } catch (e) { toast('⚠️ Ranking: ' + e.message, 5000); }
+    L.loadRank();
+  },
   redoOnb: () => { closeSheet(); openOnboarding({ onDone: afterOnb, step: 1 }); },
   testSupa: async () => { saveCfg({ supaUrl: $('stUrl').value.trim(), supaKey: $('stKey').value.trim() }); try { await S.testSupabase(); await S.sync(); toast('✅ Conectado y sincronizado'); renderAll(); } catch (e) { toast('⚠️ ' + e.message, 5000); } },
   exportBackup: () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([S.exportBackup()], { type: 'application/json' })); a.download = `io-respaldo-${todayIso()}.json`; a.click(); },
@@ -270,22 +265,23 @@ document.addEventListener('click', e => {
   e.preventDefault(); fn(el);
 });
 $('sheetOv').addEventListener('click', closeSheet);
-addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
+addEventListener('keydown', e => { if (e.key === 'Escape') { closeSheet(); if (!$('reveal').hidden) L.closeReveal(); } });
 $('backupIn').addEventListener('change', async e => { const f = e.target.files?.[0]; e.target.value = ''; if (!f) return; try { S.importBackup(await f.text()); location.reload(); } catch { toast('Archivo inválido'); } });
 
 /* ================= arranque ================= */
 function afterOnb({ first, demo } = {}) {
   if (demo) seedDemo();
   if (!cfg.onboarded) saveCfg({ onboarded: true, name: cfg.name || 'Player 1' });
-  renderAll();
+  renderAll(); L.loadRank();
   if (demo) { G.say('Modo demo: estás en el nivel 7. Activa la corona de “Hacer ejercicio” 👑 abajo, prueba “Respirar” (1 min) y camina hasta la puerta del ascensor.', 9000); return; }
   if (first) { G.act('dance', '👋'); G.say(`¡Bienvenido, ${cfg.name}! Este es tu cuarto en el piso 1. Cumple tus hábitos con el reloj para subir de piso. ▶ Empieza el primero abajo.`, 9000); }
 }
 G.init({
-  onMenu: k => ({ mochila: bagSheet, tienda: () => shopSheet(), mapa: mapSheet, personaje: charSheet, logros: achSheet, ajustes: settingsSheet })[k]?.(),
+  onMenu: k => ({ mochila: bagSheet, tienda: () => L.show('tienda', { scroll: true }), ranking: () => L.show('ranking', { scroll: true }), progreso: () => L.show('progreso', { scroll: true }), mapa: mapSheet, personaje: charSheet, logros: achievementsTab, ajustes: settingsSheet })[k]?.(),
   onDecoMenu: u => decoSheet(u),
-  onFloor: () => renderTop(),
+  onFloor: () => { renderTop(); L.render(); },
 });
+L.init({ renderAll, buy, place, celebrate });
 H.closeStale();
 renderAll();
 if (!cfg.onboarded) openOnboarding({ onDone: afterOnb });
@@ -295,5 +291,5 @@ else {
   else { const n = H.nextUp(); G.say(n ? `Hola ${cfg.name}. Próximo: ${n.emoji} ${n.nombre} a las ${n.hora}.` : `Hola ${cfg.name}. ¡Todo listo por hoy! Camina, decora o visita tus pisos.`, 5000); }
 }
 S.sync().then(renderAll);
-setInterval(() => { if (document.visibilityState === 'visible' && !Focus.isOpen()) { renderHabits(); renderTop(); } }, 20000);
+setInterval(() => { if (document.visibilityState === 'visible' && !Focus.isOpen()) { renderHabits(); renderTop(); L.badges(); } }, 20000);
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
