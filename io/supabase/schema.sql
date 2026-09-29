@@ -1,27 +1,30 @@
--- IO — sincronización opcional entre dispositivos.
--- Un documento JSON por item: hábitos (habit:*), registro diario (log:YYYY-MM-DD) y el estado del juego (io:game).
--- Corre esto una vez en Supabase → SQL Editor.
-create table if not exists public.io_items (
-  id          text primary key,
-  kind        text not null,
-  data        jsonb not null default '{}'::jsonb,
-  updated_at  timestamptz not null default now(),
-  deleted     boolean not null default false,
-  user_id     uuid references auth.users(id)
-);
-create index if not exists io_items_kind_idx on public.io_items (kind);
-alter table public.io_items enable row level security;
+-- IO — base de datos para el lanzamiento.
+-- Corre este archivo completo una vez en Supabase → SQL Editor (se puede volver a correr sin problema).
+-- Antes: Authentication → Providers → activa Google y Email (ver DEPLOY.md).
 
--- ⚠️ Un solo usuario sin login: política abierta para la anon key. No publiques URL + key juntas.
--- Cuando haya login (Google), reemplázala por: using (auth.uid() = user_id) with check (auth.uid() = user_id).
-drop policy if exists "anon all items" on public.io_items;
-create policy "anon all items" on public.io_items for all using (true) with check (true);
+-- Solo cuentas reales (Google o correo). Las sesiones anónimas no pueden escribir.
+create or replace function public.io_real_user() returns boolean language sql stable as $$
+  select auth.uid() is not null and coalesce((auth.jwt() ->> 'is_anonymous')::boolean, false) = false
+$$;
 
 -- ============================================================
--- RANKING (v8). Un proyecto compartido por todos los jugadores.
--- 1) Authentication → Sign In / Providers → activa "Allow anonymous sign-ins".
--- 2) Corre este bloque. 3) Pon la URL y la anon key en io/config.js (RANKING).
--- Cada jugador entra con una cuenta anónima (sin correo) y solo puede escribir SU fila.
+-- PARTIDAS: tu partida en la nube, una fila por dato (hábitos, registro diario, estado del juego).
+create table if not exists public.io_saves (
+  user_id     uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  id          text not null check (char_length(id) <= 80),
+  kind        text not null check (char_length(kind) <= 20),
+  data        jsonb not null default '{}'::jsonb check (pg_column_size(data) < 65536),
+  updated_at  timestamptz not null default now(),
+  deleted     boolean not null default false,
+  primary key (user_id, id)
+);
+alter table public.io_saves enable row level security;
+drop policy if exists "saves: solo el dueño" on public.io_saves;
+create policy "saves: solo el dueño" on public.io_saves for all
+  using (auth.uid() = user_id) with check (auth.uid() = user_id and public.io_real_user());
+
+-- ============================================================
+-- RANKING: una fila por jugador. Todos leen; cada quien solo escribe la suya.
 create table if not exists public.io_ranking (
   user_id     uuid primary key default auth.uid() references auth.users(id) on delete cascade,
   name        text not null check (char_length(name) between 1 and 20),
@@ -36,20 +39,19 @@ create table if not exists public.io_ranking (
 create index if not exists io_ranking_xp_idx on public.io_ranking (xp desc);
 create index if not exists io_ranking_week_idx on public.io_ranking (week_key, week_xp desc);
 alter table public.io_ranking enable row level security;
-
 drop policy if exists "ranking: todos leen" on public.io_ranking;
 create policy "ranking: todos leen" on public.io_ranking for select using (true);
 drop policy if exists "ranking: cada quien inserta lo suyo" on public.io_ranking;
-create policy "ranking: cada quien inserta lo suyo" on public.io_ranking for insert with check (auth.uid() = user_id);
+create policy "ranking: cada quien inserta lo suyo" on public.io_ranking for insert with check (auth.uid() = user_id and public.io_real_user());
 drop policy if exists "ranking: cada quien edita lo suyo" on public.io_ranking;
-create policy "ranking: cada quien edita lo suyo" on public.io_ranking for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "ranking: cada quien edita lo suyo" on public.io_ranking for update using (auth.uid() = user_id) with check (auth.uid() = user_id and public.io_real_user());
 drop policy if exists "ranking: cada quien se borra" on public.io_ranking;
 create policy "ranking: cada quien se borra" on public.io_ranking for delete using (auth.uid() = user_id);
--- Nota: el XP lo calcula el dispositivo. Para un ranking a prueba de trampas, más adelante
--- mueve el cálculo a una Edge Function que valide cada sesión del temporizador.
+-- Nota: el XP lo calcula el celular. Para un ranking a prueba de trampas, más adelante
+-- se valida cada sesión del reloj en el servidor (Edge Function).
 
 -- ============================================================
--- SOCIAL (v11): likes semanales y salas para enfocarse juntos.
+-- LIKES semanales.
 create table if not exists public.io_likes (
   from_user  uuid not null default auth.uid() references auth.users(id) on delete cascade,
   to_user    uuid not null references auth.users(id) on delete cascade,
@@ -62,8 +64,10 @@ alter table public.io_likes enable row level security;
 drop policy if exists "likes: todos leen" on public.io_likes;
 create policy "likes: todos leen" on public.io_likes for select using (true);
 drop policy if exists "likes: das los tuyos" on public.io_likes;
-create policy "likes: das los tuyos" on public.io_likes for insert with check (auth.uid() = from_user);
+create policy "likes: das los tuyos" on public.io_likes for insert with check (auth.uid() = from_user and public.io_real_user());
 
+-- ============================================================
+-- SALAS para enfocarse juntos.
 create table if not exists public.io_rooms (
   room       text not null check (char_length(room) between 4 and 8),
   user_id    uuid not null default auth.uid() references auth.users(id) on delete cascade,
@@ -79,9 +83,16 @@ alter table public.io_rooms enable row level security;
 drop policy if exists "salas: todos leen" on public.io_rooms;
 create policy "salas: todos leen" on public.io_rooms for select using (true);
 drop policy if exists "salas: tu fila" on public.io_rooms;
-create policy "salas: tu fila" on public.io_rooms for insert with check (auth.uid() = user_id);
+create policy "salas: tu fila" on public.io_rooms for insert with check (auth.uid() = user_id and public.io_real_user());
 drop policy if exists "salas: editas tu fila" on public.io_rooms;
 create policy "salas: editas tu fila" on public.io_rooms for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
 drop policy if exists "salas: borras tu fila" on public.io_rooms;
 create policy "salas: borras tu fila" on public.io_rooms for delete using (auth.uid() = user_id);
--- La foto de tu piso (para que te visiten) viaja dentro de io_ranking.look (máx. 9 objetos).
+
+-- ============================================================
+-- Versión anterior (sin cuentas): si creaste io_items con la política abierta, ciérrala.
+do $$ begin
+  if to_regclass('public.io_items') is not null then
+    execute 'drop policy if exists "anon all items" on public.io_items';
+  end if;
+end $$;

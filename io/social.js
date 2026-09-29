@@ -1,10 +1,10 @@
 /* IO — lo social: visitar edificios, likes ❤️, ligas semanales y sesiones juntos.
- * Con el servidor del ranking funciona con personas reales. Sin él, la liga de práctica
- * y un compañero 🤖 (siempre marcado como bot) mantienen la experiencia. */
+ * Solo con personas reales que tienen cuenta. Nada de bots ni números inventados. */
 import { cfg, saveCfg, uid } from './store.js';
 import * as W from './world.js';
 import * as H from './habits.js';
 import * as R from './ranking.js';
+import * as Auth from './auth.js';
 
 /* ---------- likes ---------- */
 const K_LIKES = 'io.likes';
@@ -15,20 +15,14 @@ export const liked = id => !!localLikes().given[id];
 export async function like(row) {
   const v = localLikes(); if (v.given[row.id]) return { ok: false, msg: 'Ya le diste ❤️ esta semana' };
   if (row.me) return { ok: false, msg: '¡No se vale darte ❤️ a ti mismo! 😄' };
-  if (!row.bot && R.online() && R.joined()) {
-    try { await R.rest('io_likes', { method: 'POST', body: { to_user: row.id, week_key: W.weekKey() }, headers: { Prefer: 'return=minimal' } }); } catch (e) { return { ok: false, msg: '⚠️ ' + e.message.slice(0, 60) }; }
-  }
-  v.given[row.id] = 1;
-  if (row.bot && Math.random() < .6) v.got = (v.got || 0) + 1; // los bots a veces devuelven el ❤️
-  saveLocal(v); return { ok: true, back: row.bot && v.got };
+  if (!Auth.signedIn()) return { ok: false, msg: 'Inicia sesión para dar ❤️' };
+  try { await R.rest('io_likes', { method: 'POST', body: { to_user: row.id, week_key: W.weekKey() }, headers: { Prefer: 'return=minimal' } }); } catch (e) { return { ok: false, msg: /duplicate|23505/.test(e.message) ? 'Ya le diste ❤️ esta semana' : '⚠️ No se pudo enviar' }; }
+  v.given[row.id] = 1; saveLocal(v); return { ok: true };
 }
-/** ❤️ recibidos esta semana. */
+/** ❤️ recibidos esta semana (reales). */
 export async function likesOf(id) {
-  if (!R.online() || !id || String(id).startsWith('bot') || id === 'me') return id === 'me' ? localLikes().got || 0 : (parseInt(String(id).replace(/\D/g, '')) * 7 + new Date().getDay() * 3) % 23;
-  try {
-    const r = await R.rest(`io_likes?select=to_user&to_user=eq.${encodeURIComponent(id)}&week_key=eq.${W.weekKey()}`, { method: 'HEAD', headers: { Prefer: 'count=exact' } });
-    return +(r.headers.get('content-range') || '').split('/')[1] || 0;
-  } catch { return 0; }
+  if (!R.online() || !id || id === 'me') return 0;
+  try { const r = await Auth.publicGet(`io_likes?select=to_user&to_user=eq.${encodeURIComponent(id)}&week_key=eq.${W.weekKey()}`, { Prefer: 'count=exact', Range: '0-0' }); return +(r.headers.get('content-range') || '').split('/')[1] || 0; } catch { return 0; }
 }
 
 /* ---------- ligas semanales ---------- */
@@ -37,22 +31,22 @@ export const ZONE = 5; // los 5 primeros suben, los 5 últimos bajan
 export function league(g = W.game()) { g.league ||= { div: 0, wk: W.weekKey(), rank: 0, size: 0 }; return g.league; }
 /** Mi puesto en la tabla semanal de mi liga. */
 export function weekStanding() {
-  const rows = R.online() && !R.state.fallback && R.state.scope === 'semana' && R.state.rows.length ? R.state.rows : R.practiceRows('semana');
+  const rows = R.state.scope === 'semana' ? R.state.rows : [];
   const i = rows.findIndex(r => r.me);
-  return { rank: i >= 0 ? i + 1 : (R.state.me?.pos || rows.length + 1), size: rows.length };
+  return { rank: i >= 0 ? i + 1 : (R.state.me?.pos || 0), size: Math.max(rows.length, R.state.total || 0) };
 }
 /** Guarda el puesto (se llama al ver el ranking) y, si cambió la semana, sube o baja de liga. */
 export function updateLeague() {
   const g = W.game(); const L = league(g); const wk = W.weekKey(); let moved = null;
   if (L.wk !== wk) {
-    if (L.size) {
+    if (L.size >= 10) { // las ligas se mueven cuando hay al menos 10 jugadores
       if (L.rank && L.rank <= ZONE && L.div < DIVS.length - 1) { L.div++; moved = 'up'; }
       else if (L.rank && L.rank > L.size - ZONE && L.div > 0) { L.div--; moved = 'down'; }
       else moved = 'stay';
     }
     L.last = { rank: L.rank, size: L.size, moved }; L.wk = wk; L.rank = 0; L.size = 0;
   }
-  const st = weekStanding(); L.rank = st.rank; L.size = st.size; g.league = L; W.saveGame(g);
+  if (R.state.scope === 'semana') { const st = weekStanding(); L.rank = st.rank; L.size = st.size; } g.league = L; W.saveGame(g);
   return moved;
 }
 export const endsIn = () => { const now = new Date(); const next = new Date(W.weekKey() + 'T00:00:00'); next.setDate(next.getDate() + 7); const ms = next - now; const d = Math.floor(ms / 864e5), h = Math.floor(ms / 36e5) % 24; return d ? `${d}d ${h}h` : `${h}h ${Math.floor(ms / 6e4) % 60}m`; };
@@ -66,27 +60,20 @@ export function leaveRoom() { saveCfg({ room: '' }); }
 export const roomLink = c => `${location.origin + location.pathname}?sala=${c}`;
 /** Publica que estás enfocado (o pausado) en tu sala. */
 export async function presence(h, act, remSec, paused = false) {
-  if (!room() || !R.online()) return;
+  if (!room() || !Auth.signedIn()) return;
   try {
-    const a = await R.session();
     await R.rest('io_rooms?on_conflict=room,user_id', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
-      body: { room: room(), user_id: a.uid, name: (cfg.rankName || cfg.name || 'Player').slice(0, 20), look: { a: cfg.avatar }, act, habit: `${h.emoji} ${h.nombre}`.slice(0, 40), until: new Date(Date.now() + remSec * 1000).toISOString(), paused, updated_at: new Date().toISOString() } });
+      body: { room: room(), user_id: Auth.user().id, name: (cfg.rankName || cfg.name || 'Player').slice(0, 20), look: { a: cfg.avatar }, act, habit: `${h.emoji} ${h.nombre}`.slice(0, 40), until: new Date(Date.now() + remSec * 1000).toISOString(), paused, updated_at: new Date().toISOString() } });
   } catch { /* sin conexión: se intenta en el siguiente ciclo */ }
 }
 /** Quién más está en la sala (activos en los últimos 2 min). */
 export async function buddies() {
-  if (!room() || !R.online()) return [];
+  if (!room() || !Auth.signedIn()) return [];
   try {
     const since = new Date(Date.now() - 120000).toISOString();
     const rows = await (await R.rest(`io_rooms?select=user_id,name,look,act,habit,until,paused,updated_at&room=eq.${room()}&updated_at=gte.${since}`)).json();
     const me = R.myId();
     return rows.filter(r => r.user_id !== me).slice(0, 6).map(r => ({ id: r.user_id, name: String(r.name || 'Anónimo').slice(0, 20), look: R.safeLook(r.look?.a), act: H.ACTS[r.act] ? r.act : 'jump', habit: String(r.habit || '').slice(0, 40), rem: Math.max(0, (new Date(r.until) - Date.now()) / 1000), paused: !!r.paused, bot: false }));
   } catch { return []; }
-}
-/** Compañero 🤖 para cuando no hay servidor o no hay nadie en la sala. */
-export function botBuddy(act) {
-  const names = ['🤖 Byte', '🤖 Nibble', '🤖 Pixel', '🤖 Qubit']; const i = new Date().getDate() % names.length;
-  const looks = [{ skin: '#8a5433', hairStyle: 'afro', hair: '#1c120c', topColor: '#22d3ee' }, { skin: '#f6d7c3', hairStyle: 'largo', hair: '#b93a1c', topColor: '#f472b6', body: 'f' }, { skin: '#c68a5e', hairStyle: 'rizado', hair: '#3b2314', topColor: '#4ade80' }, { skin: '#e0a77f', hairStyle: 'moño', hair: '#ecd6a0', topColor: '#fbbf24', body: 'f' }];
-  return { id: 'bot', name: names[i], look: R.safeLook(looks[i]), act, habit: 'enfocado contigo', rem: 0, paused: false, bot: true };
 }
 export const newId = uid;

@@ -12,6 +12,7 @@ import * as Rem from './remind.js';
 import * as Share from './share.js';
 import * as Pet from './pet.js';
 import * as So from './social.js';
+import * as Auth from './auth.js';
 import * as Coach from './coach.js';
 import { $, esc, fmtN, toast, openSheet, closeSheet } from './ui.js';
 
@@ -223,7 +224,7 @@ export async function loadRank(scope = R.state.scope) {
 const face = (look, wear, cls = 'rk-face') => `<span class="${cls} ${['head', 'face'].map(s => wear?.[s] ? 'wear-' + wear[s] : '').join(' ')}" data-mood="happy">${avatarSVG(look, 'av', '28 2 64 64')}</span>`;
 function renderRank() {
   const st = R.state; const scope = st.scope; const key = scope === 'semana' ? 'week_xp' : 'xp';
-  const practice = !R.online() || st.fallback;
+  const practice = !R.online() || st.local;
   const rows = st.rows;
   const top3 = rows.slice(0, 3);
   const podium = [top3[1], top3[0], top3[2]].map((r, k) => r ? `<div class="pd pd-${[2, 1, 3][k]}${r.me ? ' me' : ''}" data-act="visitTop" data-k="${rows.indexOf(r)}" role="button">
@@ -238,9 +239,10 @@ function renderRank() {
       <div class="chips-row"><button class="${scope === 'global' ? 'on' : ''}" data-act="rankScope" data-s="global">🌎 Global</button><button class="${scope === 'semana' ? 'on' : ''}" data-act="rankScope" data-s="semana">⚡ Esta semana</button></div>
       <button class="rk-ref" data-act="rankReload" aria-label="Actualizar">↻</button>
     </div>
-    ${practice ? `<div class="rk-note">🤖 <b>Liga de práctica.</b> Compites contra bots mientras se activa el ranking mundial. ${st.error ? `<small>(${esc(st.error.slice(0, 80))})</small>` : ''}</div>`
-      : !R.joined() ? `<div class="rk-join"><b>Únete al ranking mundial</b><small>Sin correo ni contraseña: solo tu nombre público, tu nivel y tu personaje.</small>
-        <div class="row"><input class="inp" id="rkName" maxlength="20" value="${esc(cfg.rankName || cfg.name || '')}" placeholder="Tu nombre público"><button class="btn-acc" data-act="rankJoin" style="width:auto;padding:10px 16px">Entrar</button></div></div>` : ''}
+    ${!R.online() ? `<div class="rk-note">🌎 <b>El ranking mundial se activa con el servidor.</b> Por ahora ves solo tu progreso.</div>`
+      : !Auth.signedIn() ? `<div class="rk-join"><b>Entra con tu cuenta para aparecer</b><small>Con Google o tu correo. Tu nombre y tu nivel aparecen aquí; tus hábitos nunca salen de tu celular.</small><button class="btn-acc" data-act="login">Iniciar sesión</button></div>`
+      : st.error ? `<div class="rk-note">⚠️ No se pudo cargar el ranking. <small>${esc(st.error.slice(0, 80))}</small></div>` : ''}
+    ${R.online() && st.total ? `<div class="rk-count">👥 ${fmtN(st.total)} jugador${st.total === 1 ? '' : 'es'} en IO${st.total < 10 ? ' · ¡invita a tus amigos y llénalo!' : ''}</div>` : ''}
     ${ch && ch.next ? `<div class="rk-chase">🎯 Te faltan <b>${fmtN(ch.gap)} XP</b> para pasar a <b>${esc(ch.next)}</b> y quedar #${ch.pos - 1}</div>` : ch ? '<div class="rk-chase gold">👑 ¡Vas de primero! Todos te quieren alcanzar.</div>' : ''}
     ${scope === 'semana' ? `<div class="lg-card" style="--lc:${D[2]}"><span class="lg-ic">${D[1]}</span><div><b>Liga ${D[0]}</b><small>Termina en ${So.endsIn()} · vas <b>#${L.rank || '—'}</b></small><small>⬆ los ${So.ZONE} primeros suben · ⬇ los ${So.ZONE} últimos bajan</small></div>
       <div class="lg-ladder">${So.DIVS.map((d, i) => `<i class="${i === L.div ? 'on' : i < L.div ? 'past' : ''}" title="${d[0]}">${d[1]}</i>`).join('')}</div></div>` : ''}
@@ -256,7 +258,7 @@ function renderRank() {
 let shown = [];
 function rankRow(r, pos, key, zone = '') {
   shown.push(r);
-  return `<li class="rk${r.me ? ' me' : ''}${r.bot ? ' bot' : ''}${zone}" data-act="visit" data-i="${shown.length - 1}" role="button" tabindex="0"><span class="rk-pos">${pos}</span>${face(r.look, r.wear)}
+  return `<li class="rk${r.me ? ' me' : ''}${zone}" data-act="visit" data-i="${shown.length - 1}" role="button" tabindex="0"><span class="rk-pos">${pos}</span>${face(r.look, r.wear)}
     <span class="rk-n"><b>${esc(r.name)}${r.me ? ' <em>TÚ</em>' : ''}</b><small>${W.titleOf(r.level)} · piso ${r.level}${r.streak ? ` · 🔥${r.streak}` : ''}</small></span>
     <span class="rk-xp">${fmtN(r[key])}<small>XP</small></span></li>`;
 }
@@ -265,9 +267,8 @@ function togetherCard() {
   const code = So.room();
   return `<div class="pg-sec tg-card"><div class="h-head"><h2>👥 Sesiones juntos</h2><span class="h-prog">${code ? 'sala ' + code : 'enfócate acompañado'}</span></div>
     <p class="note">Crea una sala e invita a tus amigos: cuando arranquen su reloj, sus personajes aparecen en tu pantalla haciendo lo suyo. Estudiar o entrenar acompañado funciona.</p>
-    ${code ? `<div class="tg-code"><b>${code}</b><button class="btn-ghost" data-act="roomShare">📣 Invitar</button><button class="btn-ghost" data-act="roomLeave">Salir</button></div>${R.online() ? '' : '<p class="note">⚠️ Las salas necesitan el servidor del ranking. Mientras tanto te acompaña un bot 🤖.</p>'}`
-      : `<div class="row"><button class="btn-acc" data-act="roomNew">＋ Crear sala</button><input class="inp" id="roomIn" maxlength="8" placeholder="Código" style="text-transform:uppercase"><button class="btn-ghost" data-act="roomJoin" style="width:auto">Entrar</button></div>`}
-    <label class="tog"><input type="checkbox" data-bot-buddy${cfg.botBuddy !== false ? ' checked' : ''}> Si no hay nadie, que me acompañe un compañero 🤖</label></div>`;
+    ${code ? `<div class="tg-code"><b>${code}</b><button class="btn-ghost" data-act="roomShare">📣 Invitar</button><button class="btn-ghost" data-act="roomLeave">Salir</button></div>${Auth.signedIn() ? '' : '<p class="note">Inicia sesión para que tus amigos te vean en la sala.</p>'}`
+      : `<div class="row"><button class="btn-acc" data-act="roomNew">＋ Crear sala</button><input class="inp" id="roomIn" maxlength="8" placeholder="Código" style="text-transform:uppercase"><button class="btn-ghost" data-act="roomJoin" style="width:auto">Entrar</button></div>`}</div>`;
 }
 /** El cuarto de otra persona, en miniatura. */
 export function miniRoom(room, look, wear, name = '') {
@@ -291,7 +292,7 @@ async function visit(r) {
     <div class="vs-info"><div><small>Título</small><b>${esc(W.titleOf(r.level))}</b></div><div><small>Nivel</small><b>${r.level}</b></div><div><small>Racha</small><b>🔥 ${r.streak}</b></div><div><small>${st === 'xp' ? 'XP total' : 'XP semana'}</small><b>${fmtN(r[st])}</b></div></div>
     <div class="vs-likes"><span id="vsLikes">❤️ …</span> esta semana</div>
     ${r.me ? '<button class="btn-acc" data-act="story">📸 Compartir mi edificio</button>' : `<button class="btn-acc${So.liked(r.id) ? ' off' : ''}" data-act="like" data-id="${esc(r.id)}">${So.liked(r.id) ? '❤️ Ya le diste like' : '❤️ Dar like'}</button>`}
-    ${r.bot ? '<p class="note">🤖 Es un bot de la liga de práctica: sirve para entrenar la competencia mientras llegan tus amigos.</p>' : ''}`);
+`);
   visit.row = r;
   const n = await So.likesOf(r.me ? 'me' : r.id); const el = document.getElementById('vsLikes'); if (el) el.textContent = `❤️ ${n}`;
 }
@@ -402,7 +403,7 @@ export const actions = {
   coachApply: el => { const t = renderProg.tips?.[+el.dataset.i]; if (!t?.act) return; if (t.act.start) return ctx.start(t.act.start); const h = H.get(t.act.id); if (!h) return; const { id, ...rest } = h; H.save({ ...rest, ...(t.act.min ? { min: t.act.min } : {}), ...(t.act.hora ? { hora: t.act.hora } : {}) }, id); G.blip('buy'); toast('✅ Ajustado. Tu coach lo revisa en unos días', 3000); ctx.renderAll(); },
   visit: el => visit(shown[+el.dataset.i]),
   visitTop: el => visit(R.state.rows[+el.dataset.k]),
-  like: async el => { const r = visit.row; if (!r) return; const res = await So.like(r); if (!res.ok) return toast(res.msg); G.blip('coin'); el.textContent = '❤️ ¡Enviado!'; el.classList.add('off'); const v = document.getElementById('vsLikes'); if (v) v.textContent = v.textContent.replace(/\d+/, n => +n + 1); if (res.back) setTimeout(() => toast(`${r.name} te devolvió el ❤️`), 1500); },
+  like: async el => { const r = visit.row; if (!r) return; const res = await So.like(r); if (!res.ok) return toast(res.msg); G.blip('coin'); el.textContent = '❤️ ¡Enviado!'; el.classList.add('off'); const v = document.getElementById('vsLikes'); if (v) v.textContent = v.textContent.replace(/\d+/, n => +n + 1); },
   roomNew: () => { const c = So.createRoom(); G.blip('select'); renderRank(); share(`Enfoquémonos juntos en IO 👥 Sala ${c}: ${So.roomLink(c)}`); },
   roomJoin: () => { const c = So.joinRoom(document.getElementById('roomIn').value); if (!c) return toast('Escribe un código válido'); toast(`👥 Entraste a la sala ${c}`); renderRank(); },
   roomShare: () => share(`Enfoquémonos juntos en IO 👥 Sala ${So.room()}: ${So.roomLink(So.room())}`),
@@ -442,7 +443,7 @@ export function init(c) {
     if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.8 && !e.target.closest('.chips-row,.heat,.week')) { const i = TABS.indexOf(tab) + (dx < 0 ? 1 : -1); if (TABS[i]) show(TABS[i]); }
   }, { passive: true });
   document.addEventListener('input', e => { if (e.target.matches('[data-radio-vol]')) Radio.setVolume(+e.target.value); });
-  document.addEventListener('change', e => { if (e.target.matches('[data-radio-auto]')) saveCfg({ radioAuto: e.target.checked }); if (e.target.matches('[data-bot-buddy]')) saveCfg({ botBuddy: e.target.checked }); });
+  document.addEventListener('change', e => { if (e.target.matches('[data-radio-auto]')) saveCfg({ radioAuto: e.target.checked }); });
   setInterval(() => { document.querySelectorAll('[data-countdown]').forEach(s => { s.textContent = untilMidnight(); }); }, 1000);
   show(tab, { sound: false });
   loadRank('global');

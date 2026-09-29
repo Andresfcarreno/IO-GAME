@@ -1,18 +1,16 @@
-/* IO — ranking. Cada jugador es una fila en io_ranking (Supabase), con login anónimo:
- * sin correo ni contraseña, solo tu nombre público. Unirse es opcional.
- * Sin backend configurado se juega la liga de práctica: bots 🤖 claramente marcados. */
+/* IO — ranking. Solo personas reales: cada jugador con cuenta (Google o correo) es una fila en io_ranking.
+ * Nada de bots ni datos inventados: si todavía no hay nadie más, ves solo tu fila. */
 import { cfg, saveCfg } from './store.js';
 import * as W from './world.js';
 import * as H from './habits.js';
 import { OPTIONS, LOOK_DEFAULT } from './avatar.js';
-import { RANKING } from './config.js';
+import * as Auth from './auth.js';
 
-const K_AUTH = 'io.rank.auth';
-const conn = () => ({ url: (RANKING.url || cfg.supaUrl || '').replace(/\/+$/, ''), key: RANKING.key || cfg.supaKey || '' });
-export const online = () => { const c = conn(); return !!(c.url && c.key); };
-export const joined = () => !!cfg.rankOn;
-export const myId = () => readAuth()?.uid || null;
-export const state = { rows: [], me: null, scope: 'global', error: '', loadedAt: 0, loading: false };
+export const online = () => Auth.configured();
+export const joined = () => Auth.signedIn() && cfg.rankOn !== false;
+export const myId = () => Auth.user()?.id || null;
+export const state = { rows: [], me: null, scope: 'global', error: '', loadedAt: 0, loading: false, total: 0 };
+export const rest = Auth.rest;
 
 /* ---------- datos de otros jugadores: nunca se confía en ellos ---------- */
 const pick = (list, v) => (list.some(o => (Array.isArray(o) ? o[0] : o) === v) ? v : undefined);
@@ -23,31 +21,7 @@ export function safeLook(l) {
 }
 const safeWear = w => ({ head: W.WEAR.some(i => i.id === w?.head) ? w.head : null, face: W.WEAR.some(i => i.id === w?.face) ? w.face : null });
 const num = v => Math.max(0, Math.min(1e9, Math.floor(+v || 0)));
-const clean = r => ({ id: String(r.user_id || r.id || ''), name: String(r.name || 'Anónimo').slice(0, 20), level: Math.max(1, num(r.level)), xp: num(r.xp), week_xp: num(r.week_xp), streak: num(r.streak), look: safeLook(r.look?.a || r.look), wear: safeWear(r.look?.w), room: safeRoom(r.look), bot: !!r.bot, me: !!r.me });
-
-/* ---------- auth anónima ---------- */
-function readAuth() { try { return JSON.parse(localStorage.getItem(K_AUTH) || 'null'); } catch { return null; } }
-function writeAuth(a) { try { a ? localStorage.setItem(K_AUTH, JSON.stringify(a)) : localStorage.removeItem(K_AUTH); } catch { /* */ } }
-async function authCall(path, body) {
-  const c = conn();
-  const r = await fetch(`${c.url}/auth/v1/${path}`, { method: 'POST', headers: { apikey: c.key, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-  const j = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(j.msg || j.error_description || j.message || `Auth ${r.status}`);
-  const a = { access: j.access_token, refresh: j.refresh_token, exp: Date.now() + (j.expires_in || 3600) * 1000 - 60000, uid: j.user?.id };
-  writeAuth(a); return a;
-}
-export async function session() {
-  let a = readAuth();
-  if (a?.access && a.exp > Date.now()) return a;
-  if (a?.refresh) { try { return await authCall('token?grant_type=refresh_token', { refresh_token: a.refresh }); } catch { /* sesión vencida: nueva cuenta anónima */ } }
-  return authCall('signup', {});
-}
-export async function rest(path, { method = 'GET', body, headers = {} } = {}) {
-  const c = conn(); const a = await session();
-  const r = await fetch(`${c.url}/rest/v1/${path}`, { method, headers: { apikey: c.key, Authorization: `Bearer ${a.access}`, 'Content-Type': 'application/json', ...headers }, body: body ? JSON.stringify(body) : undefined });
-  if (!r.ok) { const t = await r.text().catch(() => ''); throw new Error(t.slice(0, 140) || `HTTP ${r.status}`); }
-  return r;
-}
+const clean = r => ({ id: String(r.user_id || r.id || ''), name: String(r.name || 'Jugador').slice(0, 20), level: Math.max(1, num(r.level)), xp: num(r.xp), week_xp: num(r.week_xp), streak: num(r.streak), look: safeLook(r.look?.a || r.look), wear: safeWear(r.look?.w), room: safeRoom(r.look), bot: false, me: !!r.me });
 
 /* ---------- mi fila ---------- */
 /** Foto pequeña de tu piso para que otros lo visiten (máx. 9 objetos). */
@@ -65,75 +39,51 @@ export function safeRoom(look) {
 }
 function mine() {
   const g = W.game();
-  return { name: (cfg.rankName || cfg.name || 'Player').slice(0, 20), level: W.level(g), xp: g.xp, week_key: W.weekKey(), week_xp: H.weekXp(g), streak: H.dayStreak(), look: { a: cfg.avatar || LOOK_DEFAULT, w: { head: g.wear.head || null, face: g.wear.face || null }, ...roomSnap(g) } };
+  return { name: (cfg.rankName || cfg.name || Auth.user()?.name || 'Jugador').slice(0, 20), level: W.level(g), xp: g.xp, week_key: W.weekKey(), week_xp: H.weekXp(g), streak: H.dayStreak(), look: { a: cfg.avatar || LOOK_DEFAULT, w: { head: g.wear.head || null, face: g.wear.face || null }, ...roomSnap(g) } };
 }
 let pushT;
-/** Publica tu progreso (con calma: como mucho una vez cada 20 s). */
+const upsert = () => rest('io_ranking?on_conflict=user_id', { method: 'POST', body: { user_id: myId(), ...mine(), updated_at: new Date().toISOString() }, headers: { Prefer: 'resolution=merge-duplicates,return=minimal' } });
+/** Publica tu progreso (con calma: como mucho una vez cada 15 s). */
 export function publish(now = false) {
-  if (!joined() || !online()) return;
+  if (!joined() || cfg.demo) return;
   clearTimeout(pushT);
-  pushT = setTimeout(async () => {
-    try { const a = await session(); await rest('io_ranking?on_conflict=user_id', { method: 'POST', body: { user_id: a.uid, ...mine(), updated_at: new Date().toISOString() }, headers: { Prefer: 'resolution=merge-duplicates,return=minimal' } }); state.error = ''; }
-    catch (e) { state.error = e.message; }
-  }, now ? 0 : 20000);
+  pushT = setTimeout(async () => { try { await upsert(); state.error = ''; } catch (e) { state.error = e.message; } }, now ? 0 : 15000);
 }
 export async function join(name) {
-  saveCfg({ rankOn: true, rankName: (name || cfg.name || 'Player').trim().slice(0, 20) });
-  if (!online()) return;
-  const a = await session();
-  await rest('io_ranking?on_conflict=user_id', { method: 'POST', body: { user_id: a.uid, ...mine(), updated_at: new Date().toISOString() }, headers: { Prefer: 'resolution=merge-duplicates,return=minimal' } });
+  saveCfg({ rankOn: true, ...(name ? { rankName: name.trim().slice(0, 20) } : {}) });
+  if (Auth.signedIn() && !cfg.demo) await upsert();
 }
 export async function leave() {
   saveCfg({ rankOn: false });
-  if (!online() || !readAuth()) return;
-  try { const a = await session(); await rest(`io_ranking?user_id=eq.${a.uid}`, { method: 'DELETE' }); } catch { /* */ }
+  if (!Auth.signedIn()) return;
+  try { await rest(`io_ranking?user_id=eq.${myId()}`, { method: 'DELETE' }); } catch { /* */ }
 }
+const meRow = () => { const g = W.game(); return clean({ id: myId() || 'me', ...mine(), look: mine().look, me: true }); };
 
 /* ---------- tabla ---------- */
 export async function load(scope = state.scope) {
   state.scope = scope;
-  if (!online()) { practice(scope); return state; }
-  state.loading = true;
+  if (!online()) { state.rows = [meRow()]; state.me = null; state.local = true; state.total = 1; state.loadedAt = Date.now(); return state; }
+  state.loading = true; state.local = false;
   try {
+    if (joined()) await upsert().catch(() => {});
     const wk = W.weekKey(); const sel = 'select=user_id,name,level,xp,week_xp,streak,look';
     const q = scope === 'semana' ? `io_ranking?${sel}&week_key=eq.${wk}&order=week_xp.desc&limit=100` : `io_ranking?${sel}&order=xp.desc&limit=100`;
-    const rows = await (await rest(q)).json();
-    const uid = readAuth()?.uid;
-    state.rows = rows.map(r => ({ ...clean(r), me: r.user_id === uid }));
+    const r = await Auth.publicGet(q, { Prefer: 'count=exact' });
+    const rows = await r.json(); state.total = +(r.headers.get('content-range') || '').split('/')[1] || rows.length;
+    const uid = myId();
+    state.rows = rows.map(x => ({ ...clean(x), me: x.user_id === uid }));
     state.me = null;
-    if (joined() && uid && !state.rows.some(r => r.me)) {
+    if (joined() && uid && !state.rows.some(x => x.me)) {
       const m = mine(); const v = scope === 'semana' ? m.week_xp : m.xp;
       const f = scope === 'semana' ? `week_key=eq.${wk}&week_xp=gt.${v}` : `xp=gt.${v}`;
-      const r = await rest(`io_ranking?select=user_id&${f}`, { method: 'HEAD', headers: { Prefer: 'count=exact' } });
-      const total = +(r.headers.get('content-range') || '').split('/')[1] || 0;
-      state.me = { ...clean({ ...m, user_id: uid, me: true }), pos: total + 1 };
+      const c = await Auth.publicGet(`io_ranking?select=user_id&${f}`, { Prefer: 'count=exact', Range: '0-0' });
+      state.me = { ...meRow(), pos: (+(c.headers.get('content-range') || '').split('/')[1] || 0) + 1 };
     }
     state.error = ''; state.loadedAt = Date.now();
-  } catch (e) { state.error = e.message; practice(scope); state.fallback = true; }
+  } catch (e) { state.error = e.message; state.rows = [meRow()]; state.local = true; }
   state.loading = false;
   return state;
 }
-
-/* ---------- liga de práctica (sin backend): bots 🤖, nunca personas inventadas ---------- */
-const BOT_NAMES = ['Byte', 'Nibble', 'Pixel', 'Bit', 'Chip', 'Kilo', 'Mega', 'Giga', 'Qubit', 'Bool', 'Loop', 'Array', 'Cache', 'Sprite', 'Glitch', 'Turbo', 'Ping', 'Nano', 'Tera', 'Hex'];
-function rng(seed) { let s = seed >>> 0; return () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
-export function practiceRows(scope) { const keep = { ...state }; practice(scope); const rows = state.rows; Object.assign(state, keep); return rows; }
-function practice(scope) {
-  const g = W.game(); const days = Math.floor(Date.now() / 864e5);
-  const bots = BOT_NAMES.map((n, i) => {
-    const r = rng(i * 977 + 13); const pace = 25 + r() * 70; // XP por día
-    const age = 1 + Math.floor(r() ** 2.2 * 320); // muchos empiezan como tú, pocos van muy arriba
-    const xp = Math.floor(pace * (age + Math.max(0, days - 20700) * .35));
-    const look = {}; for (const k of Object.keys(OPTIONS)) { const o = OPTIONS[k]; const v = o[Math.floor(r() * o.length)]; look[k] = Array.isArray(v) ? v[0] : v; }
-    const wr = rng(i * 31 + Math.floor((days + 3) / 7)); const now = new Date(); const into = (now.getDay() + 6) % 7 + (now.getHours() + 6) / 24; const week_xp = Math.floor(pace * 1.5 * into * (.5 + wr() * .9));
-    const lv = W.levelOf(xp); const f = 1 + Math.floor(r() * lv);
-    const pool = W.CATALOG.filter(it => it.lvl <= lv && it.kind !== 'veh'); const room = W.floorInfo(f).starter.map(([id, x]) => [id, Math.round(x * 100), '', -1]);
-    for (let k = 0; k < 3; k++) { const it = pool[Math.floor(r() * pool.length)]; if (it) room.push([it.id, 25 + Math.floor(r() * 65), it.band === 'floor' && W.surfacesOf(it).includes('shelf2') && r() > .4 ? 'shelf2' : '', it.band === 'wall' ? 30 : -1]); }
-    const sps = ['ave', 'dragon', 'felino', 'marino'];
-    return clean({ id: 'bot' + i, name: '🤖 ' + n, level: lv, xp, week_xp, streak: Math.floor(r() * 40), look: { a: look, f, r: room, p: [sps[i % 4], Math.min(4, Math.floor(lv / 8))] }, bot: true });
-  });
-  const me = clean({ id: 'me', name: cfg.rankName || cfg.name || 'Tú', level: W.level(g), xp: g.xp, week_xp: H.weekXp(g), streak: H.dayStreak(), look: { a: cfg.avatar, w: g.wear, ...roomSnap(g) }, me: true });
-  const key = scope === 'semana' ? 'week_xp' : 'xp';
-  state.rows = [...bots, me].sort((a, b) => b[key] - a[key]);
-  state.me = null; state.loadedAt = Date.now();
-}
+/** Jugadores registrados (para la página de inicio y el ranking). */
+export async function count() { try { const r = await Auth.publicGet('io_ranking?select=user_id', { Prefer: 'count=exact', Range: '0-0' }); return +(r.headers.get('content-range') || '').split('/')[1] || 0; } catch { return 0; } }

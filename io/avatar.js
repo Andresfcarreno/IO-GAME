@@ -101,6 +101,8 @@ function arm(side, L, sh, S, SD, T, TD, hold) {
   if (hold) a += `<g class="hold">${hold(px, 121)}</g>`;
   return `<g class="arm ${side < 0 ? 'arm-l' : 'arm-r'}" style="transform-box:view-box;transform-origin:${px}px 73px"><g transform="rotate(${-side * 6} ${px} 74)">${a}</g></g>`;
 }
+/** Párpado inferior que sube al sonreír: los ojos quedan abiertos (se ve el color) pero alegres. */
+const smileLid = (x, S) => `<path d="M${x - 5.4} 44.6Q${x} 41.2 ${x + 5.4} 44.6L${x + 5.4} 48.2L${x - 5.4} 48.2Z" fill="${S}"/><path d="M${x - 4.6} 44.3Q${x} 41.6 ${x + 4.6} 44.3" stroke="${shade(S, -0.3)}" stroke-width=".9" fill="none" stroke-linecap="round"/>`;
 function face(L, S, SD, H) {
   const f = L.body === 'f'; const E = L.eye; const lip = f ? '#b4535b' : '#6b2b2b';
   const brow = (x1, y1, cx, cy, x2, y2) => `<path d="M${x1} ${y1}Q${cx} ${cy} ${x2} ${y2}" stroke="${shade(H, -0.1)}" stroke-width="${f ? 1.8 : 2.4}" stroke-linecap="round" fill="none"/>`;
@@ -113,7 +115,7 @@ function face(L, S, SD, H) {
   if (L.feature === 'rubor') feat = cheeks;
   return `${feat}
   <g class="eyes ey-neutral"><g class="blink">${eye(52)}${eye(68)}</g>${brow(47, 35.5, 52, 33, 57, 34.6)}${brow(63, 34.6, 68, 33, 73, 35.5)}</g>
-  <g class="eyes ey-happy"><path d="M47.5 43Q52 38.4 56.5 43M63.5 43Q68 38.4 72.5 43" stroke="#2a1616" stroke-width="2.1" fill="none" stroke-linecap="round"/>${brow(47, 34.5, 52, 31.5, 57, 33.5)}${brow(63, 33.5, 68, 31.5, 73, 34.5)}${cheeks}</g>
+  <g class="eyes ey-happy"><g class="blink">${eye(52)}${eye(68)}${smileLid(52, S)}${smileLid(68, S)}</g>${brow(47, 34.5, 52, 31.5, 57, 33.5)}${brow(63, 33.5, 68, 31.5, 73, 34.5)}${cheeks}</g>
   <g class="eyes ey-worried">${eye(52)}${eye(68)}${brow(47, 34, 52, 35.5, 57, 32.5)}${brow(63, 32.5, 68, 35.5, 73, 34)}<ellipse cx="77" cy="38" rx="1.8" ry="3" fill="#7dd3fc" opacity=".8"/></g>
   <g class="eyes ey-excited"><path d="M52 37.5l1.6 3.3 3.6.5-2.6 2.5.6 3.6-3.2-1.7-3.2 1.7.6-3.6-2.6-2.5 3.6-.5zM68 37.5l1.6 3.3 3.6.5-2.6 2.5.6 3.6-3.2-1.7-3.2 1.7.6-3.6-2.6-2.5 3.6-.5z" fill="#fbbf24"/>${brow(47, 33.5, 52, 30.5, 57, 32.5)}${brow(63, 32.5, 68, 30.5, 73, 33.5)}</g>
   <g class="eyes ey-tired"><path d="M47.4 42.5Q52 45.5 56.6 42.5M63.4 42.5Q68 45.5 72.6 42.5" stroke="#2a1616" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M47.8 46.5Q52 48 56.2 46.5M63.8 46.5Q68 48 72.2 46.5" stroke="#6d28d9" stroke-width="1.1" opacity=".35" fill="none"/>${brow(47, 36, 52, 35, 57, 36)}${brow(63, 36, 68, 35, 73, 36)}</g>
@@ -184,3 +186,15 @@ export function editorHTML(look, tab = 'cuerpo') {
   };
   return `<div class="av-tabs">${tabs.map(([k, l]) => `<button class="${k === tab ? 'on' : ''}" data-avtab="${k}">${l}</button>`).join('')}</div><div class="av-pane">${panes[tab]}</div>`;
 }
+
+/** Apariencias listas para elegir con un toque (se pueden personalizar después). */
+export const PRESETS = [
+  { body: 'm', skin: '#c68a5e', hairStyle: 'corto', hair: '#1c120c', beard: 'corta', eye: '#3b2314', top: 'hoodie', topColor: '#7c5cff', bottom: 'pantalon', pants: '#27306b', shoes: '#f1f5f9' },
+  { body: 'f', skin: '#e0a77f', hairStyle: 'largo', hair: '#3b2314', eye: '#3f7d4e', top: 'camiseta', topColor: '#f472b6', bottom: 'pantalon', pants: '#1e3a8a', shoes: '#f1f5f9' },
+  { body: 'm', skin: '#8a5433', hairStyle: 'afro', hair: '#1c120c', eye: '#1c120c', top: 'deportiva', topColor: '#22d3ee', bottom: 'shorts', pants: '#111827', shoes: '#dc2626' },
+  { body: 'f', skin: '#f6d7c3', hairStyle: 'cola', hair: '#b93a1c', eye: '#2f6fd6', feature: 'pecas', top: 'hoodie', topColor: '#4ade80', bottom: 'falda', pants: '#4c1d95', shoes: '#7c5cff' },
+  { body: 'm', skin: '#eec1a0', hairStyle: 'ondulado', hair: '#d6a85a', eye: '#2f6fd6', top: 'camisa', topColor: '#1d4ed8', bottom: 'pantalon', pants: '#78716c', shoes: '#111827' },
+  { body: 'f', skin: '#6b3e24', hairStyle: 'trenzas', hair: '#1c120c', eye: '#6b4a1e', top: 'chaqueta', topColor: '#fbbf24', bottom: 'pantalon', pants: '#111827', shoes: '#f1f5f9' },
+  { body: 'n', skin: '#a86d45', hairStyle: 'rapado', hair: '#3b2314', eye: '#8b5cf6', top: 'camiseta', topColor: '#1f2937', bottom: 'shorts', pants: '#14532d', shoes: '#a16207' },
+  { body: 'f', skin: '#c68a5e', hairStyle: 'moño', hair: '#7c5cff', eye: '#3b2314', feature: 'rubor', top: 'vestido', topColor: '#be185d', bottom: 'falda', pants: '#be185d', shoes: '#f1f5f9' },
+].map(p => normLook(p));

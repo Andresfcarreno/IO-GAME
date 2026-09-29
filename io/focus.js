@@ -121,16 +121,15 @@ async function wake(on) {
     if (!on && F.wake) { await F.wake.release(); F.wake = null; }
   } catch { F.wake = null; }
 }
-/* compañeros de sala (o un bot 🤖) enfocados contigo */
+/* compañeros de sala enfocados contigo (personas reales) */
 async function buddyLoop() {
   clearTimeout(F.budT); if (!F.id) return;
   const h = H.get(F.id); if (!h) return;
   const rem = h.min * 60 - H.elapsed(F.id);
   await So.presence(h, F.act, rem);
   let list = await So.buddies();
-  if (!list.length && cfg.botBuddy !== false) list = [So.botBuddy(F.act)];
   const el = $('fcBud'); if (!el || !F.id) return;
-  el.innerHTML = list.map(b => `<div class="bud${b.paused ? ' paused' : ''}"><span class="bud-f">${avatarSVG(b.look, 'av', '28 2 64 64')}</span><div><b>${esc(b.name)}</b><small>${b.bot ? `${(H.ACTS[b.act] || H.ACTS.jump)[0]} ${esc(b.habit)}` : `${esc(b.habit)}${b.rem ? ' · ' + Math.ceil(b.rem / 60) + ' min' : ''}${b.paused ? ' · pausa' : ''}`}</small></div></div>`).join('');
+  el.innerHTML = list.map(b => `<div class="bud${b.paused ? ' paused' : ''}"><span class="bud-f">${avatarSVG(b.look, 'av', '28 2 64 64')}</span><div><b>${esc(b.name)}</b><small>${esc(b.habit)}${b.rem ? ' · ' + Math.ceil(b.rem / 60) + ' min' : ''}${b.paused ? ' · pausa' : ''}</small></div></div>`).join('');
   F.budT = setTimeout(buddyLoop, 20000);
 }
 export function close() {

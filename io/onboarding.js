@@ -1,28 +1,37 @@
-/* IO — configuración inicial en 4 pasos: IO → tu personaje → tu rutina → ¡a jugar!
- * La rutina se arma tocando tarjetas; hora, minutos y días se eligen con chips (sin teclear),
- * y cada hábito muestra en vivo cómo lo hará tu personaje. */
-import { cfg, saveCfg, todayIso } from './store.js';
+/* IO — configuración inicial al estilo Duolingo/Finch: una pregunta por pantalla, la mascota IO
+ * te habla, y en 2 minutos tienes personaje, hábitos con horario, meta de racha y tu cuenta.
+ * Sin demo ni datos falsos: todo lo que ves es tuyo. */
+import { cfg, saveCfg, todayIso, putItem, getItem, sync } from './store.js';
 import * as H from './habits.js';
-import { avatarSVG, editorHTML, normLook } from './avatar.js';
+import { avatarSVG, editorHTML, normLook, PRESETS } from './avatar.js';
 import { sceneHTML } from './scenes.js';
+import * as Auth from './auth.js';
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const STEPS = [['intro', 'IO'], ['char', 'Tú'], ['habits', 'Rutina'], ['go', '¡A jugar!']];
+const STEPS = ['hola', 'nombre', 'look', 'areas', 'habitos', 'rutina', 'compromiso', 'cuenta', 'listo'];
 const ALL = [0, 1, 2, 3, 4, 5, 6], WEEK = [1, 2, 3, 4, 5], WKND = [0, 6];
 const MOMENTS = [['🌅', 'Mañana', '06:30'], ['☀️', 'Mediodía', '12:30'], ['🌇', 'Tarde', '18:00'], ['🌙', 'Noche', '21:00']];
 const MINS = [1, 5, 10, 15, 20, 30, 45, 60];
 const EMOJIS = ['⭐', '📖', '🧘', '🏃', '🏋️', '🚶', '🐕', '🥗', '💧', '🇬🇧', '💻', '🎓', '🎸', '🎨', '✍️', '🧹', '🍳', '🙏', '😴', '📵', '🤸', '🏊', '🧠', '🌱'];
-let d, step, onDone, avTab = 'cuerpo', rainT, cat = 0;
+const AREAS = [['Mente', '🧠', 'Leer, meditar, escribir, desconectarte'], ['Cuerpo', '💪', 'Moverte, entrenar, comer mejor'], ['Crecer', '🚀', 'Estudiar, idiomas, trabajo, arte'], ['Casa y calma', '🏠', 'Orden, cocina, agua, descanso']];
+const GOALS = [[3, 'Casual', 'para arrancar con calma'], [7, 'Serio', 'una semana entera'], [14, 'Intenso', 'dos semanas sin fallar'], [30, 'Leyenda', 'un mes: ya es parte de ti']];
+const K_DRAFT = 'io.onbDraft';
+let d, step, onDone, avTab = 'cuerpo', rainT, custom = false, mail = { sent: false, email: '' };
 
 export function openOnboarding(opts) {
   onDone = opts.onDone;
   const existing = H.list();
-  d = { name: cfg.name || '', look: normLook(cfg.avatar), habits: existing.map(h => ({ ...h, dias: h.dias?.length ? h.dias : [...ALL], act: H.actOf(h) })), open: -1 };
-  step = Math.min(opts.step ?? 0, STEPS.length - 1);
+  d = { name: cfg.name || '', look: normLook(cfg.avatar || PRESETS[0]), areas: [], habits: existing.map(h => ({ ...h, dias: h.dias?.length ? h.dias : [...ALL], act: H.actOf(h) })), open: -1, goal: cfg.goalDays || 7, returning: false };
+  step = opts.step ?? 0;
+  try { const dr = JSON.parse(localStorage.getItem(K_DRAFT) || 'null'); if (dr) { d = { ...d, ...dr.d }; step = dr.step; localStorage.removeItem(K_DRAFT); } } catch { /* */ }
   $('onb').hidden = false; document.body.style.overflow = 'hidden';
   draw();
 }
+const at = k => STEPS.indexOf(k);
+const go = k => { step = at(k); d.open = -1; draw(); };
+/** La mascota IO: un Game Boy con carita que te habla. */
+const mascot = (txt, mood = '') => `<div class="masc ${mood}"><div class="masc-gb" aria-hidden="true"><i class="masc-scr"><b></b><b></b><em></em></i><span></span></div><div class="bubble">${txt}</div></div>`;
 function close() { cancelAnimationFrame(rainT); $('onb').hidden = true; document.body.style.overflow = ''; }
 
 /* ---------- utilidades de la rutina ---------- */
@@ -32,12 +41,12 @@ const fmtMin = m => (m >= 60 ? `${Math.floor(m / 60)} h${m % 60 ? ' ' + (m % 60)
 const picked = n => d.habits.findIndex(x => x.nombre === n);
 
 function exampleCards() {
-  const [, , list] = H.CATEGORIES[cat];
-  return list.map(([e, n, m, h, , cf]) => {
+  const cats = H.CATEGORIES.filter(([, n]) => !d.areas.length || d.areas.includes(n));
+  return cats.map(([ce, cn, list]) => `<div class="ex-cat">${ce} ${cn}</div>` + list.map(([e, n, m, h, , cf]) => {
     const on = picked(n) >= 0;
     return `<button class="ex-card${on ? ' on' : ''}" data-o="ex" data-n="${esc(n)}" aria-pressed="${on}">
       <span class="ex-e">${e}</span><b>${esc(n)}</b><small>${cf?.tipo === 'conteo' ? `${cf.meta} ${cf.unidad}` : fmtMin(m)} · ${h}</small><i>${on ? '✓' : '＋'}</i></button>`;
-  }).join('');
+  }).join('')).join('');
 }
 function timeline() {
   if (!d.habits.length) return '';
@@ -94,24 +103,30 @@ function routine() {
 }
 
 function body() {
-  switch (STEPS[step][0]) {
-    case 'intro': return `<div class="io-intro"><canvas id="ioRain" aria-hidden="true"></canvas>
-      <div class="io-big"><span class="logo-flip"><span class="lf lf-a">IO</span><span class="lf lf-b">10</span></span></div>
-      <div class="io-def"><b>IO</b><span>se lee “yo”. Eres tú, frente a tu espejo.</span><b>1 0</b><span>el código con el que se escribe todo.</span><b>1</b><span>lo que haces.</span><b>0</b><span>lo que aún no.</span></div>
-      <h1 class="onb-h">Tu vida es el juego.</h1>
-      <div class="how">
-        <div><i>1</i><b>Eliges tus hábitos</b><small>con hora y minutos</small></div>
-        <div><i>2</i><b>Arrancas el reloj</b><small>y tu personaje lo hace contigo</small></div>
-        <div><i>3</i><b>Ganas la corona 👑</b><small>subes de piso y decoras</small></div>
-      </div></div>`;
-    case 'char': return `<div class="onb-eyebrow">PASO 1 · CREA TU PERSONAJE</div>
-      <div class="av-stage" data-mood="happy" id="onbPrev">${avatarSVG(d.look, 'av')}</div>
-      <div class="field"><label for="onbName">Tu nombre</label><input class="inp" id="onbName" value="${esc(d.name)}" autocomplete="given-name" maxlength="20" placeholder="¿Cómo te llamas?"></div>
-      <div id="onbEditor">${editorHTML(d.look, avTab)}</div>`;
-    case 'habits': return habitsStep();
-    case 'go': return `<div class="onb-eyebrow">PASO 3 · ¡A JUGAR!</div>
+  const n = esc(d.name || 'jugador');
+  switch (STEPS[step]) {
+    case 'hola': return `<div class="onb-hero"><canvas id="ioRain" aria-hidden="true"></canvas>
+      ${mascot('¡Hola! Soy <b>IO</b>. Aquí <b>tu vida es el juego</b>: cumples hábitos de verdad con un reloj, ganas coronas 👑 y construyes tu edificio piso por piso.', 'big')}
+      <div class="how"><div><i>⏱</i><b>Haces tu hábito</b><small>con reloj de verdad</small></div><div><i>👑</i><b>Ganas la corona</b><small>XP y bits</small></div><div><i>🏢</i><b>Subes de piso</b><small>y decoras tu mundo</small></div></div></div>`;
+    case 'nombre': return `${mascot('¿Cómo te llamas? Así te van a ver en el ranking.')}
+      <input class="inp big" id="onbName" value="${esc(d.name)}" autocomplete="given-name" maxlength="20" placeholder="Tu nombre">`;
+    case 'look': return `${mascot(`¡Mucho gusto, ${n}! Elige cómo te ves. Luego lo cambias cuando quieras.`)}
+      <div class="presets">${PRESETS.map((p, i) => `<button class="pre${JSON.stringify(p) === JSON.stringify(d.look) ? ' on' : ''}" data-o="preset" data-k="${i}" aria-label="Apariencia ${i + 1}" data-mood="happy">${avatarSVG(p, 'av', '14 0 92 110')}</button>`).join('')}</div>
+      <button class="onb-add" data-o="custom">${custom ? '▲ Ocultar opciones' : '✏️ Personalizar piel, pelo, ojos y ropa'}</button>
+      ${custom ? `<div class="av-stage" data-mood="happy" id="onbPrev">${avatarSVG(d.look, 'av')}</div><div id="onbEditor">${editorHTML(d.look, avTab)}</div>` : ''}`;
+    case 'areas': return `${mascot('¿Qué quieres mejorar? Elige una o varias.')}
+      <div class="areas">${AREAS.map(([a, e, t]) => `<button class="area${d.areas.includes(a) ? ' on' : ''}" data-o="area" data-v="${a}" aria-pressed="${d.areas.includes(a)}"><span>${e}</span><b>${a}</b><small>${t}</small><i>${d.areas.includes(a) ? '✓' : ''}</i></button>`).join('')}</div>`;
+    case 'habitos': return `${mascot('Estos van con lo que elegiste. Empieza con <b>2 o 3</b>: lo pequeño que se cumple gana.')}
+      <form class="own" data-o="own"><input class="inp" id="ownIn" maxlength="40" placeholder="＋ Escribe el tuyo: “sacar al perro”…" autocomplete="off"><button class="btn-acc" type="submit">Agregar</button></form>
+      <div class="ex-grid" id="exGrid">${exampleCards()}</div>
+      <div id="onbRoutine" hidden></div>`;
+    case 'rutina': return `${mascot('¿Cuándo los harás? Toca cada uno para cambiar la hora, los minutos o los días.')}
+      <div id="onbRoutine">${routine()}</div><div id="exGrid" hidden></div>`;
+    case 'compromiso': return `${mascot('¿Cuál es tu meta de racha? Días seguidos cumpliendo al menos un hábito.')}
+      <div class="goals">${GOALS.map(([g, t, s2]) => `<button class="goal${d.goal === g ? ' on' : ''}" data-o="goal" data-v="${g}"><b>${g} días</b><span>${t}</span><small>${s2}</small><i>🔥</i></button>`).join('')}</div>`;
+    case 'cuenta': return accountStep();
+    case 'listo': return `${mascot(`¡Listo, ${n}! Tu partida empieza en el <b>piso 1</b>. Estas son las reglas:`, 'party')}
       <div class="av-stage" data-mood="excited">${avatarSVG(d.look, 'av')}</div>
-      <h1 class="onb-h">${esc(d.name || 'Player 1')}, tu partida empieza en el piso 1.</h1>
       <ul class="rules">
         <li><span>▶</span><div><b>Empieza a la hora.</b> ±30 min = +25% de premio.</div></li>
         <li><span>⏸</span><div><b>Se puede pausar, no terminar antes.</b> Sin reloj completo no hay corona.</div></li>
@@ -123,22 +138,53 @@ function body() {
   }
   return '';
 }
-function draw() {
-  const last = step === STEPS.length - 1; const isHab = STEPS[step][0] === 'habits';
-  $('onb').innerHTML = `
-    <div class="onb-top"><div class="onb-steps">${STEPS.map(([, l], i) => `<i class="${i < step ? 'done' : i === step ? 'on' : ''}"><span>${l}</span></i>`).join('')}</div>
-      ${!cfg.onboarded && step === 0 ? '<button class="onb-skip" data-o="demo">Ver demo</button>' : cfg.onboarded ? '<button class="onb-skip" data-o="close">Cerrar</button>' : ''}</div>
-    <div class="onb-body" id="onbBody">${body()}</div>
-    <div class="onb-foot">${step > 0 ? '<button class="btn-ghost" data-o="back" aria-label="Atrás">←</button>' : ''}
-      <button class="btn-acc${last ? ' btn-green' : ''}${isHab && !d.habits.length ? ' off' : ''}" data-o="next" id="onbNext">${nextLabel()}</button></div>`;
-  $('onbBody').scrollTop = 0;
-  if (step === 0) binaryRain();
-  if (isHab) wireInputs();
+function accountStep() {
+  const u = Auth.user();
+  if (!Auth.configured()) return `${mascot('Muy pronto podrás guardar tu partida en la nube con Google o tu correo. Por ahora queda guardada en este celular.')}`;
+  if (u) return `${mascot(`¡Listo! Tu partida queda guardada como <b>${esc(u.email || u.name)}</b>.`, 'party')}`;
+  return `${mascot(d.returning ? '¡Qué bueno verte! Entra con tu cuenta y traigo tu partida.' : 'Guarda tu partida para no perderla nunca y aparecer en el ranking con tu nombre.')}
+    <div class="login">
+      <button class="btn-google" data-o="google"><svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>Continuar con Google</button>
+      <div class="or"><span>o con tu correo</span></div>
+      ${!mail.sent ? `<input class="inp" id="obEmail" type="email" autocomplete="email" placeholder="tu@correo.com" value="${esc(mail.email)}"><button class="btn-ghost" data-o="sendcode">Enviarme un código</button>`
+        : `<p class="note">Te enviamos un código de 6 dígitos a <b>${esc(mail.email)}</b>. Revisa también spam.</p><input class="inp code" id="obCode" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="123456"><button class="btn-acc" data-o="verify">Entrar</button><button class="onb-add" data-o="resend">Usar otro correo</button>`}
+      <p class="note small" id="obErr"></p></div>`;
 }
-const nextLabel = () => step === 0 ? 'Empezar →' : STEPS[step][0] === 'habits' ? (d.habits.length ? `Listo, ${d.habits.length} hábito${d.habits.length > 1 ? 's' : ''} →` : 'Elige al menos un hábito') : step === STEPS.length - 1 ? '▶ PRESS START' : 'Siguiente →';
+function draw() {
+  const k = STEPS[step]; const last = k === 'listo';
+  const blocked = (k === 'areas' && !d.areas.length) || ((k === 'habitos' || k === 'rutina') && !d.habits.length) || (k === 'nombre' && !d.name.trim()) || (k === 'cuenta' && Auth.configured() && !Auth.signedIn());
+  $('onb').innerHTML = `
+    <div class="onb-top">${step > 0 && !(k === 'cuenta' && d.returning) ? '<button class="onb-back" data-o="back" aria-label="Atrás">←</button>' : d.returning ? '<button class="onb-back" data-o="home" aria-label="Atrás">←</button>' : ''}
+      <div class="onb-prog" aria-hidden="true"><i style="width:${Math.round(step / (STEPS.length - 1) * 100)}%"></i></div>
+      ${cfg.onboarded ? '<button class="onb-skip" data-o="close">Cerrar</button>' : ''}</div>
+    <div class="onb-body" id="onbBody">${body()}</div>
+    <div class="onb-foot">
+      ${k === 'hola' ? `<button class="btn-acc btn-green big" data-o="next">EMPEZAR</button>${Auth.configured() ? '<button class="btn-ghost" data-o="returning">YA TENGO CUENTA</button>' : ''}`
+        : k === 'cuenta' && blocked ? '' : `<button class="btn-acc big${last ? ' btn-green' : ''}${blocked ? ' off' : ''}" data-o="next" id="onbNext">${nextLabel()}</button>`}</div>`;
+  $('onbBody').scrollTop = 0;
+  if (k === 'hola') binaryRain();
+  if (k === 'nombre') { const i = $('onbName'); i.focus(); i.oninput = () => { d.name = i.value; $('onbNext').classList.toggle('off', !i.value.trim()); }; i.onkeydown = e => { if (e.key === 'Enter' && i.value.trim()) { e.preventDefault(); next(); } }; }
+  if (k === 'rutina') wireInputs();
+  if (k === 'cuenta') { const e = $('obEmail'); if (e) e.onkeydown = ev => { if (ev.key === 'Enter') { ev.preventDefault(); $('onb').querySelector('[data-o="sendcode"]').click(); } }; }
+}
+const nextLabel = () => { const k = STEPS[step]; return k === 'habitos' ? (d.habits.length ? `CONTINUAR · ${d.habits.length} hábito${d.habits.length > 1 ? 's' : ''}` : 'ELIGE AL MENOS UNO') : k === 'areas' && !d.areas.length ? 'ELIGE AL MENOS UNA' : k === 'compromiso' ? `ME COMPROMETO · ${d.goal} DÍAS 🔥` : k === 'listo' ? '▶ PRESS START' : 'CONTINUAR'; };
+function next() {
+  const k = STEPS[step];
+  if (k === 'nombre' && !d.name.trim()) return;
+  if (k === 'areas' && !d.areas.length) return;
+  if ((k === 'habitos' || k === 'rutina') && !d.habits.length) return;
+  if (k === 'cuenta' && Auth.configured() && !Auth.signedIn()) return;
+  if (k === 'listo') return finish();
+  if (k === 'areas' && !d.habits.length) seedSuggestions();
+  step++; d.open = -1; draw();
+}
+/** Primer hábito de cada área elegida, ya marcado: el jugador solo ajusta. */
+function seedSuggestions() {
+  H.CATEGORIES.filter(([, n]) => d.areas.includes(n)).forEach(([, , list]) => { const ex = list[0]; if (picked(ex[1]) < 0 && d.habits.length < 3) addHabit({ emoji: ex[0], nombre: ex[1], min: ex[2], hora: ex[3], act: ex[4], ...(ex[5] || {}) }); });
+}
 /** Redibuja solo la rutina (sin perder el scroll). */
 function redrawRoutine(scrollTo = -1) {
-  $('onbRoutine').innerHTML = routine(); $('exGrid').innerHTML = exampleCards(); $('onbNext').textContent = nextLabel(); $('onbNext').classList.toggle('off', !d.habits.length);
+  if ($('onbRoutine')) $('onbRoutine').innerHTML = routine(); if ($('exGrid')) $('exGrid').innerHTML = exampleCards(); if ($('onbNext')) { $('onbNext').textContent = nextLabel(); $('onbNext').classList.toggle('off', !d.habits.length); }
   wireInputs();
   if (scrollTo >= 0) document.querySelector(`.hc[data-i="${scrollTo}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
@@ -161,16 +207,30 @@ function addHabit(h, openIt = false) {
 }
 function finish() {
   readName();
-  saveCfg({ name: d.name || 'Player 1', avatar: d.look, onboarded: true, since: cfg.since || todayIso() });
+  saveCfg({ name: (d.name || 'Jugador').trim().slice(0, 20), avatar: d.look, onboarded: true, since: cfg.since || todayIso(), goalDays: d.goal, rankOn: cfg.rankOn !== false });
   const keep = new Set();
   d.habits.filter(h => h.nombre.trim()).forEach(h => {
     const it = H.save({ nombre: h.nombre.trim(), emoji: h.emoji || '⭐', min: h.min, hora: h.hora || '08:00', dias: h.dias?.length ? h.dias : [...ALL], motivo: h.motivo || '', act: h.act || H.guessAct(h.nombre, h.emoji), ...(h.tipo === 'conteo' ? { tipo: 'conteo', meta: h.meta || 1, unidad: h.unidad || 'veces', pausa: h.pausa ?? 15 } : {}) }, h.id || null);
     keep.add(it.id);
   });
   H.list().forEach(h => { if (!keep.has(h.id)) H.remove(h.id); });
+  putItem('profile', { name: cfg.name, avatar: cfg.avatar, since: cfg.since, goalDays: cfg.goalDays }, 'io:profile');
   $('onb').innerHTML = `<div class="onb-boot"><b>IO SYSTEM</b><span>01001001 01001111</span><span class="blink">▶ PRESS START</span></div>`;
   setTimeout(() => { close(); onDone?.({ first: true }); }, 1500);
 }
+/** Al entrar con cuenta: si ya tenías partida en la nube, la traigo y sigues jugando. */
+async function onLogin() {
+  await sync();
+  const prof = getItem('io:profile');
+  if (d.returning && prof && getItem('io:game')) {
+    saveCfg({ name: prof.name || cfg.name, avatar: prof.avatar || cfg.avatar, since: prof.since, goalDays: prof.goalDays, onboarded: true });
+    $('onb').innerHTML = `<div class="onb-boot"><b>¡DE VUELTA!</b><span>Tu partida está aquí</span><span class="blink">▶ PRESS START</span></div>`;
+    return setTimeout(() => { close(); onDone?.({ first: false, restored: true }); }, 1400);
+  }
+  if (d.returning) { d.returning = false; step = at('nombre'); if (!d.name && Auth.user()?.name) d.name = Auth.user().name.split(' ')[0]; return draw(); }
+  draw(); setTimeout(next, 900);
+}
+window.addEventListener('io:login', () => { if (!$('onb').hidden) onLogin(); });
 function binaryRain() {
   const c = $('ioRain'); if (!c || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const ctx = c.getContext('2d'); const W = c.width = c.offsetWidth * 2, Hh = c.height = c.offsetHeight * 2;
@@ -191,25 +251,31 @@ document.addEventListener('submit', e => {
   const n = $('ownIn').value.trim(); if (!n) return $('ownIn').focus();
   addHabit({ emoji: H.guessEmoji(n), nombre: n, min: 15, hora: '08:00', act: H.guessAct(n) }, true);
   $('ownIn').value = ''; redrawRoutine(d.open);
+  if ($('exGrid') && !$('exGrid').hidden) $('exGrid').insertAdjacentHTML('afterbegin', `<div class="ex-cat">✨ Agregado: ${esc(n)} · lo ajustas en el siguiente paso</div>`);
 });
-document.addEventListener('click', e => {
+document.addEventListener('click', async e => {
   if ($('onb').hidden) return;
   const tab = e.target.closest('[data-avtab]');
   if (tab) { avTab = tab.dataset.avtab; $('onbEditor').innerHTML = editorHTML(d.look, avTab); return; }
   const av = e.target.closest('[data-av]');
-  if (av) { d.look[av.dataset.av] = av.dataset.v; $('onbPrev').innerHTML = avatarSVG(d.look, 'av'); av.parentElement.querySelectorAll('[data-av]').forEach(b => b.classList.toggle('on', b === av)); return; }
+  if (av) { d.look[av.dataset.av] = av.dataset.v; $('onbPrev').innerHTML = avatarSVG(d.look, 'av'); av.parentElement.querySelectorAll('[data-av]').forEach(b => b.classList.toggle('on', b === av)); document.querySelectorAll('.pre.on').forEach(p => p.classList.remove('on')); return; }
   const el = e.target.closest('[data-o]'); if (!el || el.tagName === 'FORM' || el.tagName === 'LABEL') return;
   e.preventDefault(); readName();
   const o = el.dataset.o; const i = +el.dataset.i; const h = d.habits[i];
-  if (o === 'next') {
-    if (STEPS[step][0] === 'habits' && !d.habits.length) return;
-    if (step === STEPS.length - 1) return finish();
-    step++; d.open = -1; return draw();
-  }
-  if (o === 'back') { step = Math.max(0, step - 1); return draw(); }
+  const err = m => { const x = $('obErr'); if (x) x.textContent = m; };
+  if (o === 'next') return next();
+  if (o === 'back') { step = Math.max(0, step - 1); d.open = -1; return draw(); }
+  if (o === 'home') { d.returning = false; return go('hola'); }
+  if (o === 'returning') { d.returning = true; return go('cuenta'); }
   if (o === 'close') { close(); return onDone?.({ first: false }); }
-  if (o === 'demo') { close(); return onDone?.({ demo: true }); }
-  if (o === 'cat') { cat = +el.dataset.k; document.querySelectorAll('.cat-tabs button').forEach((b, k) => b.classList.toggle('on', k === cat)); $('exGrid').innerHTML = exampleCards(); return; }
+  if (o === 'preset') { d.look = normLook(PRESETS[+el.dataset.k]); document.querySelectorAll('.pre').forEach(p => p.classList.toggle('on', p === el)); if (custom) { $('onbPrev').innerHTML = avatarSVG(d.look, 'av'); $('onbEditor').innerHTML = editorHTML(d.look, avTab); } return; }
+  if (o === 'custom') { custom = !custom; return draw(); }
+  if (o === 'area') { const v = el.dataset.v; d.areas = d.areas.includes(v) ? d.areas.filter(x => x !== v) : [...d.areas, v]; return draw(); }
+  if (o === 'goal') { d.goal = +el.dataset.v; return draw(); }
+  if (o === 'google') { try { localStorage.setItem(K_DRAFT, JSON.stringify({ d, step })); Auth.google(); } catch (x) { err(x.message); } return; }
+  if (o === 'sendcode') { const em = ($('obEmail')?.value || '').trim(); if (!/^\S+@\S+\.\S+$/.test(em)) return err('Escribe un correo válido.'); el.disabled = true; try { await Auth.sendCode(em); mail = { sent: true, email: em }; draw(); $('obCode')?.focus(); } catch (x) { err(x.message); el.disabled = false; } return; }
+  if (o === 'resend') { mail = { sent: false, email: mail.email }; return draw(); }
+  if (o === 'verify') { el.disabled = true; try { await Auth.verifyCode(mail.email, $('obCode').value); mail = { sent: false, email: '' }; await onLogin(); } catch (x) { err(x.message); el.disabled = false; } return; }
   if (o === 'ex') {
     const ex = H.EXAMPLES.find(x => x[1] === el.dataset.n); const k = picked(ex[1]);
     if (k >= 0) { d.habits.splice(k, 1); d.open = -1; } else addHabit({ emoji: ex[0], nombre: ex[1], min: ex[2], hora: ex[3], act: ex[4], ...(ex[5] || {}) });
