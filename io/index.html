@@ -3,154 +3,950 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="robots" content="noindex, nofollow">
-<title>IO</title>
-<meta name="description" content="IO: yo · 1 0. Un juego de hábitos que se juega en la vida real. Siempre gratis.">
+<title>IO · Tu vida es el juego</title>
+<meta name="description" content="IO es un videojuego retro gratis donde subes de nivel haciendo tus hábitos reales. El reloj cuenta de verdad: si lees 20 minutos, tu personaje lee contigo.">
 <meta name="theme-color" content="#09090f">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="IO">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta property="og:title" content="IO · Tu vida es el juego">
+<meta property="og:description" content="Un videojuego retro donde tus hábitos reales te suben de nivel. Gratis, sin anuncios.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="img/hero-perro.webp">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="app/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="app/icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#09090f;--s1:#111120;--s2:#181830;--s3:#1f1f3c;--s4:#2a2a52;
+  --acc:#7c5cff;--acc2:#a78bfa;--acc3:#c4b5fd;--cyan:#22d3ee;--green:#4ade80;--amber:#fbbf24;--red:#f87171;--pink:#f472b6;
+  --text:#eeecfc;--muted:#a3a1cc;--dim:#6b69a0;--border:rgba(124,92,255,.18);--bh:rgba(124,92,255,.4);
+  --glass:rgba(12,11,24,.72);
+  --font:'Space Grotesk',system-ui,sans-serif;--mono:'Space Mono',ui-monospace,monospace;--pixel:'Press Start 2P',ui-monospace,monospace;
+  --gb:#9bbc0f;--gb2:#8bac0f;--gb3:#306230;--gb4:#0f380f;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);overflow-x:hidden;line-height:1.55}
+a{color:inherit}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+input,select{font:inherit;color:var(--text)}
+img,video{display:block;max-width:100%}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:3px;border-radius:6px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+@media (max-width:520px){.wrap{padding:0 16px}}
+
+/* ============ mundo 3D de fondo ============ */
+#world{position:fixed;inset:0;width:100%;height:100%;z-index:0;display:block;transition:opacity .6s}
+body.deep #world{opacity:.5}
+@media (max-width:700px){body.deep #world{opacity:.3}}
+.hero .h1,.hero .lead{text-shadow:0 2px 24px rgba(9,9,15,.9),0 0 2px rgba(9,9,15,.8)}
+.hero .h1 .glow{text-shadow:none}
+.bg-fallback{position:fixed;inset:0;z-index:0;background:
+  radial-gradient(ellipse 70% 50% at 50% 100%,rgba(124,92,255,.35),transparent 70%),
+  radial-gradient(ellipse 60% 40% at 80% 10%,rgba(34,211,238,.14),transparent 70%),var(--bg)}
+.vignette{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse 120% 90% at 50% 40%,transparent 55%,rgba(5,5,10,.75))}
+.scan{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:.07;background:repeating-linear-gradient(0deg,#000 0 1px,transparent 1px 3px)}
+main,header,footer{position:relative;z-index:3}
+
+/* ============ intro tipo consola ============ */
+.boot{position:fixed;inset:0;z-index:100;display:grid;place-items:center;background:#05050a;transition:opacity .7s ease,visibility .7s}
+.boot.out{opacity:0;visibility:hidden}
+.gbx{position:relative;width:min(300px,78vw);aspect-ratio:10/16.4;background:linear-gradient(160deg,#dcd8ec,#b9b4d2);border-radius:14px 14px 56px 14px;padding:clamp(16px,6vw,22px) clamp(16px,6vw,22px) 0;box-shadow:inset -6px -8px 0 rgba(0,0,0,.12),0 30px 80px rgba(124,92,255,.35);transition:transform .9s cubic-bezier(.6,0,.2,1)}
+.boot.go .gbx{transform:scale(7) translateY(9%)}
+.gbx-bez{background:#3d3b5c;border-radius:8px 8px 30px 8px;padding:9% 9% 11%;position:relative}
+.gbx-led{position:absolute;left:4%;top:34%;width:7px;height:7px;border-radius:50%;background:#3a1a1a}
+.boot.on .gbx-led{background:#ff3b3b;box-shadow:0 0 8px #ff3b3b}
+.gbx-scr{aspect-ratio:10/9;background:var(--gb4);border-radius:3px;overflow:hidden;position:relative;display:grid;place-items:center;transition:background .4s}
+.boot.on .gbx-scr{background:var(--gb)}
+.gbx-logo{font-family:var(--pixel);font-size:clamp(26px,9vw,40px);color:var(--gb4);transform:translateY(-230%);letter-spacing:2px}
+.boot.on .gbx-logo{animation:bootDrop 1.5s cubic-bezier(.3,.7,.3,1) .3s forwards}
+@keyframes bootDrop{to{transform:translateY(-35%)}}
+.gbx-sub{position:absolute;bottom:30%;font-family:var(--pixel);font-size:7px;color:var(--gb3);opacity:0;letter-spacing:.5px}
+.gbx-ps{position:absolute;bottom:12%;font-family:var(--pixel);font-size:9px;color:var(--gb4);opacity:0}
+.boot.on .gbx-sub{animation:fadeIn .4s 1.8s forwards}
+.boot.on .gbx-ps{animation:fadeIn .1s 2.2s forwards,blink 1s 2.3s steps(1) infinite}
+@keyframes fadeIn{to{opacity:1}}
+@keyframes blink{50%{opacity:0}}
+.gbx-name{font-family:var(--pixel);font-size:8px;color:#3d3b5c;margin:6% 0 0 2%;letter-spacing:1px}
+.gbx-name i{font-style:italic;color:var(--acc)}
+.gbx-pad{position:absolute;left:10%;bottom:21%;width:26%;aspect-ratio:1}
+.gbx-pad::before,.gbx-pad::after{content:"";position:absolute;background:#2a2940;border-radius:3px}
+.gbx-pad::before{left:34%;top:0;width:32%;height:100%}.gbx-pad::after{top:34%;left:0;height:32%;width:100%}
+.gbx-ab{position:absolute;right:9%;bottom:24%;display:flex;gap:10px;transform:rotate(-25deg)}
+.gbx-ab span{width:clamp(22px,8vw,30px);aspect-ratio:1;border-radius:50%;background:#9c2a5c;box-shadow:inset -2px -3px 0 rgba(0,0,0,.25)}
+.boot-hint{position:absolute;bottom:max(24px,env(safe-area-inset-bottom));left:0;right:0;text-align:center;font-family:var(--pixel);font-size:9px;color:var(--dim);letter-spacing:1px}
+.boot-skip{position:absolute;top:max(16px,env(safe-area-inset-top));right:16px;font-size:13px;color:var(--muted);padding:8px 12px;border:1px solid var(--border);border-radius:10px}
+
+/* ============ encabezado ============ */
+header{position:fixed;top:0;left:0;right:0;z-index:50;transition:background .3s,border-color .3s;border-bottom:1px solid transparent}
+header.solid{background:rgba(9,9,15,.8);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-color:var(--border)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:64px;gap:14px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:700}
+.brand b{font-size:28px;letter-spacing:-1px;background:linear-gradient(90deg,var(--acc2),var(--cyan),var(--green),var(--amber),var(--pink),var(--acc2));background-size:300% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:rainbow 8s linear infinite}
+@keyframes rainbow{to{background-position:300% 0}}
+.brand small{font-family:var(--mono);font-size:11px;color:var(--dim)}
+.links{display:flex;gap:22px;font-size:14px;color:var(--muted)}
+.links a{text-decoration:none}.links a:hover{color:var(--text)}
+@media (max-width:860px){.links{display:none}.brand small{display:none}}
+
+/* ============ botones ============ */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:14px 22px;border-radius:14px;font-weight:700;text-decoration:none;font-size:16px;transition:transform .15s,box-shadow .2s;white-space:nowrap}
+.btn:active{transform:translateY(2px)}
+.btn-start{font-family:var(--pixel);font-size:13px;letter-spacing:1px;color:#1a1033;background:linear-gradient(180deg,#ffe27a,var(--amber));box-shadow:0 5px 0 #b7791f,0 0 30px rgba(251,191,36,.45)}
+.btn-start:hover{box-shadow:0 5px 0 #b7791f,0 0 50px rgba(251,191,36,.7)}
+.btn-start:active{box-shadow:0 1px 0 #b7791f}
+.btn-ghost{border:1px solid var(--bh);background:rgba(124,92,255,.12);color:var(--text)}
+.btn-ghost:hover{background:rgba(124,92,255,.22)}
+.btn-sm{padding:10px 14px;font-size:10px}
+
+/* ============ portada ============ */
+.hero{min-height:100svh;display:flex;flex-direction:column;justify-content:center;padding:96px 0 60px;position:relative}
+.hero .wrap{width:100%}
+.tag{display:inline-flex;align-items:center;gap:8px;font-family:var(--pixel);font-size:9px;letter-spacing:1px;color:var(--green);background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.3);padding:8px 12px;border-radius:30px}
+.tag i{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:blink 1.4s steps(1) infinite}
+.h1{font-size:clamp(48px,10vw,120px);line-height:.92;letter-spacing:-3px;font-weight:700;margin:22px 0 18px;max-width:11ch}
+.h1 .glow{background:linear-gradient(90deg,var(--acc2),var(--cyan) 40%,var(--green) 70%,var(--amber));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 30px rgba(124,92,255,.5))}
+.lead{font-size:clamp(17px,2.2vw,21px);color:var(--muted);max-width:40ch}
+.lead b{color:var(--text)}
+.cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px;align-items:center}
+.hero-stats{display:flex;flex-wrap:wrap;gap:26px;margin-top:40px;font-family:var(--mono);font-size:13px;color:var(--muted)}
+.hero-stats b{display:block;font-family:var(--pixel);font-size:15px;color:var(--text);margin-bottom:6px}
+.scrolldown{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);font-family:var(--pixel);font-size:8px;color:var(--dim);text-align:center;letter-spacing:1px;text-decoration:none}
+.scrolldown span{display:block;font-size:14px;animation:bob 1.4s ease-in-out infinite;margin-top:6px}
+@keyframes bob{50%{transform:translateY(6px)}}
+
+/* HUD del piso mientras bajas */
+.hud{position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:20;display:flex;flex-direction:column;align-items:center;gap:8px;font-family:var(--pixel);font-size:8px;color:var(--muted);pointer-events:none;transition:opacity .4s}
+.hud .rail{width:6px;height:160px;border-radius:4px;background:rgba(255,255,255,.08);position:relative;overflow:hidden}
+.hud .rail i{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(0deg,var(--amber),var(--cyan),var(--acc),var(--pink),var(--green));height:0}
+.hud .fl{color:var(--text);font-size:10px}
+.hud .wn{writing-mode:vertical-rl;transform:rotate(180deg);letter-spacing:1px;max-height:200px;white-space:nowrap}
+@media (max-width:700px){.hud{right:8px}.hud .wn{display:none}.hud .rail{height:110px}}
+
+/* ============ secciones ============ */
+section{padding:110px 0;position:relative}
+@media (max-width:700px){section{padding:76px 0}}
+.panel{background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--border);border-radius:28px}
+.eyebrow{font-family:var(--pixel);font-size:10px;letter-spacing:1.5px;color:var(--cyan);margin-bottom:16px}
+.h2{font-size:clamp(32px,5vw,56px);line-height:1.02;letter-spacing:-1.5px;font-weight:700;margin-bottom:18px;max-width:18ch}
+.h3{font-size:20px;font-weight:700;margin-bottom:6px}
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .8s ease,transform .8s cubic-bezier(.2,.7,.2,1)}
+.reveal.in{opacity:1;transform:none}
+
+/* qué es */
+.what{display:grid;grid-template-columns:1.05fr .95fr;gap:50px;align-items:center}
+@media (max-width:900px){.what{grid-template-columns:1fr}}
+.pillars{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:28px}
+@media (max-width:520px){.pillars{grid-template-columns:1fr}}
+.pill{padding:18px;border-radius:18px;background:rgba(255,255,255,.03);border:1px solid var(--border)}
+.pill .ic{font-size:26px;margin-bottom:8px}
+.pill p{color:var(--muted);font-size:15px}
+.stage{position:relative;display:grid;place-items:center;min-height:620px}
+.phone{position:relative;width:300px;aspect-ratio:390/780;border-radius:44px;padding:10px;background:linear-gradient(145deg,#2c2a4a,#121122);box-shadow:0 0 0 2px #3a3860,0 40px 90px rgba(0,0,0,.6),0 0 90px rgba(124,92,255,.3);transform:perspective(1200px) rotateY(-12deg) rotateX(4deg);transition:transform .6s}
+.phone:hover{transform:perspective(1200px) rotateY(0) rotateX(0)}
+.phone .sc{position:relative;width:100%;height:100%;border-radius:34px;overflow:hidden;background:#09090f}
+.phone iframe,.phone video,.phone img{position:absolute;inset:0;width:100%;height:100%;border:0;object-fit:cover}
+.phone iframe{width:390px;height:780px;transform-origin:0 0}
+.phone .notch{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:90px;height:24px;border-radius:0 0 14px 14px;background:#121122;z-index:3}
+.stage-note{position:absolute;bottom:-4px;font-size:13px;color:var(--dim);text-align:center;width:100%}
+.float{position:absolute;padding:10px 14px;border-radius:14px;font-size:13px;font-weight:600;background:rgba(17,17,32,.92);border:1px solid var(--bh);box-shadow:0 14px 30px rgba(0,0,0,.4);animation:floaty 5s ease-in-out infinite;white-space:nowrap;z-index:4}
+.float b{font-family:var(--pixel);font-size:9px;color:var(--amber)}
+@keyframes floaty{50%{transform:translateY(-10px)}}
+@media (max-width:520px){.float{display:none}.stage{min-height:560px}.phone{width:260px}}
+
+/* tráiler */
+.trailer{display:grid;grid-template-columns:auto 1fr;gap:48px;align-items:center;padding:36px}
+@media (max-width:820px){.trailer{grid-template-columns:1fr;padding:24px;text-align:center}.trailer .lead{margin-inline:auto}.trailer .cta{justify-content:center}}
+.tv{position:relative;width:280px;margin:0 auto;border-radius:30px;padding:9px;background:#15142a;box-shadow:0 0 0 2px #34325a,0 30px 70px rgba(0,0,0,.55)}
+.tv video{width:100%;border-radius:22px;aspect-ratio:360/780;object-fit:cover;background:#09090f}
+.tv .rec{position:absolute;top:22px;left:22px;font-family:var(--pixel);font-size:8px;color:#fff;background:rgba(0,0,0,.55);padding:5px 8px;border-radius:8px;display:flex;gap:6px;align-items:center}
+.tv .rec i{width:7px;height:7px;border-radius:50%;background:var(--red);animation:blink 1s steps(1) infinite}
+.scenes{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
+.scenes span{font-size:13px;padding:7px 11px;border-radius:30px;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--muted)}
+
+/* cómo se juega */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:40px;counter-reset:s}
+@media (max-width:980px){.steps{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){.steps{grid-template-columns:1fr}}
+.step{padding:24px;border-radius:22px;background:var(--glass);border:1px solid var(--border);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);position:relative;overflow:hidden;transition:transform .3s,border-color .3s}
+.step:hover{transform:translateY(-6px);border-color:var(--bh)}
+.step::before{counter-increment:s;content:"0" counter(s);position:absolute;right:16px;top:14px;font-family:var(--pixel);font-size:24px;color:rgba(124,92,255,.22)}
+.step .ic{width:54px;height:54px;border-radius:16px;display:grid;place-items:center;font-size:28px;margin-bottom:16px;background:linear-gradient(145deg,rgba(124,92,255,.3),rgba(34,211,238,.12));border:1px solid var(--bh)}
+.step p{color:var(--muted);font-size:15px}
+.controls{margin-top:22px;display:grid;grid-template-columns:auto 1fr;gap:34px;align-items:center;padding:28px}
+@media (max-width:760px){.controls{grid-template-columns:1fr;gap:20px}}
+.pad{position:relative;width:220px;height:120px;margin:0 auto}
+.dpad{position:absolute;left:0;top:14px;width:92px;height:92px}
+.dpad i{position:absolute;background:#26254a;border-radius:6px;box-shadow:inset 0 -3px 0 rgba(0,0,0,.35)}
+.dpad i:nth-child(1){left:31px;top:0;width:30px;height:92px}.dpad i:nth-child(2){top:31px;left:0;height:30px;width:92px}
+.dpad em{position:absolute;font-style:normal;font-size:10px;color:var(--muted)}
+.ab{position:absolute;right:0;top:20px;display:flex;gap:12px;transform:rotate(-20deg)}
+.ab b{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-family:var(--pixel);font-size:11px;color:#fff;box-shadow:inset -3px -4px 0 rgba(0,0,0,.25),0 0 22px rgba(244,114,182,.35)}
+.ab b:nth-child(1){background:#8b5cf6;margin-top:18px}.ab b:nth-child(2){background:#ec4899}
+.keys{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.key{display:flex;gap:12px;align-items:flex-start;font-size:15px;color:var(--muted)}
+.key kbd{flex:none;min-width:64px;text-align:center;font-family:var(--pixel);font-size:9px;color:var(--text);padding:8px;border-radius:9px;background:var(--s3);border:1px solid var(--bh);box-shadow:0 3px 0 var(--s1)}
+.key b{color:var(--text)}
+
+/* mundos */
+.worlds{display:flex;gap:16px;overflow-x:auto;padding:30px 20px 20px;margin:0 -20px;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;scrollbar-width:thin}
+@media (max-width:520px){.worlds{margin:0 -16px;padding:30px 16px 20px}}
+.wcard{flex:0 0 250px;scroll-snap-align:center;border-radius:24px;padding:22px;min-height:300px;display:flex;flex-direction:column;justify-content:flex-end;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.1);transition:transform .35s}
+.wcard:hover{transform:translateY(-8px) rotate(-1deg)}
+.wcard .fl{font-family:var(--pixel);font-size:9px;opacity:.85;margin-bottom:10px}
+.wcard h3{font-size:22px;line-height:1.1;margin-bottom:8px}
+.wcard p{font-size:14px;opacity:.85}
+.wcard .art{position:absolute;inset:0;z-index:-1}
+.wcard .bld{position:absolute;bottom:0;left:50%;transform:translateX(-50%);display:flex;align-items:flex-end;gap:6px;opacity:.55}
+.wcard .bld i{display:block;width:26px;background:repeating-linear-gradient(0deg,rgba(255,255,255,.35) 0 4px,transparent 4px 12px),rgba(0,0,0,.35);border-radius:3px 3px 0 0}
+.w1{background:linear-gradient(170deg,#3b2410,#1a1020)}.w2{background:linear-gradient(170deg,#0d3140,#0a1222)}.w3{background:linear-gradient(170deg,#2b1a66,#0f0c24)}.w4{background:linear-gradient(170deg,#5a1f4a,#1a1030)}.w5{background:linear-gradient(170deg,#0f3a2a,#06101a)}.w6{background:linear-gradient(170deg,#333,#0b0b14)}
+
+/* diferente */
+.cmp{width:100%;border-collapse:separate;border-spacing:0;margin-top:36px;font-size:15px;overflow:hidden;border-radius:22px}
+.cmp th,.cmp td{padding:16px 18px;text-align:left;border-bottom:1px solid var(--border)}
+.cmp thead th{font-family:var(--pixel);font-size:9px;letter-spacing:1px;color:var(--muted);background:rgba(17,17,32,.9)}
+.cmp thead th.io{color:var(--amber)}
+.cmp td{background:rgba(12,11,24,.78)}
+.cmp td.io{background:rgba(124,92,255,.16);color:var(--text);font-weight:600}
+.cmp td:not(.io):not(:first-child){color:var(--dim)}
+.cmp tr:last-child td{border-bottom:0}
+.cmp-wrap{overflow-x:auto;margin:0 -4px;padding:0 4px}
+.cmp{min-width:640px}
+
+/* metas */
+.goals{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:36px}
+@media (max-width:860px){.goals{grid-template-columns:1fr}}
+.goal{padding:26px;border-radius:22px;background:var(--glass);border:1px solid var(--border);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.goal .n{font-family:var(--pixel);font-size:26px;margin-bottom:14px;background:linear-gradient(90deg,var(--amber),var(--pink));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.goal p{color:var(--muted)}
+.road{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:22px}
+@media (max-width:860px){.road{grid-template-columns:1fr 1fr}}
+.rd{padding:18px;border-radius:18px;border:1px dashed var(--bh);font-size:14px;color:var(--muted);background:rgba(9,9,15,.6)}
+.rd b{display:block;color:var(--text);font-size:15px;margin-bottom:4px}
+.rd.now{border-style:solid;border-color:rgba(74,222,128,.5);background:rgba(74,222,128,.07)}
+.rd .when{font-family:var(--pixel);font-size:8px;color:var(--cyan);display:block;margin-bottom:10px}
+.rd.now .when{color:var(--green)}
+
+/* ranking */
+.rank{display:grid;grid-template-columns:.9fr 1.1fr;gap:40px;align-items:center;padding:36px}
+@media (max-width:860px){.rank{grid-template-columns:1fr;padding:22px}}
+.board{border-radius:20px;background:rgba(9,9,15,.8);border:1px solid var(--border);overflow:hidden}
+.board-h{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;font-family:var(--pixel);font-size:9px;color:var(--muted);border-bottom:1px solid var(--border)}
+.board-h .live{color:var(--green);display:flex;gap:6px;align-items:center}
+.board-h .live i{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 1.2s steps(1) infinite}
+.row{display:grid;grid-template-columns:34px 44px 1fr auto;gap:12px;align-items:center;padding:10px 18px;border-bottom:1px solid rgba(124,92,255,.08)}
+.row:last-child{border-bottom:0}
+.row .pos{font-family:var(--pixel);font-size:11px;color:var(--dim)}
+.row:nth-child(1) .pos{color:var(--amber)}.row:nth-child(2) .pos{color:#cbd5e1}.row:nth-child(3) .pos{color:#d97706}
+.row .av{width:44px;height:52px;border-radius:10px;background:var(--s2);overflow:hidden;display:grid;place-items:center}
+.row .av svg{width:44px;height:62px;margin-top:8px}
+.row .nm{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .nm small{display:block;font-weight:400;color:var(--dim);font-size:12px;font-family:var(--mono)}
+.row .xp{font-family:var(--pixel);font-size:10px;color:var(--acc3);text-align:right}
+.empty{padding:34px 20px;text-align:center;color:var(--muted)}
+.empty .crown{font-size:44px;margin-bottom:10px;animation:bob 2s ease-in-out infinite}
+.empty b{display:block;color:var(--text);font-size:18px;margin-bottom:6px}
+
+/* entrar e instalar */
+.enter{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:36px}
+@media (max-width:860px){.enter{grid-template-columns:1fr}}
+.en{padding:24px;border-radius:22px;background:var(--glass);border:1px solid var(--border);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.en .n{font-family:var(--pixel);font-size:10px;color:var(--amber);margin-bottom:12px}
+.en p{color:var(--muted);font-size:15px}
+.acc{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.acc span{font-size:13px;padding:7px 11px;border-radius:10px;background:var(--s2);border:1px solid var(--border)}
+.install{display:grid;grid-template-columns:1.2fr .8fr;gap:22px;margin-top:22px}
+@media (max-width:860px){.install{grid-template-columns:1fr}}
+.inst{padding:28px}
+.tabs{display:flex;gap:8px;margin:4px 0 18px;flex-wrap:wrap}
+.tabs button{padding:10px 14px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.03);font-weight:600;font-size:14px}
+.tabs button[aria-selected="true"]{background:var(--acc);border-color:var(--acc)}
+.howto{padding-left:22px;display:grid;gap:10px;color:var(--muted)}
+.howto b{color:var(--text)}
+.free{padding:28px;text-align:center;display:flex;flex-direction:column;justify-content:center}
+.free .big{font-family:var(--pixel);font-size:48px;color:var(--green);text-shadow:0 0 30px rgba(74,222,128,.45)}
+.free ul{list-style:none;text-align:left;display:grid;gap:8px;margin-top:18px;font-size:14px;color:var(--muted)}
+.free li::before{content:"✓ ";color:var(--green);font-weight:700}
+
+/* lista y apoyo */
+.wait{display:grid;grid-template-columns:1fr 1fr;gap:40px;padding:36px;align-items:start}
+@media (max-width:860px){.wait{grid-template-columns:1fr;padding:22px}}
+.form{display:grid;gap:12px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:520px){.two{grid-template-columns:1fr}}
+.field label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+.field input,.field select{width:100%;padding:13px 14px;border-radius:12px;border:1px solid var(--border);background:rgba(9,9,15,.8);font-size:16px}
+.field input:focus,.field select:focus{outline:none;border-color:var(--acc)}
+.hp{position:absolute;left:-9999px}
+.small{font-size:12.5px;color:var(--dim)}
+.err{color:var(--red);font-size:14px}
+.done{text-align:center;padding:20px 0}
+.done .crown{font-size:52px}
+.share{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+.share a,.share button{padding:10px 14px;border-radius:12px;border:1px solid var(--bh);background:rgba(124,92,255,.12);font-weight:600;text-decoration:none;font-size:14px}
+.tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}
+@media (max-width:520px){.tiers{grid-template-columns:1fr}}
+.tier{padding:14px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,.03);font-size:13px;color:var(--muted)}
+.tier b{display:block;font-family:var(--pixel);font-size:12px;color:var(--text);margin-bottom:6px}
+
+/* preguntas */
+.faq{display:grid;gap:10px;margin-top:30px;max-width:820px}
+.faq details{border-radius:16px;background:var(--glass);border:1px solid var(--border);padding:0 20px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.faq summary{cursor:pointer;padding:18px 0;font-weight:700;list-style:none;display:flex;justify-content:space-between;gap:12px}
+.faq summary::after{content:"+";font-family:var(--pixel);color:var(--acc2)}
+.faq details[open] summary::after{content:"−"}
+.faq summary::-webkit-details-marker{display:none}
+.faq p{padding-bottom:18px;color:var(--muted)}
+
+/* cierre */
+.final{text-align:center;padding:140px 0 120px}
+.final .h2{margin:0 auto 18px;max-width:14ch;font-size:clamp(40px,7vw,84px)}
+.final .lead{margin:0 auto}
+.final .cta{justify-content:center}
+footer{padding:30px 0 40px;border-top:1px solid var(--border);background:rgba(9,9,15,.85);font-size:13px;color:var(--dim)}
+footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+footer a{color:var(--muted)}
+.bin{font-family:var(--mono)}
+
+/* botón fijo en celular */
+.sticky-play{position:fixed;left:16px;right:16px;bottom:max(14px,env(safe-area-inset-bottom));z-index:40;display:none}
+.sticky-play .btn{width:100%}
+@media (max-width:700px){.sticky-play.show{display:block}}
+
+@media (prefers-reduced-motion:reduce){
+  .reveal{opacity:1;transform:none;transition:none}
+  .float,.empty .crown,.scrolldown span,.brand b{animation:none}
+  html{scroll-behavior:auto}
+}
+</style>
 </head>
 <body>
 
-<header class="hdr">
-  <button class="logo" data-act="about" aria-label="IO: yo, uno y cero">
-    <span class="logo-flip"><span class="lf lf-a">IO</span><span class="lf lf-b">10</span></span>
-  </button>
-  <div class="hdr-r">
-    <span class="hdr-lvl" id="hdrLvl">NV 1</span>
-    <button class="icon-btn" data-act="settings" aria-label="Ajustes">⚙️</button>
+<!-- intro: la consola se prende -->
+<div class="boot" id="boot" role="dialog" aria-label="Intro de IO" hidden>
+  <button class="boot-skip" id="bootSkip">Saltar intro ›</button>
+  <div class="gbx" id="gbx">
+    <div class="gbx-bez"><span class="gbx-led"></span>
+      <div class="gbx-scr"><div class="gbx-logo">IO</div><div class="gbx-sub">TU VIDA ES EL JUEGO</div><div class="gbx-ps">PRESS START</div></div>
+    </div>
+    <div class="gbx-name">IO <i>GAME SYSTEM</i></div>
+    <div class="gbx-pad"></div><div class="gbx-ab"><span></span><span></span></div>
+  </div>
+  <div class="boot-hint">TOCA LA PANTALLA O PRESIONA ENTER</div>
+</div>
+
+<div class="bg-fallback" aria-hidden="true"></div>
+<canvas id="world" aria-hidden="true"></canvas>
+<div class="vignette" aria-hidden="true"></div>
+<div class="scan" aria-hidden="true"></div>
+
+<div class="hud" id="hud" aria-hidden="true">
+  <span class="fl" id="hudFl">P1</span>
+  <div class="rail"><i id="hudBar"></i></div>
+  <span class="wn" id="hudWn">Edificio Barrio</span>
+</div>
+
+<header id="hdr">
+  <div class="wrap nav">
+    <a class="brand" href="#top"><b>IO</b><small>el código de tu vida</small></a>
+    <nav class="links" aria-label="Secciones">
+      <a href="#que-es">Qué es</a><a href="#como">Cómo se juega</a><a href="#diferente">Por qué IO</a><a href="#ranking">Ranking</a><a href="#entrar">Entrar</a>
+    </nav>
+    <a class="btn btn-start btn-sm" href="app/">▶ JUGAR</a>
   </div>
 </header>
 
-<div class="demo-bar" id="demoBar" hidden><span>🎮 Modo demo</span><button data-act="startReal">Empezar de verdad →</button></div>
+<main id="top">
 
-<main class="main">
+<section class="hero">
+  <div class="wrap">
+    <span class="tag"><i></i>PRIMERA TEMPORADA · GRATIS</span>
+    <h1 class="h1">Tu vida es <span class="glow">el juego.</span></h1>
+    <p class="lead">IO es un videojuego retro donde <b>subes de nivel haciendo tus hábitos reales</b>. Leer, orar, entrenar, sacar al perro, estudiar: el reloj cuenta de verdad y tu personaje lo hace contigo.</p>
+    <div class="cta">
+      <a class="btn btn-start" href="app/">▶ PRESS START</a>
+      <a class="btn btn-ghost" href="#como">Cómo se juega</a>
+    </div>
+    <div class="hero-stats">
+      <div><b>$0</b>gratis y sin anuncios</div>
+      <div><b>23</b>actividades animadas</div>
+      <div><b>100+</b>pisos por subir</div>
+      <div id="heroPlayersBox" hidden><b id="heroPlayers"></b><span id="heroPlayersL"></span></div>
+    </div>
+  </div>
+  <a class="scrolldown" href="#que-es">SUBE LA TORRE<span>▼</span></a>
+</section>
 
-  <!-- CONSOLA -->
-  <section class="console" aria-label="Consola IO">
-    <div class="bezel">
-      <div class="screen" id="screen">
-        <div class="scene" id="scene" data-skin="barrio" data-type="cuarto" data-view="calle" data-time="dia">
-          <div class="wall"></div>
-          <div class="wains" aria-hidden="true"></div>
-          <div class="wall-trim"></div>
-          <div class="ceil" aria-hidden="true"><i class="lampc"></i></div>
-          <div class="win" id="win"><i class="sun"></i><i class="stars"></i><i class="v v1"></i><i class="v v2"></i><i class="v v3"></i><i class="wx"></i></div>
-          <div class="curt" aria-hidden="true"><i></i><i></i></div>
-          <div class="furn-set" aria-hidden="true"><i class="shf s1"></i><i class="shf s2"></i><div class="sideboard"><i></i><i></i></div></div>
-          <div class="floor"></div>
-          <div class="rug"></div>
-          <div class="prug" aria-hidden="true"></div>
-          <div class="beams" aria-hidden="true"></div>
-          <div class="sill" aria-hidden="true"><i>🪴</i></div>
-          <div class="poster" aria-hidden="true"><b>IO</b><small>1·0</small></div>
-          <div class="elev" id="elevBox" role="button" aria-label="Ascensor">
-            <div class="elev-ind"><span id="elevNum">1</span></div>
-            <div class="elev-frame"><div class="elev-doors"><i></i><i></i></div></div>
-            <div class="door-hint" id="doorHint" hidden>▲</div>
+<section id="que-es">
+  <div class="wrap what">
+    <div class="reveal">
+      <div class="eyebrow">¿QUÉ ES IO?</div>
+      <h2 class="h2">Un Game Boy para tus hábitos.</h2>
+      <p class="lead">Eliges los hábitos que quieres construir. Cada vez que haces uno, enciendes el reloj y tu personaje aparece haciéndolo en su cuarto. Cuando terminas, ganas <b>XP</b> para subir de piso y <b>bits</b> para decorar tu cuarto.</p>
+      <div class="pillars">
+        <div class="pill"><div class="ic">⏱️</div><b>Puntos que valen</b><p>Nada de marcar casillas. Si dices 20 minutos, el reloj cuenta 20 minutos.</p></div>
+        <div class="pill"><div class="ic">🏢</div><b>Un edificio que es tuyo</b><p>Cada nivel es un piso. Subes en ascensor por cinco mundos.</p></div>
+        <div class="pill"><div class="ic">🎨</div><b>Tu personaje, tu cuarto</b><p>Diseña tu avatar, gana objetos y decora repisas, mesas y paredes.</p></div>
+        <div class="pill"><div class="ic">🔥</div><b>Rachas que dan ganas</b><p>Misiones del día, cofres, mascota que evoluciona y ranking con personas reales.</p></div>
+      </div>
+    </div>
+    <div class="stage reveal">
+      <div class="phone"><div class="notch"></div><div class="sc" id="phoneSc">
+        <img src="img/hero-home.webp" alt="Pantalla de inicio de IO: el cuarto del personaje dentro de una consola" id="phoneImg" loading="lazy">
+      </div></div>
+      <div class="float" style="top:12%;left:0"><b>+30 XP</b> Leer · 20 min</div>
+      <div class="float" style="top:44%;right:0;animation-delay:-1.6s">🔥 Racha de 7 días</div>
+      <div class="float" style="bottom:14%;left:4%;animation-delay:-3s">🐕 Nivel 7 · Piso 7</div>
+      <p class="stage-note" id="stageNote">Es el juego de verdad. Tócalo y pruébalo.</p>
+    </div>
+  </div>
+</section>
+
+<section id="trailer" style="padding-top:20px">
+  <div class="wrap">
+    <div class="panel trailer reveal">
+      <div class="tv"><span class="rec"><i></i>REC · JUEGO REAL</span>
+        <video id="trailerV" src="img/trailer.webm" poster="img/trailer-poster.webp" muted loop playsinline preload="none" aria-label="Video del juego: el personaje saca al perro, ora, entrena y lee mientras corre el reloj"></video>
+      </div>
+      <div>
+        <div class="eyebrow">MODO ENFOQUE</div>
+        <h2 class="h2">Mientras tú lo haces, tu personaje también.</h2>
+        <p class="lead">Enciendes el reloj y la pantalla se convierte en tu escena: camina con el perro por el parque, ora con rayos de luz, levanta pesas, pasa las páginas del libro. Un coach te acompaña y la radio pone música retro.</p>
+        <div class="scenes"><span>🐕 Sacar al perro</span><span>🙏 Orar</span><span>🏋️ Gym</span><span>📖 Leer</span><span>🧘 Respirar</span><span>💧 Tomar agua</span><span>🏃 Correr</span><span>✍️ Escribir</span><span>🎨 Pintar</span><span>📚 Estudiar</span><span>+13 más</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="como">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="eyebrow">CÓMO SE JUEGA</div>
+      <h2 class="h2">Cuatro pasos. Todos los días.</h2>
+      <p class="lead">Una partida dura lo que dura tu hábito. Así se ve un día en IO.</p>
+    </div>
+    <div class="steps">
+      <div class="step reveal"><div class="ic">🎮</div><h3 class="h3">Crea tu jugador</h3><p>Entra con Google o tu correo, elige tu personaje y hasta tres hábitos. Toma un minuto.</p></div>
+      <div class="step reveal"><div class="ic">▶️</div><h3 class="h3">Dale START</h3><p>Cuando vayas a hacer un hábito, abre IO y enciende el reloj. Puedes pausar; el tiempo sigue aunque bloquees el celular.</p></div>
+      <div class="step reveal"><div class="ic">👑</div><h3 class="h3">Reclama la corona</h3><p>Al terminar aparece la corona: tócala y ganas XP, bits y racha. A tiempo, ganas más.</p></div>
+      <div class="step reveal"><div class="ic">🛗</div><h3 class="h3">Sube de piso</h3><p>Cada nivel desbloquea un piso nuevo. Compra objetos, decora tu cuarto y visita a otros jugadores.</p></div>
+    </div>
+    <div class="panel controls reveal">
+      <div class="pad" aria-hidden="true"><div class="dpad"><i></i><i></i></div><div class="ab"><b>B</b><b>A</b></div></div>
+      <div>
+        <h3 class="h3" style="margin-bottom:14px">Los controles de la consola</h3>
+        <div class="keys">
+          <div class="key"><kbd>◀ ▶</kbd><span><b>Camina</b> por tu cuarto. En el computador, con las flechas.</span></div>
+          <div class="key"><kbd>A</kbd><span><b>Usa</b> lo que tienes enfrente: la puerta del ascensor, un objeto, la mascota. Tecla Z.</span></div>
+          <div class="key"><kbd>B</kbd><span><b>Vuelve</b> o cierra. Tecla X.</span></div>
+          <div class="key"><kbd>SELECT</kbd><span><b>Decora:</b> mueve objetos entre piso, mesa y repisas.</span></div>
+          <div class="key"><kbd>START</kbd><span><b>Menú</b> y el próximo hábito. Tecla Enter.</span></div>
+          <div class="key"><kbd>HUD</kbd><span>Toca <b>XP, bits o racha</b> arriba y el juego te explica cuánto llevas y cuánto falta.</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="mundos" style="padding-top:20px">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="eyebrow">LOS MUNDOS</div>
+      <h2 class="h2">De tu barrio a una estación orbital.</h2>
+      <p class="lead">El fondo que ves mientras bajas es tu torre. Cada mundo trae un ascensor nuevo, otra vista por la ventana y objetos que no hay abajo.</p>
+    </div>
+    <div class="worlds" id="worldsRow">
+      <div class="wcard w1 reveal"><div class="bld"><i style="height:90px"></i><i style="height:60px"></i><i style="height:120px"></i></div><div class="fl">PISOS 1–10 · ASCENSOR DE MADERA</div><h3>Edificio Barrio</h3><p>Tu primer cuarto. Aprendes el ritmo del reloj y la racha.</p></div>
+      <div class="wcard w2 reveal"><div class="bld"><i style="height:140px"></i><i style="height:100px"></i><i style="height:170px"></i></div><div class="fl">PISOS 11–25 · ACERO</div><h3>Torre Centro</h3><p>Llega la ciudad por la ventana, la tienda crece y aparecen las ligas.</p></div>
+      <div class="wcard w3 reveal"><div class="bld"><i style="height:200px"></i><i style="height:150px"></i><i style="height:230px"></i></div><div class="fl">PISOS 26–50 · CRISTAL</div><h3>Rascacielos IO</h3><p>Objetos raros y legendarios. Tu mascota ya es grande.</p></div>
+      <div class="wcard w4 reveal"><div class="bld"><i style="height:110px"></i><i style="height:80px"></i><i style="height:130px"></i></div><div class="fl">PISOS 51–75 · ORO</div><h3>Ciudad en las nubes</h3><p>Por encima de todo. Pocos llegan hasta aquí.</p></div>
+      <div class="wcard w5 reveal"><div class="bld"><i style="height:60px"></i><i style="height:140px"></i><i style="height:60px"></i></div><div class="fl">PISOS 76–100 · NEÓN</div><h3>Estación orbital</h3><p>El mundo final… por ahora.</p></div>
+      <div class="wcard w6 reveal"><div class="fl">PISO 101+</div><h3>Sectores secretos</h3><p>Sector Nova, Anillo Ámbar, Nébula Índigo y más. Nadie los ha visto todavía.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="diferente">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="eyebrow">¿POR QUÉ ES DIFERENTE?</div>
+      <h2 class="h2">No es otra lista de pendientes.</h2>
+      <p class="lead">Las apps de hábitos te piden marcar casillas. Los videojuegos te piden horas de tu vida. IO usa lo mejor de los juegos para que esas horas vuelvan a ti.</p>
+    </div>
+    <div class="cmp-wrap reveal">
+      <table class="cmp">
+        <thead><tr><th></th><th>App de hábitos</th><th>Videojuego normal</th><th class="io">IO</th></tr></thead>
+        <tbody>
+          <tr><td>Cómo ganas puntos</td><td>Marcas una casilla</td><td>Jugando más horas</td><td class="io">Haciendo el hábito con el reloj</td></tr>
+          <tr><td>Lo que ves mientras tanto</td><td>Una lista</td><td>Una pantalla que te atrapa</td><td class="io">Tu personaje haciendo lo mismo que tú</td></tr>
+          <tr><td>Lo que te hace volver</td><td>Notificaciones</td><td>Recompensas infinitas</td><td class="io">Racha, misiones, tu cuarto y tu torre</td></tr>
+          <tr><td>Se compra con dinero</td><td>Plan premium</td><td>Monedas y cofres</td><td class="io">Nada. Los bits solo se ganan haciendo</td></tr>
+          <tr><td>Con otras personas</td><td>Casi nunca</td><td>Competir por competir</td><td class="io">Ranking real, likes y salas para enfocarse juntos</td></tr>
+          <tr><td>Lo que te llevas</td><td>Un porcentaje</td><td>Horas jugadas</td><td class="io">Horas de lectura, oración, gym, estudio</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="metas" style="padding-top:20px">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="eyebrow">PARA QUÉ SIRVE · NUESTRAS METAS</div>
+      <h2 class="h2">Que tu mejor versión sea divertida.</h2>
+    </div>
+    <div class="goals">
+      <div class="goal reveal"><div class="n">01</div><h3 class="h3">Constancia, no perfección</h3><p>Hábitos pequeños que se sostienen: una racha de 7 días primero, luego 30. Con escudos para cuando la vida pasa.</p></div>
+      <div class="goal reveal"><div class="n">02</div><h3 class="h3">Tiempo que vuelve a ti</h3><p>Cada minuto dentro de IO es un minuto haciendo algo real. La meta es que cierres la app y hayas leído, orado o entrenado.</p></div>
+      <div class="goal reveal"><div class="n">03</div><h3 class="h3">Una comunidad que suma</h3><p>Un ranking con personas reales, sin bots ni datos inventados, donde subir significa haber hecho más.</p></div>
+    </div>
+    <div class="road reveal">
+      <div class="rd now"><span class="when">AHORA</span><b>Temporada 1 en la web</b>Juega gratis desde el navegador e instálalo como app.</div>
+      <div class="rd"><span class="when">SIGUIENTE</span><b>Google Play</b>La misma partida, desde la tienda de Android.</div>
+      <div class="rd"><span class="when">DESPUÉS</span><b>App Store</b>Llegamos al iPhone con widgets y recordatorios.</div>
+      <div class="rd"><span class="when">EN CAMINO</span><b>Clanes y eventos</b>Retos por equipos, temporadas con premios y mundos nuevos.</div>
+    </div>
+  </div>
+</section>
+
+<section id="ranking">
+  <div class="wrap">
+    <div class="panel rank reveal">
+      <div>
+        <div class="eyebrow">RANKING EN VIVO</div>
+        <h2 class="h2">Solo jugadores reales.</h2>
+        <p class="lead">Aquí aparece el nombre que eliges al crear tu cuenta. Sin bots, sin números inventados: si estás arriba es porque lo hiciste.</p>
+        <div class="cta"><a class="btn btn-start" href="app/">▶ ENTRAR AL RANKING</a></div>
+      </div>
+      <div class="board">
+        <div class="board-h"><span>TOP 10 · XP TOTAL</span><span class="live" id="rkLive"><i></i>EN VIVO</span></div>
+        <div id="rkRows"><div class="empty"><b>Cargando…</b></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="entrar">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="eyebrow">CÓMO ENTRAR A JUGAR</div>
+      <h2 class="h2">Listo en un minuto. Sin tienda.</h2>
+      <p class="lead">IO se juega desde el navegador y se instala como una app normal. Tu cuenta guarda la partida en la nube: si cambias de celular, sigues donde ibas.</p>
+    </div>
+    <div class="enter">
+      <div class="en reveal"><div class="n">PASO 1</div><h3 class="h3">Abre IO</h3><p>Toca <b>PRESS START</b> o entra a <b class="host">esta página</b><b>/app</b> desde tu celular.</p><div class="cta" style="margin-top:14px"><a class="btn btn-start btn-sm" href="app/">▶ ABRIR IO</a></div></div>
+      <div class="en reveal"><div class="n">PASO 2</div><h3 class="h3">Crea tu cuenta</h3><p>Durante la bienvenida eliges tu personaje, tus hábitos y entras con:</p><div class="acc"><span>🟢 Google</span><span>✉️ Correo con código</span></div></div>
+      <div class="en reveal"><div class="n">PASO 3</div><h3 class="h3">Instálalo</h3><p>Agrégalo a tu pantalla de inicio (abajo te decimos cómo). Se abre como app y funciona sin internet.</p></div>
+    </div>
+    <div class="install">
+      <div class="panel inst reveal">
+        <h3 class="h3">Instalar en tu celular o computador</h3>
+        <div class="tabs" role="tablist" aria-label="Tu dispositivo">
+          <button role="tab" aria-selected="true" data-os="android">🤖 Android</button>
+          <button role="tab" aria-selected="false" data-os="iphone">🍎 iPhone</button>
+          <button role="tab" aria-selected="false" data-os="pc">💻 Computador</button>
+        </div>
+        <ol class="howto" data-os="android"><li>Abre <b><span class="host">esta página</span>/app</b> en <b>Chrome</b>.</li><li>Toca el menú <b>⋮</b> arriba a la derecha.</li><li>Elige <b>Instalar app</b> o <b>Agregar a la pantalla de inicio</b>.</li><li>Ábrelo desde el ícono <b>IO</b>. Mantén presionado el ícono para ver atajos como “▶ Próximo hábito”.</li></ol>
+        <ol class="howto" data-os="iphone" hidden><li>Abre <b><span class="host">esta página</span>/app</b> en <b>Safari</b>.</li><li>Toca <b>Compartir</b> (el cuadrado con la flecha hacia arriba).</li><li>Baja y elige <b>Agregar a inicio</b>.</li><li>Ábrelo desde el ícono <b>IO</b>. Así funcionan los recordatorios (iOS 16.4 o más reciente).</li></ol>
+        <ol class="howto" data-os="pc" hidden><li>Abre <b><span class="host">esta página</span>/app</b> en <b>Chrome</b> o <b>Edge</b>.</li><li>Haz clic en el ícono de <b>instalar</b> al final de la barra de direcciones.</li><li>Con el teclado: flechas para caminar, <b>Z</b> es A, <b>X</b> es B, <b>Enter</b> es START.</li></ol>
+      </div>
+      <div class="panel free reveal">
+        <div class="big">$0</div>
+        <p style="margin-top:8px;font-size:18px;font-weight:700">Gratis hoy, gratis siempre.</p>
+        <ul>
+          <li>Sin anuncios.</li>
+          <li>Nada se compra con dinero: XP, bits y objetos solo se ganan haciendo.</li>
+          <li>El ranking muestra solo tu nombre, nivel, XP, racha y personaje. Tus hábitos son privados.</li>
+          <li>Borras tu cuenta y tus datos cuando quieras, desde Ajustes.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="lista" style="padding-top:20px">
+  <div class="wrap">
+    <div class="panel wait reveal">
+      <div>
+        <div class="eyebrow">TIENDAS · APOYO</div>
+        <h2 class="h2">Avísame cuando llegue a las tiendas.</h2>
+        <p class="lead">Ya puedes jugar gratis en la web. Déjanos tu correo y te avisamos cuando IO llegue a Google Play y App Store, y cuando abra la campaña para apoyar el proyecto.</p>
+        <div class="tiers">
+          <div class="tier"><b>$5</b>Tu nombre en el Muro de Fundadores del lobby.</div>
+          <div class="tier"><b>$15</b>Insignia “Fundador” junto a tu nombre en el ranking.</div>
+          <div class="tier"><b>$40</b>Diseñas con nosotros el siguiente mundo.</div>
+        </div>
+        <p class="small" style="margin-top:12px">Regla de oro: apoyar nunca da XP, bits ni ventajas. Solo reconocimiento. La campaña aún no abre.</p>
+      </div>
+      <div>
+        <form class="form" name="lista-espera" id="waitForm" method="POST" data-netlify="true" netlify-honeypot="bot-field" novalidate>
+          <input type="hidden" name="form-name" value="lista-espera">
+          <p class="hp"><label>No llenes esto: <input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
+          <div class="two">
+            <div class="field"><label for="f-nombre">Tu nombre</label><input id="f-nombre" name="nombre" autocomplete="given-name" maxlength="40" placeholder="Tu nombre"></div>
+            <div class="field"><label for="f-email">Correo</label><input id="f-email" name="email" type="email" autocomplete="email" required placeholder="tu@correo.com"></div>
           </div>
-          <div class="tint" aria-hidden="true"></div>
-          <div class="objs" id="objs"></div>
-          <button class="petc" id="petc" aria-label="Tu compañero" hidden><span class="pet-b" id="petB"></span><span class="pet-e" id="petE"></span></button>
-          <div class="hero" id="hero"><span class="prop" id="prop"></span><div class="hero-in" id="heroIn" data-mood="neutral"></div></div>
-          <div class="fx" id="fx" aria-hidden="true"></div>
+          <div class="two">
+            <div class="field"><label for="f-disp">Tu celular</label><select id="f-disp" name="dispositivo"><option>Android</option><option>iPhone</option><option>Los dos</option></select></div>
+            <div class="field"><label for="f-apoyo">¿Quieres apoyar?</label><select id="f-apoyo" name="apoyo"><option>Solo avísame</option><option>Apoyo $5</option><option>Fundador $15</option><option>Constructor $40</option></select></div>
+          </div>
+          <input type="hidden" name="ref" id="f-ref">
+          <button class="btn btn-start" type="submit" id="f-go">AVÍSAME</button>
+          <p class="small">Solo usamos tu correo para estos avisos. Puedes pedir que lo borremos cuando quieras.</p>
+          <p class="err" id="f-err" hidden></p>
+        </form>
+        <div class="done" id="waitDone" hidden>
+          <div class="crown">👑</div>
+          <h3 class="h3">¡Listo, te avisamos!</h3>
+          <p style="color:var(--muted)">Mientras tanto, empieza tu racha. Y si invitas a tus amigos, compiten contigo en el ranking.</p>
+          <div class="share"><a id="shWa" target="_blank" rel="noopener">WhatsApp</a><a id="shX" target="_blank" rel="noopener">X</a><button type="button" id="shCopy">Copiar enlace</button></div>
         </div>
-        <div class="hud">
-          <button class="hud-lv" data-hud="xp" aria-label="Nivel y XP">LV<b id="lvlN">1</b></button>
-          <button class="hud-xp" data-hud="xp" aria-label="Barra de XP"><div class="hud-xp-fill" id="xpFill"></div><span class="hud-xp-t" id="xpT"></span></button>
-          <button class="hud-bits" data-hud="bits" aria-label="Bits"><i>◆</i><b id="bitsN">0</b></button>
-          <button class="hud-streak" id="streakN" data-hud="racha" aria-label="Racha">🔥0</button>
-        </div>
-        <div class="floor-tag" id="floorTag">PISO 1</div>
-        <div class="wx-tag" id="wxTag" hidden></div>
-        <button class="minimap" id="minimap" aria-label="Mapa del edificio"></button>
-        <div class="dlg" id="dlg" hidden><span class="dlg-name" id="dlgName">IO</span><span class="dlg-text" id="dlgText"></span><span class="dlg-next">▼</span></div>
-        <div class="deco-bar" id="decoBar" hidden></div>
-        <div class="gb-menu" id="gbMenu" hidden></div>
-        <div class="elev-panel" id="elevPanel" hidden></div>
-        <div class="elev-ride" id="elevRide" hidden></div>
-        <div class="crown-drop" id="crownDrop" hidden>👑</div>
-        <div class="lvlup" id="lvlup" hidden></div>
-      </div>
-      <div class="bezel-label"><span class="led" id="led"></span><span class="bz-io">IO</span><em>1·0</em><span>SYSTEM</span><small>life edition</small></div>
-    </div>
-    <div class="controls">
-      <div class="dpad" role="group" aria-label="Cruceta">
-        <button class="dp-up" data-btn="up" aria-label="Arriba">▲</button>
-        <button class="dp-left" data-btn="left" aria-label="Izquierda">◀</button>
-        <span class="dp-mid"></span>
-        <button class="dp-right" data-btn="right" aria-label="Derecha">▶</button>
-        <button class="dp-down" data-btn="down" aria-label="Abajo">▼</button>
-      </div>
-      <div class="mid-btns">
-        <button data-btn="select" aria-label="SELECT: decorar"><i></i>SELECT</button>
-        <button data-btn="start" aria-label="START: menú"><i></i>START</button>
-      </div>
-      <div class="ab">
-        <button class="btn-b" data-btn="b" aria-label="B"><span>B</span></button>
-        <button class="btn-a" data-btn="a" aria-label="A"><span>A</span></button>
       </div>
     </div>
-    <p class="ctl-help">✥ caminar · puerta ◧ = ascensor · <b>A</b> usar · <b>SELECT</b> decorar · <b>START</b> menú</p>
+  </div>
+</section>
 
-    <!-- GAME BOY AVANZADO: la consola se abre y abajo aparece la segunda pantalla -->
-    <div class="hinge" aria-hidden="true"><i></i><span class="grille"></span><i></i></div>
-    <div class="lower" id="lower">
-      <nav class="ltabs" id="ltabs" role="tablist" aria-label="Pantalla inferior">
-        <button role="tab" data-tab="hoy" class="on"><i>🏠</i><span>Hoy</span><em id="bdg-hoy" hidden></em></button>
-        <button role="tab" data-tab="tienda"><i>🛒</i><span>Tienda</span><em id="bdg-tienda" hidden></em></button>
-        <button role="tab" data-tab="ranking"><i>🏆</i><span>Ranking</span><em id="bdg-ranking" hidden></em></button>
-        <button role="tab" data-tab="progreso"><i>📈</i><span>Progreso</span><em id="bdg-progreso" hidden></em></button>
-        <button role="tab" data-tab="mundo"><i>🏢</i><span>Mundo</span><em id="bdg-mundo" hidden></em></button>
-      </nav>
-      <div class="lscreen" id="lscreen">
-        <section class="lpane" id="p-hoy" data-pane="hoy">
-          <div class="h-head"><h2>Hábitos de hoy</h2><span class="h-prog" id="dayProg"></span></div>
-          <div class="day-bar"><i id="dayFill"></i></div>
-          <div class="h-next" id="hNext"></div>
-          <div id="hoyMood"></div>
-          <div class="h-list" id="habitList"></div>
-          <div id="chestBox"></div>
-          <button class="btn-add" data-act="newHabit">＋ Nuevo hábito</button>
-          <div id="hoyWeekly"></div>
-          <div class="quick" id="quick"></div>
-        </section>
-        <section class="lpane" id="p-tienda" data-pane="tienda" hidden></section>
-        <section class="lpane" id="p-ranking" data-pane="ranking" hidden></section>
-        <section class="lpane" id="p-progreso" data-pane="progreso" hidden></section>
-        <section class="lpane" id="p-mundo" data-pane="mundo" hidden></section>
-      </div>
+<section id="preguntas">
+  <div class="wrap">
+    <div class="eyebrow">PREGUNTAS</div>
+    <h2 class="h2">Lo que más nos preguntan.</h2>
+    <div class="faq">
+      <details><summary>¿De verdad es gratis?</summary><p>Sí. IO es gratis y sin anuncios. Si algún día existe IO+, será opcional y para extras como temas o estadísticas. Nunca venderemos XP, bits ni objetos.</p></details>
+      <details><summary>¿Necesito crear una cuenta?</summary><p>Sí, con Google o con tu correo (te llega un código de 6 números, sin contraseñas). Así tu partida queda guardada en la nube, puedes cambiar de celular y apareces en el ranking con el nombre que elijas.</p></details>
+      <details><summary>¿Por qué el reloj es obligatorio?</summary><p>Porque es lo que hace que los puntos valgan. Si lees 20 minutos, el reloj cuenta 20 minutos. Puedes pausar y seguir después, pero la corona solo aparece cuando el reloj llega al final. El tiempo sigue contando aunque bloquees la pantalla.</p></details>
+      <details><summary>¿Quién ve mis datos?</summary><p>Tu partida solo la ves tú. En el ranking aparecen tu nombre público, tu nivel, tu XP, tu racha y tu personaje. Los nombres de tus hábitos nunca se publican. Puedes borrar tu cuenta y todos tus datos desde ⚙️ Ajustes.</p></details>
+      <details><summary>¿Funciona sin internet?</summary><p>Sí. Una vez instalado, el reloj, el juego, la tienda y la radio funcionan sin conexión. Cuando vuelve el internet, tu partida se sincroniza sola. El ranking y las salas con amigos necesitan conexión.</p></details>
+      <details><summary>¿Cuándo llega a Google Play y App Store?</summary><p>Primero Google Play y después App Store. Deja tu correo arriba y te avisamos el primer día. Tu cuenta y tu partida serán las mismas.</p></details>
+      <details><summary>¿Qué hábitos puedo poner?</summary><p>Los que quieras. Hay 23 actividades con animación propia (leer, orar, gym, correr, sacar al perro, estudiar, escribir, pintar, respirar, tomar agua y más) y también hábitos de conteo, como vasos de agua.</p></details>
     </div>
-  </section>
+  </div>
+</section>
 
-  <footer class="foot"><span class="bin">01001001 01001111</span><span>IO · siempre gratis · nada se compra con dinero</span></footer>
+<section class="final">
+  <div class="wrap reveal">
+    <div class="eyebrow">PLAYER 1, ¿LISTO?</div>
+    <h2 class="h2">Tu primer piso te está esperando.</h2>
+    <p class="lead">Un minuto para crear tu personaje. Veinte para tu primer hábito. Toda una torre para subir.</p>
+    <div class="cta"><a class="btn btn-start" href="app/">▶ PRESS START</a></div>
+  </div>
+</section>
+
 </main>
 
-<!-- SHEET -->
-<div class="sheet-ov" id="sheetOv"></div>
-<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
-  <div class="sheet-drag"></div>
-  <div class="sheet-hdr"><h3 class="sheet-title" id="sheetTitle">—</h3><button class="sheet-close" data-act="closeSheet" aria-label="Cerrar">✕</button></div>
-  <div class="sheet-body" id="sheetBody"></div>
-</div>
+<div class="sticky-play" id="stickyPlay"><a class="btn btn-start" href="app/">▶ PRESS START · GRATIS</a></div>
 
-<div class="focus" id="focus" role="dialog" aria-modal="true" aria-label="Temporizador" hidden></div>
-<div class="onb" id="onb" role="dialog" aria-modal="true" aria-label="Configuración inicial" hidden></div>
-<div class="mini" id="mini" aria-live="polite"></div>
-<div class="streak-ov" id="streakOv" role="dialog" aria-modal="true" aria-label="Racha" hidden></div>
-<div class="reveal" id="reveal" role="dialog" aria-modal="true" aria-label="Caja sorpresa" hidden></div>
-<div class="toast" id="toast" role="status" aria-live="polite"></div>
-<input type="file" id="backupIn" accept="application/json,.json" hidden>
+<footer>
+  <div class="wrap"><span>IO · tu vida es el juego · gratis · nada se compra con dinero</span><span class="bin">01001001 01001111</span></div>
+</footer>
 
-<script type="module" src="app.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const store = { get(k) { try { return sessionStorage.getItem(k); } catch { return null; } }, set(k, v) { try { sessionStorage.setItem(k, v); } catch {} } };
+
+  // La versión anterior del juego vivía en /io/; si quedó su service worker, lo quitamos para que esta página cargue fresca.
+  if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => {
+    try { const s = new URL(r.scope); if (s.pathname === location.pathname.replace(/[^/]*$/, '')) r.unregister(); } catch {}
+  })).catch(() => {});
+
+  // Dirección real para las instrucciones de instalación.
+  const base = (location.host ? location.host + location.pathname.replace(/[^/]*$/, '').replace(/\/$/, '') : '');
+  if (base && /^https?:/.test(location.protocol)) document.querySelectorAll('.host').forEach(e => e.textContent = base);
+
+  /* ---------- intro de consola ---------- */
+  const boot = document.getElementById('boot');
+  let audio;
+  function chime() {
+    try {
+      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      const t = audio.currentTime;
+      [[988, 0], [1319, .09]].forEach(([f, d]) => {
+        const o = audio.createOscillator(), g = audio.createGain(); o.type = 'square'; o.frequency.value = f;
+        g.gain.setValueAtTime(0, t + d); g.gain.linearRampToValueAtTime(.08, t + d + .01); g.gain.exponentialRampToValueAtTime(.001, t + d + .5);
+        o.connect(g).connect(audio.destination); o.start(t + d); o.stop(t + d + .55);
+      });
+    } catch {}
+  }
+  let booted = false;
+  function endBoot(withSound) {
+    if (booted) return; booted = true; store.set('io.boot', '1');
+    if (withSound) chime();
+    boot.classList.add('go');
+    setTimeout(() => boot.classList.add('out'), reduce ? 50 : 650);
+    setTimeout(() => { boot.hidden = true; }, 1400);
+    window.dispatchEvent(new Event('io:booted'));
+  }
+  if (!store.get('io.boot') && !reduce) {
+    boot.hidden = false;
+    requestAnimationFrame(() => requestAnimationFrame(() => boot.classList.add('on')));
+    boot.addEventListener('click', () => endBoot(true));
+    document.getElementById('bootSkip').addEventListener('click', e => { e.stopPropagation(); endBoot(false); });
+    addEventListener('keydown', e => { if (!booted && (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape')) { e.preventDefault(); endBoot(e.key !== 'Escape'); } });
+    setTimeout(() => endBoot(false), 5200);
+  } else { booted = true; }
+
+  /* ---------- encabezado, HUD, botón fijo ---------- */
+  const hdr = document.getElementById('hdr'), sticky = document.getElementById('stickyPlay');
+  const hudFl = document.getElementById('hudFl'), hudBar = document.getElementById('hudBar'), hudWn = document.getElementById('hudWn');
+  const WORLDS = [[1, 'Edificio Barrio'], [11, 'Torre Centro'], [26, 'Rascacielos IO'], [51, 'Ciudad en las nubes'], [76, 'Estación orbital']];
+  window.IOscroll = 0;
+  function onScroll() {
+    const max = Math.max(1, document.documentElement.scrollHeight - innerHeight);
+    const p = Math.min(1, Math.max(0, scrollY / max)); window.IOscroll = p;
+    hdr.classList.toggle('solid', scrollY > 40); document.body.classList.toggle('deep', scrollY > innerHeight * .6);
+    sticky.classList.toggle('show', scrollY > innerHeight * .8 && p < .97);
+    const fl = 1 + Math.round(p * 99); hudFl.textContent = 'P' + fl; hudBar.style.height = (p * 100) + '%';
+    hudWn.textContent = WORLDS.filter(w => fl >= w[0]).pop()[1];
+  }
+  addEventListener('scroll', onScroll, { passive: true }); onScroll();
+
+  /* ---------- aparecer al bajar ---------- */
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { rootMargin: '0px 0px -8% 0px' });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  /* ---------- celular con el juego de verdad (demo aislada) ---------- */
+  const sc = document.getElementById('phoneSc');
+  const canEmbed = /^https?:/.test(location.protocol) && !window.IO_NO_IFRAME;
+  if (canEmbed) {
+    const lo = new IntersectionObserver(es => { if (!es[0].isIntersecting) return; lo.disconnect();
+      const f = document.createElement('iframe'); f.src = 'app/?demo=1'; f.title = 'IO en modo demo'; f.loading = 'lazy';
+      f.setAttribute('allow', 'autoplay');
+      const fit = () => { const w = sc.clientWidth; f.style.transform = `scale(${w / 390})`; f.style.height = (sc.clientHeight * 390 / w) + 'px'; };
+      f.addEventListener('load', () => { fit(); document.getElementById('phoneImg').remove(); });
+      sc.appendChild(f); fit(); addEventListener('resize', fit);
+    }, { rootMargin: '200px' });
+    lo.observe(sc);
+  } else {
+    // sin servidor: galería de pantallas reales del juego
+    const shots = ['hero-home', 'hero-perro', 'hero-orar', 'hero-gym', 'hero-tienda'].map(n => (window.IO_IMG || 'img/') + n + '.webp');
+    const img = document.getElementById('phoneImg'); let i = 0;
+    document.getElementById('stageNote').textContent = 'Pantallas reales del juego.';
+    if (!reduce) setInterval(() => { i = (i + 1) % shots.length; img.style.opacity = 0; setTimeout(() => { img.src = shots[i]; img.style.opacity = 1; }, 250); }, 2600);
+    img.style.transition = 'opacity .25s';
+  }
+
+  /* ---------- tráiler: solo corre cuando se ve ---------- */
+  const tv = document.getElementById('trailerV');
+  const vo = new IntersectionObserver(es => es.forEach(e => {
+    if (e.isIntersecting) { if (tv.preload === 'none') tv.preload = 'auto'; if (!reduce) tv.play().catch(() => {}); } else tv.pause();
+  }), { threshold: .35 });
+  vo.observe(tv);
+  if (reduce) tv.controls = true;
+
+  /* ---------- pestañas de instalación ---------- */
+  const tabs = document.querySelectorAll('.tabs button');
+  const pick = os => { tabs.forEach(b => b.setAttribute('aria-selected', b.dataset.os === os)); document.querySelectorAll('.howto').forEach(o => o.hidden = o.dataset.os !== os); };
+  tabs.forEach(b => b.addEventListener('click', () => pick(b.dataset.os)));
+  const ua = navigator.userAgent; pick(/iPhone|iPad|iPod/.test(ua) ? 'iphone' : /Android/.test(ua) ? 'android' : 'pc');
+
+  /* ---------- lista de espera (Netlify Forms) ---------- */
+  const form = document.getElementById('waitForm'), err = document.getElementById('f-err');
+  try { const r = new URLSearchParams(location.search).get('ref'); if (r) document.getElementById('f-ref').value = r.slice(0, 40); } catch {}
+  form.addEventListener('submit', async e => {
+    e.preventDefault(); err.hidden = true;
+    const email = form.email.value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { err.textContent = 'Revisa tu correo: parece que le falta algo.'; err.hidden = false; form.email.focus(); return; }
+    const btn = document.getElementById('f-go'); btn.disabled = true; btn.textContent = 'ENVIANDO…';
+    try {
+      const r = await fetch(location.pathname, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(new FormData(form)).toString() });
+      if (!r.ok) throw new Error(r.status);
+      form.hidden = true; document.getElementById('waitDone').hidden = false;
+      const link = location.origin + location.pathname;
+      const msg = `Estoy jugando IO: un videojuego donde subes de nivel haciendo tus hábitos reales. Es gratis 👉 ${link}`;
+      document.getElementById('shWa').href = 'https://wa.me/?text=' + encodeURIComponent(msg);
+      document.getElementById('shX').href = 'https://x.com/intent/post?text=' + encodeURIComponent(msg);
+      document.getElementById('shCopy').onclick = () => navigator.clipboard?.writeText(link).then(() => document.getElementById('shCopy').textContent = '¡Copiado!');
+    } catch {
+      err.textContent = 'No pudimos guardar tu correo en este momento. Intenta de nuevo en un rato.'; err.hidden = false;
+      btn.disabled = false; btn.textContent = 'AVÍSAME';
+    }
+  });
+})();
+</script>
+
+<!-- Ranking real: lee la misma base de datos del juego. Si no está configurada, no inventa nada. -->
+<script type="module">
+const rows = document.getElementById('rkRows'), live = document.getElementById('rkLive');
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmt = n => (+n || 0).toLocaleString('es');
+const emptyHTML = (t, s) => `<div class="empty"><div class="crown">👑</div><b>${t}</b>${s}</div>`;
+try {
+  const [{ RANKING }, A] = await Promise.all([import('./app/config.js'), import('./app/avatar.js')]);
+  if (!RANKING?.url || !RANKING?.key) throw new Error('off');
+  const h = { apikey: RANKING.key, Authorization: `Bearer ${RANKING.key}` };
+  const r = await fetch(`${RANKING.url}/rest/v1/io_ranking?select=name,level,xp,streak,look&order=xp.desc&limit=10`, { headers: { ...h, Prefer: 'count=exact' } });
+  if (!r.ok) throw new Error('http');
+  const list = await r.json(); const total = +(r.headers.get('content-range') || '').split('/')[1] || list.length;
+  if (total) { document.getElementById('heroPlayers').textContent = fmt(total); document.getElementById('heroPlayersL').textContent = total === 1 ? 'jugador ya empezó' : 'jugadores ya empezaron'; document.getElementById('heroPlayersBox').hidden = false; }
+  if (!list.length) { rows.innerHTML = emptyHTML('La cima está libre.', 'El primero en terminar un hábito se queda con el puesto #1.'); }
+  else rows.innerHTML = list.map((p, i) => {
+    let av = ''; try { av = A.avatarSVG(A.normLook(p.look?.a || p.look), 'av', '0 0 120 200'); } catch {}
+    return `<div class="row"><span class="pos">#${i + 1}</span><span class="av">${av}</span><span class="nm">${esc(String(p.name || 'Jugador').slice(0, 20))}<small>Nivel ${fmt(p.level)} · 🔥 ${fmt(p.streak)}</small></span><span class="xp">${fmt(p.xp)} XP</span></div>`;
+  }).join('') + (total > list.length ? `<div class="empty" style="padding:14px">y ${fmt(total - list.length)} jugadores más</div>` : '');
+} catch (e) {
+  live.innerHTML = 'PRONTO';
+  rows.innerHTML = emptyHTML('El ranking abre con el lanzamiento.', 'Cuando haya jugadores reales, aparecen aquí. Nada de bots ni números inventados.');
+}
+</script>
+
+<!-- Mundo 3D: la torre de IO -->
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const cv = document.getElementById('world');
+  function start() {
+    if (!window.THREE) return fallback();
+    const T = THREE; let r;
+    try { r = new T.WebGLRenderer({ canvas: cv, antialias: true, alpha: true, powerPreference: 'high-performance' }); } catch { return fallback(true); }
+    const mobile = innerWidth < 700;
+    r.setPixelRatio(Math.min(devicePixelRatio || 1, mobile ? 1.5 : 1.75));
+    const scene = new T.Scene(); scene.fog = new T.FogExp2(0x09090f, .024);
+    const cam = new T.PerspectiveCamera(mobile ? 62 : 50, 1, .1, 500);
+
+    scene.add(new T.AmbientLight(0x6a5acd, .55));
+    const key = new T.PointLight(0x22d3ee, 1.4, 90); key.position.set(14, 20, 14); scene.add(key);
+    const rim = new T.PointLight(0xf472b6, 1.1, 90); rim.position.set(-16, 40, -10); scene.add(rim);
+
+    // Torre: 5 mundos de 10 pisos cada uno, cada vez más angosta
+    const COLS = [0xfbbf24, 0x22d3ee, 0x7c5cff, 0xf472b6, 0x4ade80];
+    const FLOORS = 50, FH = 1.1;
+    const tower = new T.Group(); scene.add(tower);
+    const bodyMat = new T.MeshStandardMaterial({ color: 0x14132a, roughness: .7, metalness: .3 });
+    const winGeo = new T.PlaneGeometry(.42, .5);
+    const winMat = new T.MeshBasicMaterial({ color: 0xffffff });
+    const perFace = 5, nWin = FLOORS * 4 * perFace;
+    const wins = new T.InstancedMesh(winGeo, winMat, nWin);
+    const m4 = new T.Matrix4(), q = new T.Quaternion(), sc = new T.Vector3(1, 1, 1), pos = new T.Vector3(), col = new T.Color();
+    const winBase = []; let wi = 0;
+    for (let f = 0; f < FLOORS; f++) {
+      const w = Math.floor(f / 10), W = 4.4 - w * .45, y = f * FH;
+      const body = new T.Mesh(new T.BoxGeometry(W, FH * .86, W), bodyMat); body.position.y = y + FH * .43; tower.add(body);
+      const slab = new T.Mesh(new T.BoxGeometry(W + .25, .08, W + .25), new T.MeshBasicMaterial({ color: COLS[w] }));
+      slab.position.y = y + FH * .9; tower.add(slab);
+      if (f % 10 === 9) { // anillo de luz al cambiar de mundo
+        const ring = new T.Mesh(new T.TorusGeometry(W * .95, .05, 8, 64), new T.MeshBasicMaterial({ color: COLS[w] }));
+        ring.rotation.x = Math.PI / 2; ring.position.y = y + FH; tower.add(ring);
+      }
+      for (let s = 0; s < 4; s++) {
+        const ang = s * Math.PI / 2; q.setFromAxisAngle(new T.Vector3(0, 1, 0), ang);
+        for (let k = 0; k < perFace; k++) {
+          const off = (k - (perFace - 1) / 2) * (W / (perFace + .5));
+          pos.set(Math.sin(ang) * (W / 2 + .01) + Math.cos(ang) * off, y + FH * .45, Math.cos(ang) * (W / 2 + .01) - Math.sin(ang) * off);
+          m4.compose(pos, q, sc); wins.setMatrixAt(wi, m4);
+          const lit = Math.random() < .55; const c = lit ? COLS[w] : 0x1d1b38;
+          winBase.push({ w, lit }); col.set(c); if (lit) col.lerp(new T.Color(0xffffff), .35);
+          wins.setColorAt(wi, col); wi++;
+        }
+      }
+    }
+    tower.add(wins);
+    // antena + faro
+    const topY = FLOORS * FH;
+    const ant = new T.Mesh(new T.CylinderGeometry(.05, .08, 3, 8), new T.MeshBasicMaterial({ color: 0x9391bd })); ant.position.y = topY + 1.5; tower.add(ant);
+    const beacon = new T.Mesh(new T.SphereGeometry(.2, 16, 16), new T.MeshBasicMaterial({ color: 0xf87171 })); beacon.position.y = topY + 3.1; tower.add(beacon);
+    const halo = new T.Mesh(new T.TorusGeometry(3.4, .06, 8, 80), new T.MeshBasicMaterial({ color: 0x4ade80, transparent: true, opacity: .7 })); halo.position.y = topY + 1; tower.add(halo);
+    // ascensor que sube y baja por fuera
+    const elev = new T.Mesh(new T.BoxGeometry(.6, .8, .12), new T.MeshBasicMaterial({ color: 0xfbbf24 })); tower.add(elev);
+    const shaft = new T.Mesh(new T.BoxGeometry(.05, topY, .05), new T.MeshBasicMaterial({ color: 0x3a3860 })); shaft.position.set(0, topY / 2, 2.35); tower.add(shaft);
+
+    // piso de neón
+    const grid = new T.GridHelper(240, 96, 0x7c5cff, 0x2a2a52); grid.material.transparent = true; grid.material.opacity = .55; scene.add(grid);
+    const glow = new T.Mesh(new T.CircleGeometry(9, 48), new T.MeshBasicMaterial({ color: 0x7c5cff, transparent: true, opacity: .16 })); glow.rotation.x = -Math.PI / 2; glow.position.y = .01; scene.add(glow);
+
+    // estrellas
+    const sg = new T.BufferGeometry(); const sp = new Float32Array(1400 * 3);
+    for (let i = 0; i < 1400; i++) { const th = Math.random() * Math.PI * 2, ph = Math.random() * Math.PI * .5, R = 140 + Math.random() * 80; sp.set([R * Math.cos(th) * Math.sin(ph), R * Math.cos(ph) * .7 + 20, R * Math.sin(th) * Math.sin(ph)], i * 3); }
+    sg.setAttribute('position', new T.BufferAttribute(sp, 3));
+    scene.add(new T.Points(sg, new T.PointsMaterial({ color: 0xffffff, size: .7, sizeAttenuation: true, transparent: true, opacity: .8 })));
+
+    // unos y ceros flotando
+    const tex = ch => { const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'); x.font = 'bold 50px "Space Mono", monospace'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillStyle = '#fff'; x.shadowColor = '#fff'; x.shadowBlur = 10; x.fillText(ch, 32, 34); return new T.CanvasTexture(c); };
+    const T1 = tex('1'), T0 = tex('0'); const bits = [];
+    const NB = mobile ? 90 : 170;
+    for (let i = 0; i < NB; i++) {
+      const m = new T.SpriteMaterial({ map: Math.random() < .5 ? T1 : T0, color: COLS[i % 5], transparent: true, opacity: .75, depthWrite: false });
+      const s = new T.Sprite(m); const a = Math.random() * Math.PI * 2, rr = 6 + Math.random() * 26;
+      s.position.set(Math.cos(a) * rr, Math.random() * 70, Math.sin(a) * rr); const z = .35 + Math.random() * .6; s.scale.set(z, z, z);
+      s.userData.v = .01 + Math.random() * .035; scene.add(s); bits.push(s);
+    }
+
+    let W = 0, H = 0;
+    function size() { W = innerWidth; H = innerHeight; r.setSize(W, H, false); cam.aspect = W / H; cam.updateProjectionMatrix(); }
+    addEventListener('resize', size); size();
+    const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
+    addEventListener('pointermove', e => { mouse.tx = e.clientX / W - .5; mouse.ty = e.clientY / H - .5; }, { passive: true });
+
+    let t = 0, sy = 0, last = performance.now(), running = true, intro = 0;
+    // al terminar la intro, la cámara baja desde el cielo
+    const introStart = () => { intro = 1; };
+    addEventListener('io:booted', introStart);
+    if (document.getElementById('boot').hidden) intro = .6;
+    document.addEventListener('visibilitychange', () => { running = !document.hidden; if (running) { last = performance.now(); requestAnimationFrame(loop); } });
+
+    function frame(dt) {
+      t += dt;
+      const p = window.IOscroll || 0; sy += (p - sy) * Math.min(1, dt * 3);
+      mouse.x += (mouse.tx - mouse.x) * .05; mouse.y += (mouse.ty - mouse.y) * .05;
+      intro = Math.max(0, intro - dt * .45);
+      const ease = intro * intro;
+      const ang = (reduce ? 0 : t * .07) + sy * 5.2 + mouse.x * .5;
+      const rad = (mobile ? 23 : 14) - sy * 2 + ease * 20;
+      const cy = 2.5 + sy * (topY - 2) + ease * 40 - mouse.y * 2;
+      cam.position.set(Math.cos(ang) * rad, cy, Math.sin(ang) * rad);
+      cam.lookAt(0, 2 + sy * (topY - 4) + 3 + ease * 10, 0);
+      // la torre se corre a la derecha en pantallas anchas para dejar espacio al texto
+      tower.position.x = grid.position.x = glow.position.x = 0;
+      if (!mobile) { const off = new T.Vector3(); cam.getWorldDirection(off); const right = new T.Vector3().crossVectors(off, cam.up).normalize(); cam.position.addScaledVector(right, -6.5 * (1 - sy)); }
+      if (!reduce) {
+        elev.position.set(0, (Math.sin(t * .35) * .5 + .5) * (topY - 1) + .4, 2.3);
+        beacon.material.color.setHex(Math.sin(t * 4) > 0 ? 0xf87171 : 0x3a1010);
+        halo.rotation.z = t * .3; halo.rotation.x = Math.PI / 2 + Math.sin(t * .5) * .15;
+        for (const s of bits) { s.position.y += s.userData.v * 60 * dt; if (s.position.y > 75) s.position.y = -2; }
+      }
+      r.render(scene, cam);
+    }
+    // parpadeo de ventanas
+    if (!reduce) setInterval(() => {
+      if (!running) return;
+      for (let k = 0; k < 14; k++) {
+        const i = Math.floor(Math.random() * nWin), b = winBase[i]; b.lit = !b.lit;
+        col.set(b.lit ? COLS[b.w] : 0x1d1b38); if (b.lit) col.lerp(new T.Color(0xffffff), .35); wins.setColorAt(i, col);
+      }
+      wins.instanceColor.needsUpdate = true;
+    }, 180);
+    function loop(now) {
+      if (!running) return;
+      const dt = Math.min(.05, (now - last) / 1000); last = now; frame(dt);
+      if (!reduce || Math.abs((window.IOscroll || 0) - sy) > .0005) requestAnimationFrame(loop);
+      else stopped = true;
+    }
+    let stopped = false;
+    if (reduce) addEventListener('scroll', () => { if (stopped) { stopped = false; last = performance.now(); requestAnimationFrame(loop); } }, { passive: true });
+    requestAnimationFrame(loop);
+    document.querySelector('.bg-fallback').style.opacity = '.55';
+  }
+
+  // Sin WebGL: lluvia de unos y ceros en 2D
+  function fallback(replace) {
+    let c = cv; if (replace) { c = cv.cloneNode(); cv.replaceWith(c); }
+    const x = c.getContext('2d'); if (!x) return;
+    let W, H, cols, drops; const fs = 16;
+    const size = () => { W = c.width = innerWidth; H = c.height = innerHeight; cols = Math.ceil(W / fs); drops = Array.from({ length: cols }, () => Math.random() * -H / fs); };
+    addEventListener('resize', size); size();
+    const COLS = ['#7c5cff', '#22d3ee', '#4ade80', '#fbbf24', '#f472b6'];
+    function step() {
+      x.fillStyle = 'rgba(9,9,15,.12)'; x.fillRect(0, 0, W, H); x.font = fs + 'px "Space Mono", monospace';
+      for (let i = 0; i < cols; i++) { if (Math.random() < .02) continue; x.fillStyle = COLS[i % 5]; x.globalAlpha = .35; x.fillText(Math.random() < .5 ? '1' : '0', i * fs, drops[i] * fs); x.globalAlpha = 1; drops[i] += .5; if (drops[i] * fs > H && Math.random() > .97) drops[i] = 0; }
+      if (!reduce) requestAnimationFrame(step);
+    }
+    step();
+  }
+  if (window.THREE) start(); else addEventListener('load', start);
+})();
+</script>
 </body>
 </html>

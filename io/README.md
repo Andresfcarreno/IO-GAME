@@ -4,6 +4,43 @@
 
 IO es un **juego de hábitos que se juega en la vida real**. Es una app web instalable (PWA) para Android, iPhone y PC. **Siempre es gratis y no tiene anuncios. Nada se compra con dinero: todo se gana haciendo.**
 
+## v12: lanzamiento
+
+**Estructura:**
+
+| Ruta | Archivo | Qué es |
+|---|---|---|
+| `/io/` (o `tudominio.com/`) | `index.html` | Página de inicio |
+| `/io/app/` | `app/` | El juego, una PWA instalable |
+
+La página de inicio trae:
+- intro de Game Boy, torre 3D con three.js y cámara que sube al hacer scroll;
+- tráiler grabado del juego real y el juego en vivo dentro de un celular (modo demo aislado);
+- cómo se juega y los controles;
+- los mundos;
+- la comparación con apps de hábitos y videojuegos;
+- las metas y la hoja de ruta;
+- ranking en vivo con jugadores reales, instalación, lista de espera (Netlify Forms) y preguntas frecuentes.
+
+**Cuentas reales:**
+- Se entra con **Google** o **correo con código de 6 dígitos** (Supabase Auth, sin SDK).
+- La partida se guarda en la nube (`io_saves`) y se sincroniza entre dispositivos.
+- El nombre de la cuenta es el que sale en el ranking.
+
+**Ranking:**
+- Solo jugadores reales: sin bots ni datos de ejemplo.
+- Las ligas se mueven cuando hay 10 jugadores o más.
+
+**Bienvenida estilo Duolingo/Finch:**
+- 9 pasos con la mascota IO: nombre, personaje, áreas, hábitos, rutina, meta de racha, cuenta y listo.
+- **🔑 Tengo un código de partida** trae una partida de otro navegador.
+
+**Modo demo:**
+- Se abre con `app/?demo=1`.
+- Usa su propio almacenamiento (`io.demo.*`), así que nunca toca tu partida real.
+
+**Para ponerlo en línea con tu dominio: [DEPLOY.md](DEPLOY.md).**
+
 ## Cómo funciona
 
 1. **Configuración inicial (4 pasos).** Creas tu personaje y armas tu rutina:
@@ -22,8 +59,8 @@ IO es un **juego de hábitos que se juega en la vida real**. Es una app web inst
 
 ## v11: todo lo del plan (menos tiendas)
 
-**Página de lanzamiento: `/io/lanzamiento/`**
-- **Contenido:** la historia en 9 capítulos con capturas reales, el cronograma, cómo instalar gratis (Android, iPhone y computador, con botón de instalar cuando el navegador lo permite), el crowdfunding y la lista de espera.
+**Página de lanzamiento** (desde v12 es la página de inicio `/io/`; `/io/lanzamiento/` redirige ahí)
+- **Contenido (v11):** cómo instalar gratis (Android, iPhone y computador, con botón de instalar cuando el navegador lo permite), el crowdfunding y la lista de espera.
 - **Lista de espera:** usa **Netlify Forms** (formulario `lista-espera`, con anti-spam y código de referido). Las inscripciones se ven en el panel de Netlify → *Forms*.
 
 **En la app:**
@@ -38,7 +75,7 @@ IO es un **juego de hábitos que se juega en la vida real**. Es una app web inst
 | 📸 Tarjeta para historias | 1080×1920 con tu personaje, tu edificio, tu racha, tus minutos y tus coronas |
 | 🔢 Hábitos de conteo | Ej. 8 vasos de agua: un toque por vez, con pausa mínima entre toques; corona al llegar a la meta |
 | 🐣 Mascota | Huevo que nace a las 3 coronas y evoluciona a las 15, 45 y 120. Cuatro especies. Se pone triste si fallas, nunca se muere. Vive en el cuarto y te anima en el reloj |
-| 🏆 Social | Visitar el cuarto de otros desde el ranking, likes ❤️ semanales, **ligas** de Bronce a Diamante (los 5 primeros suben, los 5 últimos bajan) y **salas para enfocarse juntos** con código o enlace `?sala=`. Sin servidor te acompaña un bot 🤖 |
+| 🏆 Social | Visitar el cuarto de otros desde el ranking, likes ❤️ semanales, **ligas** de Bronce a Diamante (los 5 primeros suben, los 5 últimos bajan) y **salas para enfocarse juntos** con código o enlace `?sala=`. Sin servidor, el ranking solo te muestra a ti (sin bots) |
 | ⏳ Temporadas | Objetos que solo se venden en su mes (Halloween, Navidad, Amor y amistad, Cometas…), marcados LIMITADO |
 | 🌧️ Clima real | Opcional, usa Open-Meteo sin llave. Lluvia, nieve, nubes o tormenta en tu ventana, y la temperatura |
 | 💜 Diario de ánimo | Después de cada corona, “¿cómo te sentiste?” y una línea. En Progreso ves qué hábitos te hacen bien |
@@ -120,7 +157,7 @@ Debajo de los controles, la consola se abre (bisagra y parlante) y aparece una *
   2. Corre el bloque `io_ranking` de `supabase/schema.sql`.
   3. Pon la URL y la anon key en `io/config.js`.
 - La RLS deja leer a todos, pero cada quien solo escribe su propia fila.
-- Mientras no esté conectado, IO muestra una **liga de práctica con bots 🤖**, marcados como bots, nunca personas inventadas.
+- Mientras no esté conectado, el ranking solo te muestra a ti. Nunca hay bots ni personas inventadas (v12).
 - **Pendiente para un ranking a prueba de trampas:** validar el XP en el servidor (Edge Function), porque hoy lo calcula el dispositivo.
 
 ## El mundo: nivel = piso

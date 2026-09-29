@@ -1,7 +1,7 @@
 /* IO — service worker: la app funciona sin conexión. */
-const VERSION = 'io-v11.2.0';
+const VERSION = 'io-v12.0.0';
 const SHELL = [
-  './', 'index.html', 'styles.css', 'app.js', 'store.js', 'world.js', 'habits.js', 'engine.js', 'focus.js', 'onboarding.js', 'avatar.js', 'ui.js', 'lower.js', 'ranking.js', 'config.js', 'scenes.js', 'radio.js', 'remind.js', 'share.js', 'pet.js', 'social.js', 'coach.js', 'weather.js',
+  './', 'index.html', 'styles.css', 'app.js', 'store.js', 'world.js', 'habits.js', 'engine.js', 'focus.js', 'onboarding.js', 'avatar.js', 'ui.js', 'lower.js', 'ranking.js', 'config.js', 'scenes.js', 'radio.js', 'remind.js', 'share.js', 'pet.js', 'social.js', 'coach.js', 'weather.js', 'auth.js',
   'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',
 ];
 self.addEventListener('install', e => { e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
@@ -15,7 +15,7 @@ self.addEventListener('fetch', e => {
     e.respondWith(caches.open(VERSION).then(async c => (await c.match(e.request)) || fetch(e.request).then(r => { if (r.ok) c.put(e.request, r.clone()); return r; })));
     return;
   }
-  if (url.origin !== self.location.origin || !url.pathname.includes('/io/')) return;
+  if (!e.request.url.startsWith(self.registration.scope)) return; // solo el juego (la portada tiene su propio caché del navegador)
   // red primero para que las actualizaciones lleguen; caché si no hay conexión
   e.respondWith(fetch(e.request).then(async r => { if (r.ok) (await caches.open(VERSION)).put(e.request, r.clone()); return r; })
     .catch(async () => (await caches.match(e.request, { ignoreSearch: true })) || caches.match('index.html')));
@@ -25,7 +25,7 @@ self.addEventListener('notificationclick', e => {
   e.notification.close();
   const url = new URL(e.notification.data?.url || './', self.registration.scope).href;
   e.waitUntil(clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
-    const c = list.find(w => w.url.includes('/io/'));
+    const c = list.find(w => w.url.startsWith(self.registration.scope));
     if (c) { c.navigate(url).catch(() => {}); return c.focus(); }
     return clients.openWindow(url);
   }));

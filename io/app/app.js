@@ -280,7 +280,7 @@ function aboutSheet() {
   openSheet('IO', `<div class="io-intro small"><div class="io-big"><span class="logo-flip"><span class="lf lf-a">IO</span><span class="lf lf-b">10</span></span></div>
     <div class="io-def"><b>IO</b><span>se lee “yo”. Eres tú, frente a tu espejo.</span><b>1 0</b><span>el código binario con el que se escribe todo.</span><b>1</b><span>lo que haces.</span><b>0</b><span>lo que aún no. Cada día eliges cuál escribir.</span></div>
     <p class="note">IO es un juego que solo se gana viviendo. Siempre gratis y sin anuncios. Nada se compra con dinero: todo se gana haciendo.</p>
-    <a class="btn-acc" href="lanzamiento/" style="display:block;text-align:center;text-decoration:none">🚀 Cómo nació IO y lista de espera</a></div>`);
+    <a class="btn-acc" href="../" style="display:block;text-align:center;text-decoration:none">🌐 Página de IO: cómo se juega e instalar</a></div>`);
 }
 function accountBlock() {
   const u = Auth.user();

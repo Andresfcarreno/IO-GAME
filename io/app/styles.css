@@ -1524,6 +1524,7 @@ body[data-gb="oro"] .mid-btns button,body[data-gb="oro"] .ctl-help{color:#3b1d06
 .onb-hero{position:relative}
 .onb-hero canvas{position:absolute;inset:-20px -20px auto;height:320px;width:calc(100% + 40px);opacity:.3;pointer-events:none;-webkit-mask-image:linear-gradient(180deg,#000,transparent);mask-image:linear-gradient(180deg,#000,transparent)}
 .onb-hero .how{margin-top:18px}.how i{font-size:15px}
+.code-in{display:grid;gap:8px;margin-top:16px;width:100%;text-align:left}.code-in textarea{font-family:var(--mono);font-size:12px;resize:none}
 .inp.big{font-size:22px;font-weight:700;padding:16px 18px;text-align:center;border-width:2px}
 .presets{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .pre{aspect-ratio:92/110;border-radius:16px;background:var(--s1);border:2px solid var(--s3);padding:4px;overflow:hidden;transition:transform .12s,border-color .15s}

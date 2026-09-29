@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>IO</title>
+<meta name="description" content="IO: yo · 1 0. Un juego de hábitos que se juega en la vida real. Siempre gratis.">
+<meta name="theme-color" content="#09090f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="IO">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="hdr">
+  <button class="logo" data-act="about" aria-label="IO: yo, uno y cero">
+    <span class="logo-flip"><span class="lf lf-a">IO</span><span class="lf lf-b">10</span></span>
+  </button>
+  <div class="hdr-r">
+    <span class="hdr-lvl" id="hdrLvl">NV 1</span>
+    <button class="icon-btn" data-act="settings" aria-label="Ajustes">⚙️</button>
+  </div>
+</header>
+
+<div class="demo-bar" id="demoBar" hidden><span>🎮 Modo demo</span><button data-act="startReal">Empezar de verdad →</button></div>
+
+<main class="main">
+
+  <!-- CONSOLA -->
+  <section class="console" aria-label="Consola IO">
+    <div class="bezel">
+      <div class="screen" id="screen">
+        <div class="scene" id="scene" data-skin="barrio" data-type="cuarto" data-view="calle" data-time="dia">
+          <div class="wall"></div>
+          <div class="wains" aria-hidden="true"></div>
+          <div class="wall-trim"></div>
+          <div class="ceil" aria-hidden="true"><i class="lampc"></i></div>
+          <div class="win" id="win"><i class="sun"></i><i class="stars"></i><i class="v v1"></i><i class="v v2"></i><i class="v v3"></i><i class="wx"></i></div>
+          <div class="curt" aria-hidden="true"><i></i><i></i></div>
+          <div class="furn-set" aria-hidden="true"><i class="shf s1"></i><i class="shf s2"></i><div class="sideboard"><i></i><i></i></div></div>
+          <div class="floor"></div>
+          <div class="rug"></div>
+          <div class="prug" aria-hidden="true"></div>
+          <div class="beams" aria-hidden="true"></div>
+          <div class="sill" aria-hidden="true"><i>🪴</i></div>
+          <div class="poster" aria-hidden="true"><b>IO</b><small>1·0</small></div>
+          <div class="elev" id="elevBox" role="button" aria-label="Ascensor">
+            <div class="elev-ind"><span id="elevNum">1</span></div>
+            <div class="elev-frame"><div class="elev-doors"><i></i><i></i></div></div>
+            <div class="door-hint" id="doorHint" hidden>▲</div>
+          </div>
+          <div class="tint" aria-hidden="true"></div>
+          <div class="objs" id="objs"></div>
+          <button class="petc" id="petc" aria-label="Tu compañero" hidden><span class="pet-b" id="petB"></span><span class="pet-e" id="petE"></span></button>
+          <div class="hero" id="hero"><span class="prop" id="prop"></span><div class="hero-in" id="heroIn" data-mood="neutral"></div></div>
+          <div class="fx" id="fx" aria-hidden="true"></div>
+        </div>
+        <div class="hud">
+          <button class="hud-lv" data-hud="xp" aria-label="Nivel y XP">LV<b id="lvlN">1</b></button>
+          <button class="hud-xp" data-hud="xp" aria-label="Barra de XP"><div class="hud-xp-fill" id="xpFill"></div><span class="hud-xp-t" id="xpT"></span></button>
+          <button class="hud-bits" data-hud="bits" aria-label="Bits"><i>◆</i><b id="bitsN">0</b></button>
+          <button class="hud-streak" id="streakN" data-hud="racha" aria-label="Racha">🔥0</button>
+        </div>
+        <div class="floor-tag" id="floorTag">PISO 1</div>
+        <div class="wx-tag" id="wxTag" hidden></div>
+        <button class="minimap" id="minimap" aria-label="Mapa del edificio"></button>
+        <div class="dlg" id="dlg" hidden><span class="dlg-name" id="dlgName">IO</span><span class="dlg-text" id="dlgText"></span><span class="dlg-next">▼</span></div>
+        <div class="deco-bar" id="decoBar" hidden></div>
+        <div class="gb-menu" id="gbMenu" hidden></div>
+        <div class="elev-panel" id="elevPanel" hidden></div>
+        <div class="elev-ride" id="elevRide" hidden></div>
+        <div class="crown-drop" id="crownDrop" hidden>👑</div>
+        <div class="lvlup" id="lvlup" hidden></div>
+      </div>
+      <div class="bezel-label"><span class="led" id="led"></span><span class="bz-io">IO</span><em>1·0</em><span>SYSTEM</span><small>life edition</small></div>
+    </div>
+    <div class="controls">
+      <div class="dpad" role="group" aria-label="Cruceta">
+        <button class="dp-up" data-btn="up" aria-label="Arriba">▲</button>
+        <button class="dp-left" data-btn="left" aria-label="Izquierda">◀</button>
+        <span class="dp-mid"></span>
+        <button class="dp-right" data-btn="right" aria-label="Derecha">▶</button>
+        <button class="dp-down" data-btn="down" aria-label="Abajo">▼</button>
+      </div>
+      <div class="mid-btns">
+        <button data-btn="select" aria-label="SELECT: decorar"><i></i>SELECT</button>
+        <button data-btn="start" aria-label="START: menú"><i></i>START</button>
+      </div>
+      <div class="ab">
+        <button class="btn-b" data-btn="b" aria-label="B"><span>B</span></button>
+        <button class="btn-a" data-btn="a" aria-label="A"><span>A</span></button>
+      </div>
+    </div>
+    <p class="ctl-help">✥ caminar · puerta ◧ = ascensor · <b>A</b> usar · <b>SELECT</b> decorar · <b>START</b> menú</p>
+
+    <!-- GAME BOY AVANZADO: la consola se abre y abajo aparece la segunda pantalla -->
+    <div class="hinge" aria-hidden="true"><i></i><span class="grille"></span><i></i></div>
+    <div class="lower" id="lower">
+      <nav class="ltabs" id="ltabs" role="tablist" aria-label="Pantalla inferior">
+        <button role="tab" data-tab="hoy" class="on"><i>🏠</i><span>Hoy</span><em id="bdg-hoy" hidden></em></button>
+        <button role="tab" data-tab="tienda"><i>🛒</i><span>Tienda</span><em id="bdg-tienda" hidden></em></button>
+        <button role="tab" data-tab="ranking"><i>🏆</i><span>Ranking</span><em id="bdg-ranking" hidden></em></button>
+        <button role="tab" data-tab="progreso"><i>📈</i><span>Progreso</span><em id="bdg-progreso" hidden></em></button>
+        <button role="tab" data-tab="mundo"><i>🏢</i><span>Mundo</span><em id="bdg-mundo" hidden></em></button>
+      </nav>
+      <div class="lscreen" id="lscreen">
+        <section class="lpane" id="p-hoy" data-pane="hoy">
+          <div class="h-head"><h2>Hábitos de hoy</h2><span class="h-prog" id="dayProg"></span></div>
+          <div class="day-bar"><i id="dayFill"></i></div>
+          <div class="h-next" id="hNext"></div>
+          <div id="hoyMood"></div>
+          <div class="h-list" id="habitList"></div>
+          <div id="chestBox"></div>
+          <button class="btn-add" data-act="newHabit">＋ Nuevo hábito</button>
+          <div id="hoyWeekly"></div>
+          <div class="quick" id="quick"></div>
+        </section>
+        <section class="lpane" id="p-tienda" data-pane="tienda" hidden></section>
+        <section class="lpane" id="p-ranking" data-pane="ranking" hidden></section>
+        <section class="lpane" id="p-progreso" data-pane="progreso" hidden></section>
+        <section class="lpane" id="p-mundo" data-pane="mundo" hidden></section>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot"><span class="bin">01001001 01001111</span><span>IO · siempre gratis · nada se compra con dinero</span></footer>
+</main>
+
+<!-- SHEET -->
+<div class="sheet-ov" id="sheetOv"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <div class="sheet-drag"></div>
+  <div class="sheet-hdr"><h3 class="sheet-title" id="sheetTitle">—</h3><button class="sheet-close" data-act="closeSheet" aria-label="Cerrar">✕</button></div>
+  <div class="sheet-body" id="sheetBody"></div>
+</div>
+
+<div class="focus" id="focus" role="dialog" aria-modal="true" aria-label="Temporizador" hidden></div>
+<div class="onb" id="onb" role="dialog" aria-modal="true" aria-label="Configuración inicial" hidden></div>
+<div class="mini" id="mini" aria-live="polite"></div>
+<div class="streak-ov" id="streakOv" role="dialog" aria-modal="true" aria-label="Racha" hidden></div>
+<div class="reveal" id="reveal" role="dialog" aria-modal="true" aria-label="Caja sorpresa" hidden></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<input type="file" id="backupIn" accept="application/json,.json" hidden>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

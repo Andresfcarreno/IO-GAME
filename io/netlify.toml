@@ -1,0 +1,28 @@
+# IO como sitio propio en Netlify (Base directory: io). Ver DEPLOY.md.
+[build]
+  publish = "."
+
+# El service worker y la configuración siempre frescos, para que las actualizaciones lleguen al instante.
+[[headers]]
+  for = "/app/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+[[headers]]
+  for = "/app/config.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+[[headers]]
+  for = "/app/manifest.webmanifest"
+  [headers.values]
+    Content-Type = "application/manifest+json"
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Enlaces viejos a la página de lanzamiento.
+[[redirects]]
+  from = "/lanzamiento/*"
+  to = "/"
+  status = 301
