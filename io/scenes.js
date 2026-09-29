@@ -11,7 +11,7 @@ const bubbles = words => words.map((w, i) => `<span class="fx-bub" style="--i:${
 const floaters = (chars, n = 6) => [...Array(n)].map((_, i) => `<i class="fx-fl" style="--i:${i};--x:${10 + (i * 83) % 80}%">${chars[i % chars.length]}</i>`).join('');
 // franja que se repite sin costura para el paisaje en movimiento (parallax)
 const strip = (cls, items) => `<div class="px ${cls}"><div>${items}</div><div>${items}</div></div>`;
-const PARK = strip('px-cloud', '<i>☁️</i><i>☁️</i><i>☁️</i>')
+const PARK = '<div class="px-sun"></div>' + strip('px-birds', '<i>🐦</i><i></i><i>🕊️</i><i></i>') + strip('px-cloud', '<i>☁️</i><i>☁️</i><i>☁️</i>')
   + '<div class="px-hills"></div>'
   + strip('px-mid', '<i>🌳</i><i>🏡</i><i>🌲</i><i>🌳</i><i>⛲</i><i>🌲</i><i>🏠</i><i>🌳</i><i>🏪</i>')
   + strip('px-near', '<i>🌷</i><i>🌼</i><i>🌿</i><i>🌻</i><i>🍄</i><i>🌸</i><i>🌿</i><i>🌷</i><i>🌼</i><i>🌱</i>');
@@ -29,7 +29,7 @@ const SCENES = {
   float: { mood: 'calm', sit: 'cross', sky: 'dusk', back: '<div class="fx-aura"></div><div class="fx-orbit"><i>✦</i><i>✧</i><i>·</i></div>', front: '<div class="fx-cushion"></div>' + floaters(['✦', '·', '✧'], 5) },
   breathe: { mood: 'calm', sky: 'dusk', back: '<div class="fx-breath"><span class="in">Inhala</span><span class="out">Exhala</span></div>' },
   yoga: { mood: 'calm', sky: 'dawn', back: '<div class="fx-sun"></div><div class="fx-mat"></div>' },
-  pray: { mood: 'calm', sit: 'kneel', sky: 'dusk', back: '<div class="fx-rays"></div><div class="fx-light"></div><span class="fx-dove">🕊️</span><span class="fx-candle l">🕯️</span><span class="fx-candle r">🕯️</span>', front: '<div class="fx-cushion"></div>' + ['gracias', 'paz', 'fe', 'amor', 'luz'].map((w, i) => `<i class="fx-word" style="--i:${i};--x:${12 + i * 18}%">${w}</i>`).join('') },
+  pray: { mood: 'calm', sit: 'kneel', sky: 'dusk', back: '<div class="fx-rays"></div><div class="fx-rays r2"></div><div class="fx-light"></div><div class="fx-halo"></div><span class="fx-dove">🕊️</span><span class="fx-candle l">🕯️</span><span class="fx-candle r">🕯️</span>', front: '<div class="fx-cushion"></div>' + ['gracias', 'paz', 'fe', 'amor', 'luz', 'gracias', 'esperanza'].map((w, i) => `<i class="fx-word" style="--i:${i};--x:${12 + i * 18}%">${w}</i>`).join('') },
   unplug: { mood: 'happy', sit: true, sky: 'dawn', holdR: (x, y) => T('🍵', x - 4, y - 5, 26, -10), back: '<span class="fx-phone">📵</span>' + FLIERS('🦋'), front: CHAIR_FRONT + floaters(['🍃', '🍂'], 4) },
   sleep: { mood: 'tired', sky: 'night', back: '<div class="fx-moon"></div><div class="fx-bed"></div>', front: '<span class="fx-z" style="--i:0">z</span><span class="fx-z" style="--i:1">z</span><span class="fx-z" style="--i:2">Z</span>' },
   flex: { mood: 'excited', sky: 'gym', holdL: dumbbell, holdR: dumbbell, back: '<div class="fx-rack">🏋️ 🥊 🏋️</div>', front: floaters(['💦', '💪', '🔥'], 4), move: 'press' },
@@ -39,7 +39,7 @@ const SCENES = {
   swim: { mood: 'excited', sky: 'pool', back: strip('px-fish', '<i>🐠</i><i>🐟</i><i>🐡</i><i>🐠</i>'), front: '<div class="fx-water"><i></i><i></i></div><div class="fx-lane"></div>' + floaters(['○', '◦'], 5) },
   eat: { mood: 'happy', sky: 'room', holdR: (x, y) => T('🍴', x - 2, y - 6, 16, -30), front: '<div class="fx-table"><span>🥗</span><em>🥤</em></div>' },
   cook: { mood: 'happy', sky: 'room', holdR: (x, y) => T('🍳', x - 12, y - 2, 32, -20, 'pan'), front: '<div class="fx-stove"><span class="fx-fire">🔥</span><span class="fx-pot">🍲</span></div>' + floaters(['♨', '🥕', '🧅', '♨'], 4) },
-  water: { mood: 'happy', sky: 'day', holdR: (x, y) => T('🥤', x - 2, y - 9, 26, 0), front: floaters(['💧'], 5) },
+  water: { mood: 'happy', sky: 'day', holdR: (x, y) => T('🥛', x - 2, y - 9, 30, 0, 'glass'), back: '<div class="fx-jug">🫗</div>', front: floaters(['💧', '✨'], 6) },
   clean: { mood: 'happy', sky: 'room', holdR: (x, y) => T('🧹', x - 4, y + 14, 54, 150), front: '<div class="fx-dust"><i></i><i></i><i></i></div><div class="fx-shine">' + '<i>✨</i>'.repeat(6) + '</div>' },
   music: { mood: 'excited', sky: 'stage', holdL: (x, y) => T('🎸', x + 16, y - 8, 56, 40), back: '<div class="fx-spot l"></div><div class="fx-spot r"></div>', front: '<div class="fx-eq">' + '<i></i>'.repeat(9) + '</div>' + floaters(['♪', '♫', '♬'], 6) },
   draw: { mood: 'happy', sky: 'room', holdL: (x, y) => T('🎨', x + 8, y - 6, 30, 30), holdR: (x, y) => T('🖌️', x - 4, y - 10, 18, -30, 'brush'), back: '<div class="fx-easel"><i></i></div>' },
@@ -50,7 +50,7 @@ const SCENES = {
 export function sceneHTML(act, look, wear = {}, { big = false, pet = null } = {}) {
   const key = SCENES[act] ? act : 'jump'; const sc = SCENES[key];
   const wearCls = ['head', 'face'].map(s => (wear[s] ? 'wear-' + wear[s] : '')).join(' ');
-  const h = new Date().getHours(); const tod = h >= 6 && h < 17 ? 'dia' : h >= 17 && h < 20 ? 'tarde' : 'noche';
+  const h = new Date().getHours(); const tod = h >= 5 && h < 8 ? 'amanecer' : h >= 8 && h < 17 ? 'dia' : h >= 17 && h < 19 ? 'tarde' : 'noche';
   const sit = sc.sit === true ? ' sit' : sc.sit ? ' sit sit-' + sc.sit : '';
   return `<div class="fs fs-${key}${sc.park ? ' bg-park' : ''}${big ? ' big' : ''}${sit} sky-${sc.sky || 'dusk'}" data-mood="${sc.mood}" data-tod="${tod}"${sc.move ? ` data-move="${sc.move}"` : ''}>
     <div class="fs-bg">${sc.park ? PARK : ''}</div>

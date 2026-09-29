@@ -66,7 +66,7 @@ export function render() {
   scene.classList.toggle('open', f.open);
   scene.style.setProperty('--hue', (f.world.hue || 0) + 'deg');
   const h = new Date().getHours();
-  scene.dataset.time = h >= 6 && h < 17 ? 'dia' : h >= 17 && h < 20 ? 'tarde' : 'noche';
+  scene.dataset.time = h >= 5 && h < 8 ? 'amanecer' : h >= 8 && h < 17 ? 'dia' : h >= 17 && h < 19 ? 'tarde' : 'noche';
   $('elevNum').textContent = n;
   $('floorTag').textContent = `${n === 1 ? 'PISO 1' : 'PISO ' + n} · ${f.name.toUpperCase()}`;
   // objetos

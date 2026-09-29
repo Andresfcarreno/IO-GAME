@@ -1,5 +1,5 @@
 /* IO — service worker: la app funciona sin conexión. */
-const VERSION = 'io-v11.1.0';
+const VERSION = 'io-v11.2.0';
 const SHELL = [
   './', 'index.html', 'styles.css', 'app.js', 'store.js', 'world.js', 'habits.js', 'engine.js', 'focus.js', 'onboarding.js', 'avatar.js', 'ui.js', 'lower.js', 'ranking.js', 'config.js', 'scenes.js', 'radio.js', 'remind.js', 'share.js', 'pet.js', 'social.js', 'coach.js', 'weather.js',
   'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',

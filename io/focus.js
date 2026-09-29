@@ -75,10 +75,10 @@ export function open(id, { onClaim, onClose } = {}) {
     <canvas class="fc-rain" id="fcRain" aria-hidden="true"></canvas>
     <div class="fgb">
       <div class="fgb-top"><span class="led on"></span><span class="fc-emoji">${esc(h.emoji)}</span><div><b>${esc(h.nombre)}</b><small id="fcSub"></small></div><button class="fgb-radio" id="fcRadio" aria-label="Radio" hidden>📻</button></div>
+      <div class="fc-clock" id="fcClock"><canvas id="fcRing" aria-hidden="true"></canvas>
+        <div class="fc-center"><div class="fc-time" id="fcTime">--:--</div><div class="fc-bin" id="fcBin" title="Minutos restantes en binario"></div><div class="fc-pct" id="fcPct"></div></div></div>
       <div class="fgb-bezel">
         <div class="fgb-screen">
-          <div class="fc-clock" id="fcClock"><canvas id="fcRing" aria-hidden="true"></canvas>
-            <div class="fc-center"><div class="fc-time" id="fcTime">--:--</div><div class="fc-bin" id="fcBin" title="Minutos restantes en binario"></div><div class="fc-pct" id="fcPct"></div></div></div>
           ${sceneHTML(act, cfg.avatar, W.game().wear, { big: true, pet: Pet.get() })}
           <div class="fc-buddies" id="fcBud"></div>
         </div>
@@ -173,29 +173,34 @@ function coach(el, rem, dur) {
 }
 /* reloj ovalado: los 1 y 0 recorren un óvalo a lo ancho de la pantalla */
 let OV = null;
+/** Perímetro de un rectángulo con esquinas redondeadas, empezando arriba al centro y en sentido del reloj. */
 function ovalTable(a, b) {
-  const M = 720, pts = []; let L = 0, px = 0, py = -b;
-  for (let i = 0; i <= M; i++) { const t = -Math.PI / 2 + i / M * Math.PI * 2; const x = a * Math.cos(t), y = b * Math.sin(t); if (i) L += Math.hypot(x - px, y - py); pts.push([x, y, L, t]); px = x; py = y; }
+  const r = Math.min(a, b) * .38; const pts = []; let L = 0, prev = null;
+  const push = (x, y) => { if (prev) L += Math.hypot(x - prev[0], y - prev[1]); pts.push([x, y, L, 0]); prev = [x, y]; };
+  const seg = (x0, y0, x1, y1, n = 40) => { for (let i = 0; i <= n; i++) push(x0 + (x1 - x0) * i / n, y0 + (y1 - y0) * i / n); };
+  const arc = (cx, cy, a0, a1, n = 16) => { for (let i = 0; i <= n; i++) { const t = a0 + (a1 - a0) * i / n; push(cx + r * Math.cos(t), cy + r * Math.sin(t)); } };
+  seg(0, -b, a - r, -b); arc(a - r, -b + r, -Math.PI / 2, 0); seg(a, -b + r, a, b - r); arc(a - r, b - r, 0, Math.PI / 2);
+  seg(a - r, b, -a + r, b); arc(-a + r, b - r, Math.PI / 2, Math.PI); seg(-a, b - r, -a, -b + r); arc(-a + r, -b + r, Math.PI, Math.PI * 1.5); seg(-a + r, -b, 0, -b);
   return { pts, L };
 }
 function ovalAt(f) {
   const { pts, L } = OV.tab; const target = f * L; let lo = 0, hi = pts.length - 1;
   while (lo < hi) { const m = (lo + hi) >> 1; if (pts[m][2] < target) lo = m + 1; else hi = m; }
-  const [x, y, , t] = pts[lo]; return [x, y, Math.atan2(OV.b * Math.cos(t), -OV.a * Math.sin(t))];
+  const [x, y] = pts[lo]; return [x, y, 0];
 }
 function drawRing(p) {
   const c = $('fcRing'); const box = $('fcClock'); if (!c || !box) return;
   const dpr = devicePixelRatio || 1; const W = box.clientWidth, Hh = box.clientHeight;
   if (!OV || OV.W !== W || OV.H !== Hh) {
     c.width = Math.round(W * dpr); c.height = Math.round(Hh * dpr); c.style.width = W + 'px'; c.style.height = Hh + 'px';
-    const a = (W / 2 - 16) * dpr, b = (Hh / 2 - 12) * dpr; const fs = Math.max(10, Math.min(14, Hh * .08)) * dpr;
-    OV = { W, H: Hh, a, b, fs, tab: ovalTable(a, b) }; OV.N = Math.floor(OV.tab.L / (fs * 1.05));
+    const a = (W / 2 - 12) * dpr, b = (Hh / 2 - 11) * dpr; const fs = Math.max(10, Math.min(13, Hh * .085)) * dpr;
+    OV = { W, H: Hh, a, b, fs, tab: ovalTable(a, b) }; OV.N = Math.floor(OV.tab.L / (fs * 1.1));
     OV.ia = a - fs * 1.2; OV.ib = b - fs * 1.2;
   }
   const x = c.getContext('2d'); const { a, b, fs, N } = OV;
   x.clearRect(0, 0, c.width, c.height); x.save(); x.translate(c.width / 2, c.height / 2);
   // pista y progreso por dentro del óvalo
-  x.lineWidth = 2 * dpr; x.strokeStyle = 'rgba(167,139,250,.16)'; x.beginPath(); x.ellipse(0, 0, OV.ia, OV.ib, 0, 0, Math.PI * 2); x.stroke();
+  x.lineWidth = 2 * dpr; x.strokeStyle = 'rgba(167,139,250,.16)'; x.beginPath(); OV.tab.pts.forEach(([px, py], i) => { const X = px * OV.ia / a, Y = py * OV.ib / b; i ? x.lineTo(X, Y) : x.moveTo(X, Y); }); x.stroke();
   const grad = x.createLinearGradient(-a, 0, a, 0); grad.addColorStop(0, '#a78bfa'); grad.addColorStop(.5, '#22d3ee'); grad.addColorStop(1, '#4ade80');
   x.strokeStyle = grad; x.lineWidth = 3.5 * dpr; x.lineCap = 'round'; x.beginPath();
   const steps = Math.max(2, Math.floor(p * 180));
