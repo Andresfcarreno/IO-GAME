@@ -1570,3 +1570,11 @@ body[data-gb="oro"] .mid-btns button,body[data-gb="oro"] .ctl-help{color:#3b1d06
 .lang-seg{display:flex;gap:6px}.lang-seg button{flex:1;padding:10px;border-radius:12px;border:1px solid var(--border);background:var(--s2);font-weight:600;font-size:14px}
 .lang-seg button.on{background:var(--acc);border-color:var(--acc)}
 .onb-lang{font-size:12.5px;font-weight:600;padding:7px 11px;border-radius:20px;border:1px solid var(--bh);background:rgba(124,92,255,.14);color:var(--text);white-space:nowrap}
+
+/* marca de la consola: GAME LIFE, al estilo de las consolas de bolsillo (diseño propio) */
+.gl-mark{display:inline-flex;align-items:baseline;gap:3px;font-family:var(--font);font-style:italic;font-weight:700;letter-spacing:-.3px;line-height:1;transform:skewX(-6deg)}
+.gl-mark b{font-size:12px;color:#b9b2e6;font-weight:700}
+.gl-mark i{font-size:12px;font-weight:700;background:linear-gradient(90deg,#a78bfa,#22d3ee,#4ade80,#fbbf24,#f472b6,#a78bfa);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:logoHue 5s linear infinite}
+.bezel-label .gl-mark{margin-left:2px}
+.fgb .gl-mark b,.fgb .gl-mark i{font-size:10.5px}
+@media (prefers-reduced-motion:reduce){.gl-mark i{animation:none}}

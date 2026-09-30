@@ -217,7 +217,7 @@ function finish() {
   });
   H.list().forEach(h => { if (!keep.has(h.id)) H.remove(h.id); });
   putItem('profile', { name: cfg.name, avatar: cfg.avatar, since: cfg.since, goalDays: cfg.goalDays }, 'io:profile');
-  $('onb').innerHTML = `<div class="onb-boot"><b>IO SYSTEM</b><span>01001001 01001111</span><span class="blink">▶ PRESS START</span></div>`;
+  $('onb').innerHTML = `<div class="onb-boot"><b>IO GAME LIFE</b><span>01001001 01001111</span><span class="blink">▶ PRESS START</span></div>`;
   setTimeout(() => { close(); onDone?.({ first: true }); }, 1500);
 }
 /** Al entrar con cuenta: si ya tenías partida en la nube, la traigo y sigues jugando. */

@@ -82,7 +82,7 @@ export function open(id, { onClaim, onClose } = {}) {
           ${sceneHTML(act, cfg.avatar, W.game().wear, { big: true, pet: Pet.get() })}
           <div class="fc-buddies" id="fcBud"></div>
         </div>
-        <div class="bezel-label"><span class="bz-io">IO</span><em>1·0</em><span class="fgb-who">${esc(who)}</span></div>
+        <div class="bezel-label"><span class="bz-io">IO</span><span class="gl-mark" translate="no" aria-label="Game Life"><b>GAME</b><i>LIFE</i></span><span class="fgb-who">${esc(who)}</span></div>
       </div>
       <div class="fgb-lower">
         <div class="ghost-pad" aria-hidden="true"><i></i><i></i></div><div class="ghost-ab" aria-hidden="true"><i></i><i></i></div>

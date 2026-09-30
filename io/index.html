@@ -78,7 +78,8 @@ main,header,footer{position:relative;z-index:3}
 @keyframes fadeIn{to{opacity:1}}
 @keyframes blink{50%{opacity:0}}
 .gbx-name{font-family:var(--pixel);font-size:8px;color:#3d3b5c;margin:6% 0 0 2%;letter-spacing:1px}
-.gbx-name i{font-style:italic;color:var(--acc)}
+.gbx-name .gl{font-family:var(--font);font-style:italic;font-weight:700;font-size:14px;letter-spacing:-.3px;display:inline-block;transform:skewX(-6deg);margin-left:4px}
+.gbx-name .gl b{color:#3d3b5c;margin-right:4px}.gbx-name .gl i{color:var(--acc);font-style:italic}
 .gbx-pad{position:absolute;left:10%;bottom:21%;width:26%;aspect-ratio:1}
 .gbx-pad::before,.gbx-pad::after{content:"";position:absolute;background:#2a2940;border-radius:3px}
 .gbx-pad::before{left:34%;top:0;width:32%;height:100%}.gbx-pad::after{top:34%;left:0;height:32%;width:100%}
@@ -343,7 +344,7 @@ footer a{color:var(--muted)}
     <div class="gbx-bez"><span class="gbx-led"></span>
       <div class="gbx-scr"><div class="gbx-logo">IO</div><div class="gbx-sub">TU VIDA ES EL JUEGO</div><div class="gbx-ps">PRESS START</div></div>
     </div>
-    <div class="gbx-name">IO <i>GAME SYSTEM</i></div>
+    <div class="gbx-name" translate="no">IO <span class="gl"><b>GAME</b><i>LIFE</i></span></div>
     <div class="gbx-pad"></div><div class="gbx-ab"><span></span><span></span></div>
   </div>
   <div class="boot-hint">TOCA LA PANTALLA O PRESIONA ENTER</div>
@@ -396,7 +397,7 @@ footer a{color:var(--muted)}
   <div class="wrap what">
     <div class="reveal">
       <div class="eyebrow">¿QUÉ ES IO?</div>
-      <h2 class="h2">Un Game Boy para tus hábitos.</h2>
+      <h2 class="h2">Un Game Life para tus hábitos.</h2>
       <p class="lead">Eliges los hábitos que quieres construir. Cada vez que haces uno, enciendes el reloj y tu personaje aparece haciéndolo en su cuarto. Cuando terminas, ganas <b>XP</b> para subir de piso y <b>bits</b> para decorar tu cuarto.</p>
       <div class="pillars">
         <div class="pill"><div class="ic">⏱️</div><b>Puntos que valen</b><p>Nada de marcar casillas. Si dices 20 minutos, el reloj cuenta 20 minutos.</p></div>

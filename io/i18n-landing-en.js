@@ -31,7 +31,7 @@ export default {
 
   /* qué es */
   "¿QUÉ ES IO?": "WHAT IS IO?",
-  "Un Game Boy para tus hábitos.": "A Game Boy for your habits.",
+  "Un Game Life para tus hábitos.": "A Game Life for your habits.",
   "Eliges los hábitos que quieres construir. Cada vez que haces uno, enciendes el reloj y tu personaje aparece haciéndolo en su cuarto. Cuando terminas, ganas": "You choose the habits you want to build. Every time you do one, you start the timer and your character shows up doing it in their room. When you finish, you earn",
   "para subir de piso y": "to go up a floor and",
   "para decorar tu cuarto.": "to decorate your room.",
