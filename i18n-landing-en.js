@@ -1,5 +1,7 @@
 /* IO — English dictionary for the home page (io/index.html). Same format as app/i18n-en.js. */
 export default {
+  "Privacidad": "Privacy",
+  "Términos": "Terms",
   "IO · Tu vida es el juego": "IO · Your life is the game",
   "Intro de IO": "IO intro",
   "Secciones": "Sections",

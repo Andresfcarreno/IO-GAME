@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IO · Privacidad / Privacy</title>
+<meta name="description" content="Política de privacidad de IO. / IO privacy policy.">
+<meta name="robots" content="index,follow">
+<link rel="icon" href="../app/icons/icon.svg" type="image/svg+xml">
+<style>
+:root{color-scheme:dark;--bg:#09090f;--s1:#111120;--s2:#181830;--acc:#7c5cff;--acc2:#a78bfa;--cyan:#22d3ee;--text:#eeecfc;--muted:#a3a1cc;--border:rgba(124,92,255,.22)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Space Grotesk',system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);line-height:1.65;-webkit-text-size-adjust:100%}
+.wrap{max-width:760px;margin:0 auto;padding:28px 18px 64px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:28px}
+.logo{font-family:'Courier New',ui-monospace,monospace;font-weight:700;letter-spacing:2px;color:var(--acc2);text-decoration:none;font-size:22px}
+.lang{display:flex;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.lang button{font:inherit;font-size:13px;padding:8px 14px;color:var(--muted);background:none;border:none;cursor:pointer}
+.lang button[aria-pressed="true"]{background:var(--acc);color:#fff}
+h1{font-size:clamp(26px,6vw,36px);line-height:1.2;margin-bottom:6px}
+.upd{color:var(--muted);font-size:14px;margin-bottom:26px}
+h2{font-size:19px;margin:30px 0 8px;color:var(--acc2)}
+p,li{color:#d9d7f3;font-size:16px}
+p{margin:8px 0}
+ul{margin:8px 0 8px 22px}
+li{margin:5px 0}
+a{color:var(--cyan)}
+.box{background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin:14px 0}
+.back{display:inline-block;margin-top:34px;color:var(--muted);font-size:14px}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:3px;border-radius:6px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <a class="logo" href="../">IO</a>
+  <div class="lang" role="group" aria-label="Idioma / Language">
+    <button type="button" data-set="es" aria-pressed="true">ES</button>
+    <button type="button" data-set="en" aria-pressed="false">EN</button>
+  </div>
+</header>
+
+<!-- ============ ESPAÑOL ============ -->
+<main data-l="es">
+<h1>Política de privacidad</h1>
+<p class="upd">Última actualización: 30 de septiembre de 2026</p>
+
+<p>IO es un juego de hábitos gratuito que funciona en <b>iogamelife.com</b>. Esta página explica qué datos usa IO, para qué y qué control tienes sobre ellos. Está escrita en lenguaje sencillo a propósito.</p>
+
+<h2>1. Quién es responsable</h2>
+<p>IO es operado por <b>Andrés Carreño</b>, desde Montréal, Québec, Canadá. Para cualquier duda o solicitud sobre tus datos, escribe a <a href="mailto:andycarrenofx@gmail.com">andycarrenofx@gmail.com</a>.</p>
+
+<h2>2. Qué datos usa IO</h2>
+<p>IO funciona sin cuenta: tu partida puede vivir solo en tu dispositivo. Los datos en línea se usan únicamente si decides crear una cuenta o usar las funciones sociales.</p>
+<ul>
+  <li><b>Cuenta.</b> Si entras con Google, recibimos tu nombre y tu correo electrónico. Si entras con correo, recibimos tu correo y te enviamos un código de 6 dígitos. No accedemos a nada más de tu cuenta de Google (ni contactos, ni archivos, ni calendario).</li>
+  <li><b>Tu partida.</b> Tus hábitos, rutinas, progreso, objetos y ajustes se guardan en la nube para que puedas seguir en otro dispositivo. Solo tú puedes leer y escribir tu partida.</li>
+  <li><b>Ranking (público).</b> Si participas, se publican tu nombre de jugador, nivel, XP, XP de la semana, racha y la apariencia de tu personaje. Tus hábitos no se publican en el ranking.</li>
+  <li><b>Me gusta y salas para enfocarse juntos.</b> Si usas estas funciones, quienes estén en la sala ven tu nombre, tu personaje, la actividad y el nombre del hábito que estás haciendo en ese momento.</li>
+  <li><b>Lista de espera.</b> Si te apuntas, guardamos tu correo y, si los das, tu nombre, tu tipo de dispositivo, cómo quieres apoyar y de qué enlace llegaste.</li>
+  <li><b>Clima (opcional).</b> Si lo activas, tu navegador comparte tu ubicación aproximada (redondeada a unos 1 km) con Open-Meteo para mostrar el clima en tu ventana. Esa ubicación se guarda solo en tu dispositivo.</li>
+  <li><b>En tu dispositivo.</b> IO guarda datos locales (almacenamiento del navegador y service worker) para funcionar sin conexión y recordar tu idioma y preferencias. IO no usa cookies de publicidad.</li>
+</ul>
+
+<h2>3. Para qué los usamos</h2>
+<ul>
+  <li>Hacer funcionar el juego: iniciar sesión, guardar y sincronizar tu partida, mostrar el ranking y las salas.</li>
+  <li>Enviarte el código de acceso y avisarte del lanzamiento si te apuntaste a la lista de espera.</li>
+  <li>Mantener el servicio seguro y justo (por ejemplo, evitar cuentas falsas en el ranking).</li>
+</ul>
+<div class="box"><b>No vendemos tus datos, no mostramos anuncios y no usamos tus datos para publicidad.</b> Los datos de tu cuenta de Google se usan solo para iniciar sesión.</div>
+
+<h2>4. Con quién se comparten</h2>
+<p>Usamos proveedores que procesan datos por nosotros, solo para hacer funcionar IO:</p>
+<ul>
+  <li><b>Supabase</b>: cuentas, base de datos y envío de correos de acceso.</li>
+  <li><b>Cloudflare</b>: publicación y entrega de la página.</li>
+  <li><b>Google</b>: inicio de sesión (si lo eliges) y tipografías.</li>
+  <li><b>Open-Meteo</b>: clima, solo si activas esa opción.</li>
+  <li><b>cdnjs (Cloudflare)</b>: la librería gráfica de la torre 3D.</li>
+</ul>
+<p>Estos servicios pueden procesar datos en países distintos al tuyo. Fuera de ellos, solo compartimos datos si la ley lo exige.</p>
+
+<h2>5. Cuánto tiempo los conservamos</h2>
+<p>Conservamos tus datos mientras tengas cuenta. Si quieres borrarla, escríbenos y eliminaremos tu cuenta y los datos asociados (partida, ranking, me gusta, salas). Puedes borrar los datos locales limpiando los datos del sitio en tu navegador.</p>
+
+<h2>6. Tus derechos</h2>
+<p>Puedes pedir acceso a tus datos, corregirlos, recibir una copia o que los eliminemos, según la ley que te aplique, incluida la legislación de Québec y de Canadá sobre protección de la información personal. Escríbenos al correo de arriba y responderemos en un plazo razonable.</p>
+
+<h2>7. Menores</h2>
+<p>IO no está dirigido a menores de 14 años y no recopilamos a sabiendas datos de ellos. Si crees que un menor nos dio sus datos, escríbenos y los borraremos.</p>
+
+<h2>8. Seguridad</h2>
+<p>Usamos conexiones cifradas (HTTPS) y reglas de acceso para que cada persona solo pueda escribir sus propios datos. Ningún sistema es 100 % seguro, pero cuidamos los datos como si fueran los nuestros.</p>
+
+<h2>9. Cambios a esta política</h2>
+<p>Si cambiamos algo importante, actualizaremos esta página y la fecha de arriba.</p>
+
+<h2>10. Contacto</h2>
+<p>Andrés Carreño · Montréal, Québec, Canadá · <a href="mailto:andycarrenofx@gmail.com">andycarrenofx@gmail.com</a></p>
+
+<a class="back" href="../">← Volver a IO</a> · <a class="back" href="../terminos/">Términos de servicio</a>
+</main>
+
+<!-- ============ ENGLISH ============ -->
+<main data-l="en" hidden>
+<h1>Privacy policy</h1>
+<p class="upd">Last updated: September 30, 2026</p>
+
+<p>IO is a free habit game that runs at <b>iogamelife.com</b>. This page explains what data IO uses, why, and what control you have over it. It is written in plain language on purpose.</p>
+
+<h2>1. Who is responsible</h2>
+<p>IO is operated by <b>Andrés Carreño</b> from Montréal, Québec, Canada. For any question or request about your data, write to <a href="mailto:andycarrenofx@gmail.com">andycarrenofx@gmail.com</a>.</p>
+
+<h2>2. What data IO uses</h2>
+<p>IO works without an account: your game can live only on your device. Online data is used only if you choose to create an account or use the social features.</p>
+<ul>
+  <li><b>Account.</b> If you sign in with Google, we receive your name and email address. If you sign in with email, we receive your email and send you a 6-digit code. We do not access anything else in your Google account (no contacts, files or calendar).</li>
+  <li><b>Your game.</b> Your habits, routines, progress, items and settings are saved in the cloud so you can continue on another device. Only you can read and write your game data.</li>
+  <li><b>Ranking (public).</b> If you take part, your player name, level, XP, weekly XP, streak and character appearance are published. Your habits are not published in the ranking.</li>
+  <li><b>Likes and focus-together rooms.</b> If you use these features, people in the room can see your name, your character, the activity and the name of the habit you are doing at that moment.</li>
+  <li><b>Waitlist.</b> If you sign up, we store your email and, if you provide them, your name, device type, how you want to support IO, and the link you came from.</li>
+  <li><b>Weather (optional).</b> If you turn it on, your browser shares your approximate location (rounded to about 1 km) with Open-Meteo to show the weather in your window. That location is stored only on your device.</li>
+  <li><b>On your device.</b> IO stores local data (browser storage and a service worker) to work offline and remember your language and preferences. IO does not use advertising cookies.</li>
+</ul>
+
+<h2>3. What we use it for</h2>
+<ul>
+  <li>To run the game: sign-in, saving and syncing your game, showing the ranking and rooms.</li>
+  <li>To send you your access code and let you know about the launch if you joined the waitlist.</li>
+  <li>To keep the service safe and fair (for example, preventing fake accounts in the ranking).</li>
+</ul>
+<div class="box"><b>We do not sell your data, we do not show ads, and we do not use your data for advertising.</b> Your Google account data is used only to sign you in.</div>
+
+<h2>4. Who it is shared with</h2>
+<p>We use providers that process data on our behalf, only to run IO:</p>
+<ul>
+  <li><b>Supabase</b>: accounts, database and sign-in emails.</li>
+  <li><b>Cloudflare</b>: hosting and delivery of the site.</li>
+  <li><b>Google</b>: sign-in (if you choose it) and fonts.</li>
+  <li><b>Open-Meteo</b>: weather, only if you turn that option on.</li>
+  <li><b>cdnjs (Cloudflare)</b>: the graphics library for the 3D tower.</li>
+</ul>
+<p>These services may process data in countries other than yours. Beyond them, we only share data if the law requires it.</p>
+
+<h2>5. How long we keep it</h2>
+<p>We keep your data while you have an account. If you want to delete it, write to us and we will delete your account and associated data (game, ranking, likes, rooms). You can delete local data by clearing the site data in your browser.</p>
+
+<h2>6. Your rights</h2>
+<p>You can ask for access to your data, to correct it, to receive a copy, or to have it deleted, under the law that applies to you, including Québec and Canadian personal information protection legislation. Write to the email above and we will reply within a reasonable time.</p>
+
+<h2>7. Children</h2>
+<p>IO is not directed to children under 14 and we do not knowingly collect their data. If you believe a child gave us their data, write to us and we will delete it.</p>
+
+<h2>8. Security</h2>
+<p>We use encrypted connections (HTTPS) and access rules so each person can only write their own data. No system is 100% secure, but we look after the data as if it were our own.</p>
+
+<h2>9. Changes to this policy</h2>
+<p>If we change something important, we will update this page and the date above.</p>
+
+<h2>10. Contact</h2>
+<p>Andrés Carreño · Montréal, Québec, Canada · <a href="mailto:andycarrenofx@gmail.com">andycarrenofx@gmail.com</a></p>
+
+<a class="back" href="../">← Back to IO</a> · <a class="back" href="../terminos/">Terms of service</a>
+</main>
+</div>
+<script>
+(function(){
+  var L='es';
+  try{
+    var q=new URLSearchParams(location.search).get('lang');
+    var s=localStorage.getItem('io.lang');
+    var n=(navigator.language||'es').slice(0,2);
+    L=(q==='en'||q==='es')?q:(s==='en'||s==='es')?s:(n==='es'?'es':'en');
+  }catch(e){}
+  function set(l){
+    L=l;document.documentElement.lang=l;
+    document.querySelectorAll('main[data-l]').forEach(function(m){m.hidden=m.getAttribute('data-l')!==l});
+    document.querySelectorAll('.lang button').forEach(function(b){b.setAttribute('aria-pressed',String(b.getAttribute('data-set')===l))});
+    document.title=l==='es'?'IO · Política de privacidad':'IO · Privacy policy';
+    try{localStorage.setItem('io.lang',l)}catch(e){}
+  }
+  document.querySelectorAll('.lang button').forEach(function(b){b.addEventListener('click',function(){set(b.getAttribute('data-set'))})});
+  set(L);
+})();
+</script>
+</body>
+</html>
