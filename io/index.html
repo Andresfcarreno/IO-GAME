@@ -752,8 +752,18 @@ footer a{color:var(--muted)}
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { err.textContent = 'Revisa tu correo: parece que le falta algo.'; err.hidden = false; form.email.focus(); return; }
     const btn = document.getElementById('f-go'); btn.disabled = true; btn.textContent = 'ENVIANDO…';
     try {
-      const r = await fetch(location.pathname, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(new FormData(form)).toString() });
-      if (!r.ok) throw new Error(r.status);
+      const cfg = await import('./app/config.js').then(m => m.RANKING).catch(() => null);
+      if (cfg?.url && cfg?.key) {
+        // Lista de espera en Supabase (tabla io_waitlist: se puede anotar, nadie la puede leer desde la web).
+        const f = new FormData(form); const row = { email: email.toLowerCase().slice(0, 120) };
+        for (const k of ['nombre', 'dispositivo', 'apoyo', 'ref']) { const v = String(f.get(k) || '').trim(); if (v) row[k] = v.slice(0, 80); }
+        const r = await fetch(`${cfg.url}/rest/v1/io_waitlist`, { method: 'POST', headers: { apikey: cfg.key, Authorization: `Bearer ${cfg.key}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify(row) });
+        if (!r.ok && r.status !== 409) throw new Error(r.status); // 409 = ese correo ya estaba anotado
+      } else {
+        // Sin Supabase: Netlify Forms.
+        const r = await fetch(location.pathname, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(new FormData(form)).toString() });
+        if (!r.ok) throw new Error(r.status);
+      }
       form.hidden = true; document.getElementById('waitDone').hidden = false;
       const link = location.origin + location.pathname;
       const msg = `Estoy jugando IO: un videojuego donde subes de nivel haciendo tus hábitos reales. Es gratis 👉 ${link}`;

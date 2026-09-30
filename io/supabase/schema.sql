@@ -90,6 +90,24 @@ drop policy if exists "salas: borras tu fila" on public.io_rooms;
 create policy "salas: borras tu fila" on public.io_rooms for delete using (auth.uid() = user_id);
 
 -- ============================================================
+-- LISTA DE ESPERA de la página de inicio ("Avísame cuando llegue a las tiendas").
+-- Cualquiera se puede anotar; nadie la puede leer desde la web. Tú la ves en Table Editor → io_waitlist.
+create table if not exists public.io_waitlist (
+  id          bigint generated always as identity primary key,
+  email       text not null unique check (char_length(email) between 5 and 120 and email ~* '^[^@\s]+@[^@\s]+\.[^@\s]+$'),
+  nombre      text check (char_length(nombre) <= 80),
+  dispositivo text check (char_length(dispositivo) <= 80),
+  apoyo       text check (char_length(apoyo) <= 80),
+  ref         text check (char_length(ref) <= 80),
+  created_at  timestamptz not null default now()
+);
+alter table public.io_waitlist enable row level security;
+drop policy if exists "lista: cualquiera se anota" on public.io_waitlist;
+create policy "lista: cualquiera se anota" on public.io_waitlist for insert to anon, authenticated with check (true);
+revoke select, update, delete on public.io_waitlist from anon, authenticated;
+grant insert on public.io_waitlist to anon, authenticated;
+
+-- ============================================================
 -- Versión anterior (sin cuentas): si creaste io_items con la política abierta, ciérrala.
 do $$ begin
   if to_regclass('public.io_items') is not null then

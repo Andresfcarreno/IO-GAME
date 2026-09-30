@@ -20,7 +20,7 @@ La página de inicio trae:
 - los mundos;
 - la comparación con apps de hábitos y videojuegos;
 - las metas y la hoja de ruta;
-- ranking en vivo con jugadores reales, instalación, lista de espera (Netlify Forms) y preguntas frecuentes.
+- ranking en vivo con jugadores reales, instalación, lista de espera (tabla `io_waitlist` en Supabase; sin Supabase, Netlify Forms) y preguntas frecuentes.
 
 **Cuentas reales:**
 - Se entra con **Google** o **correo con código de 6 dígitos** (Supabase Auth, sin SDK).
