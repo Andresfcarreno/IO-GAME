@@ -16,6 +16,11 @@ import * as Rem from './remind.js';
 import * as Pet from './pet.js';
 import * as Wx from './weather.js';
 import * as Auth from './auth.js';
+import * as I18N from './i18n.js';
+import EN from './i18n-en.js';
+if (I18N.isEn) I18N.addDict(EN);
+I18N.start();
+document.documentElement.classList.remove('i18n-wait');
 const mmss = s => { s = Math.max(0, Math.round(s)); return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; };
 const ANIM = { read: 'sit', study: 'sit', write: 'sit', type: 'sit', talk: 'wave', float: 'float', breathe: 'float', yoga: 'flex', pray: 'float', unplug: 'dance', sleep: 'float', flex: 'flex', run: 'jump', walk: 'dance', dog: 'dance', swim: 'jump', eat: 'jump', cook: 'dance', water: 'jump', clean: 'dance', music: 'dance', draw: 'wave', jump: 'jump' };
 
@@ -124,7 +129,7 @@ function claimFlow(id) {
 }
 /** Pantalla de racha (como Duolingo): la llama crece y la semana se marca. */
 function streakScreen(n, then) {
-  const ov = $('streakOv'); const DN = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+  const ov = $('streakOv'); const DN = H.DAYS;
   const days = [...Array(7)].map((_, i) => S.addDays(todayIso(), i - 6));
   const any = d => Object.values(H.log(d).s).some(x => x.claimed) || W.game().shielded?.[d];
   const msg = n === 1 ? '¡Empieza tu racha! Vuelve mañana para mantenerla.' : n < 7 ? `Vas ${n} días seguidos. ¡No la rompas mañana!` : n < 30 ? `¡${n} días! Ya es parte de ti.` : `¡${n} días! Esto es leyenda. 🏆`;
@@ -314,6 +319,7 @@ async function afterLogin(u) {
 }
 function settingsSheet() {
   openSheet('Ajustes', `
+    <div class="field"><label>Idioma</label><div class="lang-seg" translate="no"><button class="${I18N.lang === 'es' ? 'on' : ''}" data-act="lang" data-l="es">🇪🇸 Español</button><button class="${I18N.lang === 'en' ? 'on' : ''}" data-act="lang" data-l="en">🇺🇸 English</button></div></div>
     <div class="field"><label for="stName">Tu nombre</label><input class="inp" id="stName" value="${esc(cfg.name)}" maxlength="20"></div>
     <label class="tog"><input type="checkbox" id="stSound"${cfg.sound !== false ? ' checked' : ''}> Sonidos 8-bit</label>
     <label class="tog"><input type="checkbox" id="stWake"${cfg.wake !== false ? ' checked' : ''}> Mantener la pantalla encendida durante el reloj</label>
@@ -378,6 +384,7 @@ const A = {
   gLogin: () => { try { Auth.google(); } catch (e) { toast(e.message, 4000); } },
   sendCode: async el => { const em = $('lgEmail').value.trim(); if (!/^\S+@\S+\.\S+$/.test(em)) return toast('Escribe un correo válido'); el.disabled = true; try { await Auth.sendCode(em); $('loginMail').hidden = true; $('loginCode').hidden = false; $('lgTo').textContent = em; $('lgCode').focus(); } catch (e) { toast('⚠️ ' + e.message, 5000); } el.disabled = false; },
   verifyCode: async el => { el.disabled = true; try { const u = await Auth.verifyCode($('lgEmail').value, $('lgCode').value); closeSheet(); afterLogin(u); } catch (e) { toast('⚠️ ' + e.message, 5000); } el.disabled = false; },
+  lang: el => { if (el.dataset.l !== I18N.lang) I18N.setLang(el.dataset.l); },
   logout: async () => { await Auth.signOut(); closeSheet(); toast('Cerraste sesión. Tu partida sigue en este dispositivo'); renderAll(); L.loadRank(); },
   delAccount: async el => { if (!el.dataset.sure) { el.dataset.sure = 1; el.textContent = '¿Seguro? Se borra tu partida de la nube y tu fila del ranking. Toca otra vez.'; return; } await Auth.deleteData(); closeSheet(); toast('Tu cuenta y tus datos en la nube se borraron'); renderAll(); },
   copyCode: async () => { const c = S.exportCode(); try { await navigator.clipboard.writeText(c); toast('📋 Código copiado. Pégalo en IO donde quieras seguir jugando', 4500); } catch { $('pasteIn').value = c; $('pasteIn').select(); toast('Selecciona y copia el código del cuadro', 4000); } },

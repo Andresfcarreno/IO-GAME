@@ -1,5 +1,6 @@
 /* IO — tarjeta para historias (1080×1920): tu personaje, tu edificio y tu racha.
  * Se comparte con el menú del celular o se descarga. Publicidad gratis y honesta. */
+import { t as tr, locale } from './i18n.js';
 import { cfg } from './store.js';
 import * as W from './world.js';
 import * as H from './habits.js';
@@ -18,7 +19,7 @@ const EMO = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'
 export async function storyCanvas() {
   const g = W.game(); const lvl = W.level(g); const f = W.floorInfo(lvl); const w = W.worldOf(lvl);
   const streak = H.dayStreak(); const c = document.createElement('canvas'); c.width = 1080; c.height = 1920;
-  const x = c.getContext('2d');
+  const x = c.getContext('2d'); const fill0 = x.fillText.bind(x); x.fillText = (s, ...a) => fill0(tr(s), ...a);
   // fondo
   const bg = x.createLinearGradient(0, 0, 0, 1920); bg.addColorStop(0, '#2c2166'); bg.addColorStop(.55, '#1d1650'); bg.addColorStop(1, '#07060f'); x.fillStyle = bg; x.fillRect(0, 0, 1080, 1920);
   x.globalAlpha = .12; x.fillStyle = '#a78bfa'; x.font = '700 34px "Space Mono", monospace';
@@ -61,7 +62,7 @@ export async function storyCanvas() {
 export async function storyBlob() { const c = await storyCanvas(); return new Promise(r => c.toBlob(r, 'image/png')); }
 export async function shareStory() {
   const blob = await storyBlob(); const file = new File([blob], 'io-mi-edificio.png', { type: 'image/png' });
-  const text = `Voy en el piso ${W.level()} de mi edificio en IO 🏢🔥 ${location.origin + location.pathname}`;
+  const text = tr(`Voy en el piso ${W.level()} de mi edificio en IO 🏢🔥 ${location.origin + location.pathname}`);
   try { if (navigator.canShare?.({ files: [file] })) { await navigator.share({ files: [file], text }); return 'shared'; } } catch (e) { if (e?.name === 'AbortError') return 'cancel'; }
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file.name; a.click(); return 'download';
 }

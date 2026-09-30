@@ -1,6 +1,7 @@
 /* IO — la segunda pantalla del Game Boy avanzado.
  * Hoy · Tienda · Ranking · Progreso · Mundo. Todo lo que antes vivía escondido en el menú START
  * ahora también está a un toque, abajo de la consola. */
+import { t as tr, locale } from './i18n.js';
 import { cfg, saveCfg, todayIso, addDays, dateOf } from './store.js';
 import * as W from './world.js';
 import * as H from './habits.js';
@@ -204,8 +205,8 @@ export function closeReveal() { $('reveal').hidden = true; $('reveal').innerHTML
 
 /* compartir / invitar: el crecimiento viene de la gente, no de anuncios */
 export async function share(text) {
-  const url = location.origin + location.pathname;
-  const data = { title: 'IO · el código de tu vida', text, url };
+  const url = location.origin + location.pathname; text = tr(text);
+  const data = { title: tr('IO · el código de tu vida'), text, url };
   try { if (navigator.share) { await navigator.share(data); return; } } catch (e) { if (e?.name === 'AbortError') return; }
   try { await navigator.clipboard.writeText(`${text} ${url}`); toast('Copiado. Pégalo donde quieras 📋'); } catch { toast(`${text} ${url}`, 6000); }
 }
@@ -310,7 +311,7 @@ function weeklyCard(c, compact = false) {
 function renderProg() {
   const g = W.game(); const w = H.week(); const DN = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
   const month = H.monthGoals(); const hm = H.heatmap(12); const ach = W.achievements(g, { streak: H.dayStreak() });
-  const mname = dateOf(todayIso()).toLocaleDateString('es', { month: 'long' });
+  const mname = dateOf(todayIso()).toLocaleDateString(locale, { month: 'long' });
   const best = Math.max(g.stats.best || 0, ...H.list().map(h => H.streakOf(h.id)), 0);
   const tips = Coach.tips(); renderProg.tips = tips; const ms = H.moodStats(30);
   $('p-progreso').innerHTML = `
@@ -408,7 +409,7 @@ export const actions = {
   roomJoin: () => { const c = So.joinRoom(document.getElementById('roomIn').value); if (!c) return toast('Escribe un código válido'); toast(`👥 Entraste a la sala ${c}`); renderRank(); },
   roomShare: () => share(`Enfoquémonos juntos en IO 👥 Sala ${So.room()}: ${So.roomLink(So.room())}`),
   roomLeave: () => { So.leaveRoom(); renderRank(); },
-  petName: () => { const n = prompt('¿Cómo se llama tu compañero?', Pet.get().name); if (n && n.trim()) { Pet.rename(n); ctx.renderAll(); toast('❤️ ¡Le encantó su nombre!'); } },
+  petName: () => { const n = prompt(tr('¿Cómo se llama tu compañero?'), Pet.get().name); if (n && n.trim()) { Pet.rename(n); ctx.renderAll(); toast('❤️ ¡Le encantó su nombre!'); } },
   radioSt: el => { if (Radio.current() === el.dataset.id) Radio.stop(); else Radio.play(el.dataset.id); document.getElementById('scene')?.classList.toggle('radio-on', !!Radio.current()); G.blip('select'); renderWorld(); },
   radioOff: () => { Radio.stop(); document.getElementById('scene')?.classList.remove('radio-on'); renderWorld(); },
   shield: () => { const r = W.buyShield(); toast(r.msg); G.blip(r.ok ? 'buy' : 'error'); if (r.ok) ctx.renderAll(); },

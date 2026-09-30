@@ -2,6 +2,7 @@
  * Cada actividad define qué sostienen sus manos (se mueve con los brazos), el escenario de atrás,
  * lo de adelante, su postura y un contador en vivo (páginas, km, reps, respiraciones…).
  * En todas crece un arbolito con tu progreso. La coreografía vive en styles.css (.fs-<actividad>). */
+import { t as tr, locale } from './i18n.js';
 import { avatarSVG } from './avatar.js';
 
 // emoji dentro del SVG del personaje, opcionalmente girado para compensar el brazo
@@ -66,7 +67,7 @@ export const hasScene = act => !!SCENES[act];
 /* ---------- lo que pasa con el tiempo: contador, rutina de ejercicio y arbolito ---------- */
 const GROW = ['🌰', '🌱', '🌿', '🪴', '🌳'];
 const MOVES = [['press', 'Press de hombros'], ['squat', 'Sentadillas'], ['jacks', 'Jumping jacks'], ['curl', 'Curl de bíceps']];
-const n0 = n => Math.floor(n).toLocaleString('es-CO');
+const n0 = n => Math.floor(n).toLocaleString(locale);
 const km = (el, kmh) => `${(el / 3600 * kmh).toFixed(2)} km`;
 const COUNT = {
   read: el => `📄 página ${1 + Math.floor(el / 50)}`,

@@ -11,6 +11,10 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="IO">
+<script>/* idioma: si es inglés, esconde la página un instante hasta traducirla (evita ver el español) */
+(function(){try{var q=new URLSearchParams(location.search).get('lang'),s=localStorage.getItem('io.lang'),n=((navigator.languages&&navigator.languages[0])||navigator.language||'es').toLowerCase();var l=(q==='en'||q==='es')?q:(s==='en'||s==='es')?s:(n.indexOf('es')===0?'es':'en');document.documentElement.lang=l;if(l==='en'){document.documentElement.classList.add('i18n-wait');setTimeout(function(){document.documentElement.classList.remove('i18n-wait')},2500);}}catch(e){}})();
+</script>
+<style>.i18n-wait body{visibility:hidden}</style>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">

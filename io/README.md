@@ -39,6 +39,14 @@ La página de inicio trae:
 - Se abre con `app/?demo=1`.
 - Usa su propio almacenamiento (`io.demo.*`), así que nunca toca tu partida real.
 
+**Idiomas (español / inglés):**
+- `app/i18n.js` traduce lo que aparece en pantalla usando un diccionario:
+  - `app/i18n-en.js` para el juego;
+  - `i18n-landing-en.js` para la página de inicio.
+- El código sigue escrito en español. Las frases con partes variables se escriben con `{}`: `"Piso {}": "Floor {}"`.
+- **Detección:** usa el idioma que elegiste (`io.lang`), si no el parámetro `?lang=`, y si no el idioma del celular.
+- **Al agregar texto nuevo al juego,** agrega su traducción al diccionario. Lo que falte se queda en español; no se rompe nada.
+
 **Para ponerlo en línea con tu dominio: [DEPLOY.md](DEPLOY.md).**
 
 ## Cómo funciona

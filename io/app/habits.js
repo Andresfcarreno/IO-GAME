@@ -2,6 +2,7 @@
  * El temporizador es la única forma de cumplirlo: los puntos solo cuentan si el reloj llega al final.
  * El tiempo se calcula con marcas de tiempo, así sigue contando aunque bloquees el celular
  * (leer un libro de papel, ir al gym, una clase). Pausar guarda lo que llevas. */
+import { isEn } from './i18n.js';
 import * as S from './store.js';
 import { todayIso, addDays, dateOf } from './store.js';
 import * as W from './world.js';
@@ -35,7 +36,7 @@ export const guessAct = (nombre = '', emoji = '') => ACT_BY_WORD.find(([re]) => 
 export const guessEmoji = nombre => { const a = guessAct(nombre); return a === 'jump' ? '⭐' : ACTS[a][0]; };
 export const actOf = h => (h.act && ACTS[h.act] ? h.act : guessAct(h.nombre, h.emoji));
 export const PROP = Object.fromEntries(Object.entries(ACTS).map(([k, v]) => [k, v[0]]));
-export const DAYS = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+export const DAYS = isEn ? ['S', 'M', 'T', 'W', 'T', 'F', 'S'] : ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
 
 /* ---------- hábitos ---------- */
 export const isCount = h => h?.tipo === 'conteo';

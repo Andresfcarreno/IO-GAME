@@ -50,13 +50,14 @@ Usa un proyecto **nuevo** solo para IO. No uses el de MEETAISTAFF BUSINESS: los 
 ## Paso 2. Inicio de sesión con correo (5 min)
 
 1. En Supabase, ve a **Authentication → Sign In / Providers → Email** y deja activado *Enable Email provider*.
-2. Ve a **Authentication → Emails → Templates**. En **Magic Link** y en **Confirm signup**, cambia:
-   - el asunto por `Tu código de IO: {{ .Token }}`;
-   - el cuerpo por:
+2. Ve a **Authentication → Emails → Templates**. En **Magic Link** y en **Confirm signup**, cambia el asunto y el cuerpo. El correo va en los dos idiomas porque IO es bilingüe.
+   - **Asunto:** `IO: {{ .Token }} es tu código / is your code`
+   - **Cuerpo:**
      ```html
-     <h2>Tu código para entrar a IO</h2>
+     <h2>IO</h2>
      <p style="font-size:32px;letter-spacing:6px"><b>{{ .Token }}</b></p>
-     <p>Escríbelo en IO. Vence en una hora.</p>
+     <p>Escribe este código en IO para entrar. Vence en una hora.</p>
+     <p>Enter this code in IO to sign in. It expires in one hour.</p>
      ```
 
 ## Paso 3. Inicio de sesión con Google (15 min)
@@ -122,6 +123,13 @@ Desde ahora, cada cambio que entre a `main` en GitHub se publica solo.
    4. Entra con **Google**.
 3. Vuelve a `https://tudominio.com`: apareces **#1** en el ranking.
 4. Desde otro celular, entra con tu misma cuenta. Tu partida baja sola.
+
+## Idiomas
+
+IO está en español y en inglés:
+- **Automático:** abre en el idioma del celular o del computador. Si no está en español, abre en inglés.
+- **Manual:** botón **ES / EN** arriba en la página de inicio, **🌐 English / Español** en la bienvenida del juego y **⚙️ Ajustes → Idioma**. La elección se recuerda y aplica a la página y al juego.
+- **Enlaces directos:** `https://tudominio.com/?lang=en` abre en inglés (útil para compartir en redes en inglés) y `?lang=es` en español.
 
 ## Dónde ver las cosas después
 

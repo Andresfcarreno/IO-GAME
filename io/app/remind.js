@@ -3,6 +3,7 @@
  *   las notificaciones con la app cerrada llegan con la versión de tiendas).
  * - Exportar tus hábitos a cualquier calendario (.ics con alarma) o a Google Calendar.
  * - Número de hábitos pendientes en el ícono de la app. */
+import { t as tr, locale } from './i18n.js';
 import { cfg, saveCfg, todayIso, pad } from './store.js';
 import * as H from './habits.js';
 
@@ -20,6 +21,7 @@ export async function enable(on = true) {
   return p;
 }
 async function notify(title, body, tag, url = './') {
+  title = tr(title); body = tr(body);
   const opt = { body, tag, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', data: { url }, vibrate: [60, 40, 60] };
   try { const reg = await navigator.serviceWorker?.getRegistration(); if (reg) { await reg.showNotification(title, opt); return; } } catch { /* */ }
   try { new Notification(title, opt); } catch { /* */ }
@@ -63,19 +65,19 @@ export function ics(habits = H.list()) {
   const now = new Date(); const dt = `${now.getUTCFullYear()}${pad(now.getUTCMonth() + 1)}${pad(now.getUTCDate())}T${pad(now.getUTCHours())}${pad(now.getUTCMinutes())}00Z`;
   const url = location.origin + location.pathname;
   const ev = habits.map(h => ['BEGIN:VEVENT', `UID:${h.id.replace(/[^\w-]/g, '')}@io.habitos`, `DTSTAMP:${dt}`, `DTSTART:${stamp(nextDate(h), h.hora || '08:00')}`, `DURATION:PT${h.min}M`, `RRULE:${rrule(h)}`,
-    `SUMMARY:${esc(`${h.emoji} ${h.nombre} · IO`)}`, `DESCRIPTION:${esc(`${h.min} min con reloj en IO. ${h.motivo ? 'Tu porqué: ' + h.motivo + '. ' : ''}Ábrelo aquí: ${url}?start=${h.id}`)}`, `URL:${url}?start=${h.id}`,
+    `SUMMARY:${esc(`${h.emoji} ${h.nombre} · IO`)}`, `DESCRIPTION:${esc(tr(`${h.min} min con reloj en IO. ${h.motivo ? 'Tu porqué: ' + h.motivo + '. ' : ''}Ábrelo aquí: ${url}?start=${h.id}`))}`, `URL:${url}?start=${h.id}`,
     'BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${esc(`${h.emoji} ${h.nombre}`)}`, `TRIGGER:-PT${+(cfg.remindLead ?? 5)}M`, 'END:VALARM', 'END:VEVENT'].join('\r\n'));
-  return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//IO//Habitos//ES', 'CALSCALE:GREGORIAN', 'X-WR-CALNAME:IO · mis hábitos', ...ev, 'END:VCALENDAR'].join('\r\n');
+  return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//IO//Habitos//ES', 'CALSCALE:GREGORIAN', 'X-WR-CALNAME:' + tr('IO · mis hábitos'), ...ev, 'END:VCALENDAR'].join('\r\n');
 }
 export async function exportIcs() {
   const blob = new Blob([ics()], { type: 'text/calendar' });
   const file = new File([blob], 'io-habitos.ics', { type: 'text/calendar' });
-  try { if (navigator.canShare?.({ files: [file] })) { await navigator.share({ files: [file], title: 'IO · mis hábitos' }); return 'shared'; } } catch (e) { if (e?.name === 'AbortError') return 'cancel'; }
+  try { if (navigator.canShare?.({ files: [file] })) { await navigator.share({ files: [file], title: tr('IO · mis hábitos') }); return 'shared'; } } catch (e) { if (e?.name === 'AbortError') return 'cancel'; }
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'io-habitos.ics'; a.click(); return 'download';
 }
 export function googleLink(h) {
   const d = nextDate(h); const [a, b] = (h.hora || '08:00').split(':').map(Number);
   const end = new Date(d); end.setHours(a, b + h.min, 0, 0); const e = stamp(end, `${pad(end.getHours())}:${pad(end.getMinutes())}`);
-  const q = new URLSearchParams({ action: 'TEMPLATE', text: `${h.emoji} ${h.nombre} · IO`, dates: `${stamp(d, h.hora || '08:00')}/${e}`, details: `${h.min} min con reloj en IO: ${location.origin + location.pathname}?start=${h.id}`, recur: `RRULE:${rrule(h)}` });
+  const q = new URLSearchParams({ action: 'TEMPLATE', text: `${h.emoji} ${h.nombre} · IO`, dates: `${stamp(d, h.hora || '08:00')}/${e}`, details: tr(`${h.min} min con reloj en IO: ${location.origin + location.pathname}?start=${h.id}`), recur: `RRULE:${rrule(h)}` });
   return `https://calendar.google.com/calendar/render?${q}`;
 }

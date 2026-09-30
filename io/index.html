@@ -6,6 +6,13 @@
 <title>IO · Tu vida es el juego</title>
 <meta name="description" content="IO es un videojuego retro gratis donde subes de nivel haciendo tus hábitos reales. El reloj cuenta de verdad: si lees 20 minutos, tu personaje lee contigo.">
 <meta name="theme-color" content="#09090f">
+<link rel="alternate" hreflang="es" href="?lang=es">
+<link rel="alternate" hreflang="en" href="?lang=en">
+<link rel="alternate" hreflang="x-default" href="./">
+<script>/* idioma: si es inglés, esconde la página un instante hasta traducirla (evita ver el español) */
+(function(){try{var q=new URLSearchParams(location.search).get('lang'),s=localStorage.getItem('io.lang'),n=((navigator.languages&&navigator.languages[0])||navigator.language||'es').toLowerCase();var l=(q==='en'||q==='es')?q:(s==='en'||s==='es')?s:(n.indexOf('es')===0?'es':'en');document.documentElement.lang=l;if(l==='en'){document.documentElement.classList.add('i18n-wait');setTimeout(function(){document.documentElement.classList.remove('i18n-wait')},2500);}}catch(e){}})();
+</script>
+<style>.i18n-wait body{visibility:hidden}</style>
 <meta property="og:title" content="IO · Tu vida es el juego">
 <meta property="og:description" content="Un videojuego retro donde tus hábitos reales te suben de nivel. Gratis, sin anuncios.">
 <meta property="og:type" content="website">
@@ -90,6 +97,10 @@ header.solid{background:rgba(9,9,15,.8);backdrop-filter:blur(16px);-webkit-backd
 .brand small{font-family:var(--mono);font-size:11px;color:var(--dim)}
 .links{display:flex;gap:22px;font-size:14px;color:var(--muted)}
 .links a{text-decoration:none}.links a:hover{color:var(--text)}
+.navr{display:flex;align-items:center;gap:10px}
+.lang{display:flex;border:1px solid var(--bh);border-radius:10px;overflow:hidden}
+.lang button{font-family:var(--pixel);font-size:9px;padding:9px 9px;color:var(--muted)}
+.lang button.on{background:var(--acc);color:#fff}
 @media (max-width:860px){.links{display:none}.brand small{display:none}}
 
 /* ============ botones ============ */
@@ -355,7 +366,8 @@ footer a{color:var(--muted)}
     <nav class="links" aria-label="Secciones">
       <a href="#que-es">Qué es</a><a href="#como">Cómo se juega</a><a href="#diferente">Por qué IO</a><a href="#ranking">Ranking</a><a href="#entrar">Entrar</a>
     </nav>
-    <a class="btn btn-start btn-sm" href="app/">▶ JUGAR</a>
+    <div class="navr"><div class="lang" translate="no" role="group" aria-label="Idioma / Language"><button data-lang="es">ES</button><button data-lang="en">EN</button></div>
+    <a class="btn btn-start btn-sm" href="app/">▶ JUGAR</a></div>
   </div>
 </header>
 
@@ -642,6 +654,15 @@ footer a{color:var(--muted)}
   <div class="wrap"><span>IO · tu vida es el juego · gratis · nada se compra con dinero</span><span class="bin">01001001 01001111</span></div>
 </footer>
 
+<!-- Idiomas: español o inglés (automático por el idioma del celular, o con los botones ES / EN) -->
+<script type="module">
+import * as I from './app/i18n.js';
+import EN from './i18n-landing-en.js';
+if (I.isEn) I.addDict(EN);
+I.start(); window.IOt = I.t;
+document.documentElement.classList.remove('i18n-wait');
+document.querySelectorAll('.lang button').forEach(b => { b.classList.toggle('on', b.dataset.lang === I.lang); b.onclick = () => b.dataset.lang !== I.lang && I.setLang(b.dataset.lang); });
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
 <script>
 (() => {
@@ -766,7 +787,7 @@ footer a{color:var(--muted)}
       }
       form.hidden = true; document.getElementById('waitDone').hidden = false;
       const link = location.origin + location.pathname;
-      const msg = `Estoy jugando IO: un videojuego donde subes de nivel haciendo tus hábitos reales. Es gratis 👉 ${link}`;
+      const msg = (window.IOt || String)(`Estoy jugando IO: un videojuego donde subes de nivel haciendo tus hábitos reales. Es gratis 👉 ${link}`);
       document.getElementById('shWa').href = 'https://wa.me/?text=' + encodeURIComponent(msg);
       document.getElementById('shX').href = 'https://x.com/intent/post?text=' + encodeURIComponent(msg);
       document.getElementById('shCopy').onclick = () => navigator.clipboard?.writeText(link).then(() => document.getElementById('shCopy').textContent = '¡Copiado!');

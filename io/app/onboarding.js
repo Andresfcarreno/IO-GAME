@@ -6,6 +6,7 @@ import * as H from './habits.js';
 import { avatarSVG, editorHTML, normLook, PRESETS } from './avatar.js';
 import { sceneHTML } from './scenes.js';
 import * as Auth from './auth.js';
+import * as I18N from './i18n.js';
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -155,7 +156,7 @@ function draw() {
   const k = STEPS[step]; const last = k === 'listo';
   const blocked = (k === 'areas' && !d.areas.length) || ((k === 'habitos' || k === 'rutina') && !d.habits.length) || (k === 'nombre' && !d.name.trim()) || (k === 'cuenta' && Auth.configured() && !Auth.signedIn());
   $('onb').innerHTML = `
-    <div class="onb-top">${step > 0 && !(k === 'cuenta' && d.returning) ? '<button class="onb-back" data-o="back" aria-label="Atrás">←</button>' : d.returning ? '<button class="onb-back" data-o="home" aria-label="Atrás">←</button>' : ''}
+    <div class="onb-top">${k === 'hola' ? `<button class="onb-lang" data-o="lang" translate="no">🌐 ${I18N.isEn ? 'Español' : 'English'}</button>` : ''}${step > 0 && !(k === 'cuenta' && d.returning) ? '<button class="onb-back" data-o="back" aria-label="Atrás">←</button>' : d.returning ? '<button class="onb-back" data-o="home" aria-label="Atrás">←</button>' : ''}
       <div class="onb-prog" aria-hidden="true"><i style="width:${Math.round(step / (STEPS.length - 1) * 100)}%"></i></div>
       ${cfg.onboarded ? '<button class="onb-skip" data-o="close">Cerrar</button>' : ''}</div>
     <div class="onb-body" id="onbBody">${body()}</div>
@@ -267,6 +268,7 @@ document.addEventListener('click', async e => {
   if (o === 'next') return next();
   if (o === 'back') { step = Math.max(0, step - 1); d.open = -1; return draw(); }
   if (o === 'home') { d.returning = false; return go('hola'); }
+  if (o === 'lang') return I18N.setLang(I18N.isEn ? 'es' : 'en');
   if (o === 'returning') { d.returning = true; return go('cuenta'); }
   if (o === 'haveCode') { d.code = !d.code; draw(); return $('obPaste')?.focus(); }
   if (o === 'loadCode') {

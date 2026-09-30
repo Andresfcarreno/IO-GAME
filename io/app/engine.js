@@ -2,6 +2,7 @@
  * caminar (◀ ▶), ascensor (puerta a la izquierda: ▲ o A), interactuar con objetos (A),
  * modo decorar (SELECT: elegir, mover y guardar objetos), menú (START), minimapa, efectos y sonido.
  * Teclado: flechas/WASD · Z o Espacio = A · X = B · Shift = SELECT · Enter = START. */
+import { t as tr, locale } from './i18n.js';
 import * as W from './world.js';
 import * as Pet from './pet.js';
 import { cfg } from './store.js';
@@ -224,7 +225,7 @@ function renderElevPanel() {
         <small>PISO ${selN}</small><b>${esc(sel.name)}</b>
         <span class="ev-w">${esc(sel.world.n)}${sel.cap ? ` · 🚗×${sel.cap}` : ''}</span>
         ${open ? `<div class="ev-objs">${objs.length ? objs.slice(0, 8).join(' ') : '<em>Aún sin visitar · trae regalos</em>'}</div>`
-          : `<div class="ev-lock">Se abre en el <b>nivel ${selN}</b><small>faltan ${need.toLocaleString('es-CO')} XP</small><div class="ev-bar"><i style="width:${Math.min(100, g.xp / W.xpAt(selN) * 100)}%"></i></div></div>`}
+          : `<div class="ev-lock">Se abre en el <b>nivel ${selN}</b><small>faltan ${need.toLocaleString(locale)} XP</small><div class="ev-bar"><i style="width:${Math.min(100, g.xp / W.xpAt(selN) * 100)}%"></i></div></div>`}
         <button class="ev-go" data-go="${selN}" ${!open || selN === cur ? 'disabled' : ''}>${selN === cur ? 'Aquí estás' : open ? `${dir} Ir al ${selN}` : 'Bloqueado'}</button>
       </div>
     </div>
