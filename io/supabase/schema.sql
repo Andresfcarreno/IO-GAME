@@ -3,7 +3,7 @@
 -- Antes: Authentication → Providers → activa Google y Email (ver DEPLOY.md).
 
 -- Solo cuentas reales (Google o correo). Las sesiones anónimas no pueden escribir.
-create or replace function public.io_real_user() returns boolean language sql stable as $$
+create or replace function public.io_real_user() returns boolean language sql stable set search_path = '' as $$
   select auth.uid() is not null and coalesce((auth.jwt() ->> 'is_anonymous')::boolean, false) = false
 $$;
 
