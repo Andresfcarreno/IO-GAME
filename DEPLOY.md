@@ -9,7 +9,7 @@ Con esta guía IO queda en línea en tu dominio: cuentas reales (Google o correo
 
 Todo es gratis menos el dominio.
 
-> **Tu dominio:** `iogamelife.com` (comprado en IONOS). **Tu proyecto Supabase:** `yoadlzogdoqtkjyiyocp` (ya creado, con las tablas y la llave conectada en `io/app/config.js`).
+> **Tu dominio:** `iogamelife.com` (comprado en IONOS). **Tu proyecto Supabase:** `yoadlzogdoqtkjyiyocp` (ya creado, con las tablas y la llave conectada en `app/config.js`).
 
 ## El mapa
 
@@ -25,16 +25,16 @@ GitHub (código)  ──►  Cloudflare Pages (publica)  ──►  iogamelife.c
 
 | En el repositorio | Qué es |
 |---|---|
-| `io/index.html` | La página de inicio |
-| `io/app/` | El juego |
-| `io/app/config.js` | Donde se conectan las llaves de Supabase (el único archivo que se edita) |
-| `io/supabase/schema.sql` | Las tablas de la base de datos |
+| `index.html` | La página de inicio |
+| `app/` | El juego |
+| `app/config.js` | Donde se conectan las llaves de Supabase (el único archivo que se edita) |
+| `supabase/schema.sql` | Las tablas de la base de datos |
 
 ---
 
-## Paso 0. Fusionar el código (2 min)
+## Paso 0. El código
 
-Abre el pull request <https://github.com/Andresfcarreno/aistaff-website/pull/2> y toca **Merge pull request → Confirm merge**. Así el código nuevo queda en `main`, que es lo que Cloudflare va a publicar.
+Este repositorio (`IO-GAME`) contiene solo IO, separado del sitio de Meet AI Staff. El código ya está en la rama `main`, que es la que Cloudflare va a publicar. No hay nada que fusionar.
 
 ## Paso 1. Supabase: crear el proyecto de IO (10 min)
 
@@ -47,7 +47,7 @@ Usa un proyecto **nuevo** solo para IO. No uses el de MEETAISTAFF BUSINESS: los 
    - **Region:** `East US (Ohio)` o `South America (São Paulo)`.
    - **Plan:** Free.
 2. Espera unos 2 minutos a que termine de crearse.
-3. Ve a **SQL Editor → New query**, pega todo el contenido de `io/supabase/schema.sql` y toca **Run**. Debe decir *Success*.
+3. Ve a **SQL Editor → New query**, pega todo el contenido de `supabase/schema.sql` y toca **Run**. Debe decir *Success*.
 
 ## Paso 2. Inicio de sesión con correo (5 min)
 
@@ -89,7 +89,7 @@ En Supabase → **Authentication → URL Configuration**:
 1. En Supabase → **Project Settings → API**, copia:
    - la **Project URL**;
    - la **anon public** key. Nunca uses la que dice `service_role` ni `secret`.
-2. En GitHub, abre `io/app/config.js` en la rama `main`, toca el lápiz ✏️ y deja la línea así:
+2. En GitHub, abre `app/config.js` en la rama `main`, toca el lápiz ✏️ y deja la línea así:
    ```js
    export const RANKING = { url: 'https://yoadlzogdoqtkjyiyocp.supabase.co', key: 'eyJhbGciOi...' };
    ```
@@ -108,7 +108,7 @@ El dominio está en IONOS, pero la página se publica en Cloudflare. Lo más sim
 ## Paso 6. Cloudflare Pages: publicar (10 min)
 
 1. Entra a Cloudflare → **Workers & Pages → Create → Pages → Connect to Git**.
-2. Autoriza GitHub y elige `aistaff-website`.
+2. Autoriza GitHub y elige `IO-GAME`.
 3. Configura así:
 
    | Campo | Valor |
@@ -116,7 +116,7 @@ El dominio está en IONOS, pero la página se publica en Cloudflare. Lo más sim
    | Production branch | `main` |
    | Framework preset | None |
    | Build command | *(vacío)* |
-   | Build output directory | `io` |
+   | Build output directory | *(vacío)* |
 
 4. Toca **Save and Deploy**. En un minuto te da una dirección como `io-xxx.pages.dev`. Ábrela: ya funciona.
 5. En el proyecto de Pages, ve a **Custom domains → Set up a custom domain** y escribe tu dominio. Como el dominio ya está en Cloudflare, se conecta solo, con HTTPS incluido. Repite con `www.iogamelife.com` si lo quieres.
@@ -165,4 +165,4 @@ IO está en español y en inglés:
 
 ### Alternativa: Netlify en vez de Cloudflare Pages
 
-`io/netlify.toml` sigue incluido. Si usas Netlify, crea un sitio desde GitHub con Base directory y Publish directory en `io`, y apunta el dominio desde Cloudflare DNS con un `CNAME` a `tusitio.netlify.app`.
+`netlify.toml` sigue incluido. Si usas Netlify, crea un sitio desde GitHub sin Base directory (Publish directory queda en `.`), y apunta el dominio desde Cloudflare DNS con un `CNAME` a `tusitio.netlify.app`.

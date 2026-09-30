@@ -10,8 +10,8 @@ IO es un **juego de hábitos que se juega en la vida real**. Es una app web inst
 
 | Ruta | Archivo | Qué es |
 |---|---|---|
-| `/io/` (o `tudominio.com/`) | `index.html` | Página de inicio |
-| `/io/app/` | `app/` | El juego, una PWA instalable |
+| `/` (`iogamelife.com/`) | `index.html` | Página de inicio |
+| `/app/` | `app/` | El juego, una PWA instalable |
 
 La página de inicio trae:
 - intro de Game Boy, torre 3D con three.js y cámara que sube al hacer scroll;
@@ -67,7 +67,7 @@ La página de inicio trae:
 
 ## v11: todo lo del plan (menos tiendas)
 
-**Página de lanzamiento** (desde v12 es la página de inicio `/io/`; `/io/lanzamiento/` redirige ahí)
+**Página de lanzamiento** (desde v12 es la página de inicio `/`; `/lanzamiento/` redirige ahí)
 - **Contenido (v11):** cómo instalar gratis (Android, iPhone y computador, con botón de instalar cuando el navegador lo permite), el crowdfunding y la lista de espera.
 - **Lista de espera:** usa **Netlify Forms** (formulario `lista-espera`, con anti-spam y código de referido). Las inscripciones se ven en el panel de Netlify → *Forms*.
 
@@ -163,7 +163,7 @@ Debajo de los controles, la consola se abre (bisagra y parlante) y aparece una *
 - **Para activarlo:**
   1. En Supabase activa *Authentication → Sign In / Providers → Allow anonymous sign-ins*.
   2. Corre el bloque `io_ranking` de `supabase/schema.sql`.
-  3. Pon la URL y la anon key en `io/config.js`.
+  3. Pon la URL y la anon key en `app/config.js`.
 - La RLS deja leer a todos, pero cada quien solo escribe su propia fila.
 - Mientras no esté conectado, el ranking solo te muestra a ti. Nunca hay bots ni personas inventadas (v12).
 - **Pendiente para un ranking a prueba de trampas:** validar el XP en el servidor (Edge Function), porque hoy lo calcula el dispositivo.
@@ -209,7 +209,7 @@ Cada nivel abre un piso nuevo. El edificio crece en lujo y no se acaba:
 ## Archivos
 
 ```
-io/
+IO-GAME/
 ├── index.html      # consola + segunda pantalla (Hoy, Tienda, Ranking, Progreso, Mundo)
 ├── lower.js        # la segunda pantalla: tienda, caja sorpresa, ranking, progreso, mundo
 ├── ranking.js      # ranking con login anónimo de Supabase + liga de práctica
@@ -237,7 +237,7 @@ io/
 └── supabase/schema.sql
 ```
 
-**Sin build.** Se sirve tal cual desde `/io/`. Todo se guarda en el dispositivo. Para sincronizar entre dispositivos: corre `supabase/schema.sql` y pega la URL y la anon key en ⚙️ Ajustes.
+**Sin build.** Se sirve tal cual desde la raíz del sitio. Todo se guarda en el dispositivo. Para sincronizar entre dispositivos: corre `supabase/schema.sql` y pega la URL y la anon key en ⚙️ Ajustes.
 
 > La versión anterior (finanzas, Telegram y relaciones) está en el historial de git, en el commit `9ab2545`.
 

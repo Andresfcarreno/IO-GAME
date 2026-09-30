@@ -1,2090 +1,984 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AIStaff — AI-Powered Virtual Employees | 24/7 Trilingual</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --bg: #060608;
-      --surface: #0E0E14;
-      --surface2: #12121C;
-      --border: #1E1E30;
-      --accent: #6C63FF;
-      --accent2: #A78BFA;
-      --cyan: #00F5FF;
-      --pink: #FF2D78;
-      --green: #00FFB2;
-      --yellow: #FFD600;
-      --text: #FFFFFF;
-      --sub: #C8C8E0;
-      --white: #FFFFFF;
-    }
-    html { scroll-behavior: smooth; }
-    body {
-      font-family: 'Inter', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
-      overflow-x: hidden;
-      cursor: none;
-    }
-    ::-webkit-scrollbar { width: 5px; }
-    ::-webkit-scrollbar-track { background: var(--bg); }
-    ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 4px; }
-
-    /* CURSOR */
-    .cursor { z-index: 9999 !important; position: fixed; width: 18px; height: 18px; border-radius: 50%; background: var(--cyan); pointer-events: none; z-index: 9999; transform: translate(-50%,-50%); transition: transform 0.1s; mix-blend-mode: screen; }
-    .cursor-glow { position: fixed; width: 120px; height: 120px; border-radius: 50%; background: radial-gradient(circle, rgba(0,245,255,0.12) 0%, transparent 70%); pointer-events: none; z-index: 9998; transform: translate(-50%,-50%); transition: transform 0.25s ease; }
-
-    /* PARTICLES */
-    #particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; overflow: hidden; }
-    .particle { position: absolute; bottom: -10px; border-radius: 50%; animation: floatUp linear infinite; opacity: 0.6; }
-    @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 0.6; } 100% { transform: translateY(-110vh) scale(0.3); opacity: 0; } }
-
-    /* NAV */
-    nav {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 18px 60px;
-      background: rgba(6,6,8,0.88);
-      backdrop-filter: blur(16px);
-      border-bottom: 1px solid rgba(108,99,255,0.2);
-    }
-    .logo { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.5px; color: #fff; }
-    .logo .ai-part {
-      font-style: italic;
-      background: linear-gradient(90deg, #00F5FF, #A78BFA, #FF2D78);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      background-clip: text;
-      text-decoration: underline;
-      text-decoration-color: #00F5FF;
-      text-underline-offset: 3px;
-    }
-    .logo .staff-part { color: #38BDF8; }
-    nav ul { list-style: none; display: flex; gap: 32px; }
-    nav ul a { color: #C0C0D8; text-decoration: none; font-size: 0.88rem; font-weight: 500; transition: color 0.2s; }
-    nav ul a:hover { color: var(--cyan); }
-    .nav-cta {
-      background: linear-gradient(135deg, #6C63FF, #A78BFA);
-      color: #fff !important; padding: 10px 22px; border-radius: 8px;
-      font-weight: 700 !important; transition: opacity 0.2s !important;
-      box-shadow: 0 0 16px rgba(108,99,255,0.4);
-    }
-    .nav-cta:hover { opacity: 0.85; }
-
-    /* HERO */
-    .hero {
-      min-height: 100vh; display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      text-align: center; padding: 140px 24px 80px;
-      position: relative; overflow: hidden;
-    }
-    .hero-orb {
-      position: absolute; border-radius: 50%; filter: blur(80px); pointer-events: none; animation: pulse 4s ease-in-out infinite;
-    }
-    .orb1 { width: 500px; height: 500px; background: rgba(108,99,255,0.18); top: -100px; left: -150px; }
-    .orb2 { width: 400px; height: 400px; background: rgba(0,245,255,0.12); bottom: -80px; right: -100px; animation-delay: 2s; }
-    .orb3 { width: 300px; height: 300px; background: rgba(255,45,120,0.1); top: 40%; left: 50%; transform: translateX(-50%); animation-delay: 1s; }
-    @keyframes pulse { 0%,100% { transform: scale(1); opacity: 0.7; } 50% { transform: scale(1.15); opacity: 1; } }
-
-    .badge {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: rgba(0,245,255,0.1); border: 1px solid rgba(0,245,255,0.35);
-      color: var(--cyan); padding: 8px 18px; border-radius: 100px;
-      font-size: 0.8rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
-      margin-bottom: 28px; position: relative; z-index: 1;
-      box-shadow: 0 0 20px rgba(0,245,255,0.2);
-      animation: badgePulse 2s ease-in-out infinite;
-    }
-    @keyframes badgePulse { 0%,100% { box-shadow: 0 0 20px rgba(0,245,255,0.2); } 50% { box-shadow: 0 0 35px rgba(0,245,255,0.5); } }
-    .badge-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--cyan); animation: blink 1.2s ease-in-out infinite; }
-    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.2; } }
-
-    .hero h1 {
-      font-size: clamp(2.8rem, 6vw, 5.5rem); font-weight: 900;
-      line-height: 1.08; letter-spacing: -2px;
-      color: #fff; position: relative; z-index: 1; margin-bottom: 12px;
-    }
-    .hero h1 .grad {
-      background: linear-gradient(90deg, #6C63FF, #A78BFA, #00F5FF);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-    }
-    .hero-sub {
-      font-size: 1.2rem; font-weight: 600;
-      background: linear-gradient(90deg, #00FFB2, #00F5FF);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-      position: relative; z-index: 1; margin-bottom: 16px;
-      text-shadow: none;
-      filter: drop-shadow(0 0 12px rgba(0,255,178,0.5));
-    }
-    .hero-desc {
-      font-size: 1.05rem; color: #D0D0E8; max-width: 580px;
-      position: relative; z-index: 1; margin-bottom: 40px; font-weight: 400;
-    }
-    .hero-desc strong { color: #fff; }
-    .hero-btns { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; position: relative; z-index: 1; }
-
-    .btn-primary {
-      display: inline-flex; align-items: center; gap: 10px;
-      background: linear-gradient(135deg, #6C63FF, #A78BFA);
-      color: #fff; padding: 16px 32px; border-radius: 12px;
-      font-weight: 700; font-size: 1rem; text-decoration: none;
-      box-shadow: 0 0 30px rgba(108,99,255,0.5);
-      transition: all 0.3s; position: relative; overflow: hidden;
-    }
-    .btn-primary::after {
-      content: ''; position: absolute; top: -50%; left: -60%;
-      width: 40%; height: 200%; background: rgba(255,255,255,0.15);
-      transform: skewX(-20deg); transition: left 0.4s;
-    }
-    .btn-primary:hover::after { left: 130%; }
-    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 50px rgba(108,99,255,0.7); }
-
-    .btn-secondary {
-      display: inline-flex; align-items: center; gap: 10px;
-      background: transparent; color: var(--cyan);
-      border: 1.5px solid rgba(0,245,255,0.5);
-      padding: 16px 32px; border-radius: 12px;
-      font-weight: 700; font-size: 1rem; text-decoration: none;
-      transition: all 0.3s;
-      box-shadow: 0 0 16px rgba(0,245,255,0.15);
-    }
-    .btn-secondary:hover { background: rgba(0,245,255,0.08); box-shadow: 0 0 30px rgba(0,245,255,0.35); transform: translateY(-2px); }
-
-    /* STATS BAR */
-    .stats-bar {
-      display: flex; justify-content: center; flex-wrap: wrap; gap: 0;
-      background: var(--surface); border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border); padding: 28px 0;
-      position: relative; z-index: 1;
-    }
-    .stat-item {
-      text-align: center; padding: 0 48px;
-      border-right: 1px solid var(--border);
-    }
-    .stat-item:last-child { border-right: none; }
-    .stat-number {
-      font-size: 2.2rem; font-weight: 900;
-      background: linear-gradient(90deg, #00F5FF, #A78BFA);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-      filter: drop-shadow(0 0 10px rgba(0,245,255,0.4));
-    }
-    .stat-label { font-size: 0.82rem; color: #B0B0CC; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
-
-    /* SECTIONS */
-    section { padding: 100px 24px; position: relative; z-index: 1; }
-    .section-label {
-      display: inline-block;
-      font-size: 0.75rem; font-weight: 800; letter-spacing: 2.5px; text-transform: uppercase;
-      background: linear-gradient(90deg, #FF2D78, #A78BFA);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-      margin-bottom: 14px;
-      filter: drop-shadow(0 0 8px rgba(255,45,120,0.4));
-    }
-    .section-title {
-      font-size: clamp(2rem, 4vw, 3rem); font-weight: 900;
-      color: #fff; line-height: 1.15; margin-bottom: 16px;
-    }
-    .section-sub {
-      font-size: 1.05rem; font-weight: 600;
-      background: linear-gradient(90deg, #00F5FF, #00FFB2);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-      margin-bottom: 56px;
-      filter: drop-shadow(0 0 10px rgba(0,245,255,0.3));
-    }
-    .center { text-align: center; }
-
-    /* PROBLEM CARDS */
-    .problem-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; max-width: 1100px; margin: 0 auto; }
-    .problem-card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 16px; padding: 28px;
-      transition: all 0.3s; position: relative; overflow: hidden;
-    }
-    .problem-card::before {
-      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-      background: linear-gradient(90deg, #FF2D78, #A78BFA);
-    }
-    .problem-card:hover { transform: translateY(-4px); border-color: rgba(255,45,120,0.4); box-shadow: 0 0 30px rgba(255,45,120,0.15); }
-    .problem-icon { font-size: 2rem; margin-bottom: 14px; }
-    .problem-card h3 { font-size: 1.05rem; font-weight: 700; color: #fff; margin-bottom: 10px; }
-    .problem-card p { font-size: 0.92rem; color: #C0C0D8; line-height: 1.6; }
-    .problem-card p strong { color: #FF2D78; }
-
-    /* ===== STAFF CARDS — NEXT LEVEL ===== */
-    .staff-grid-v2 {
-      display: grid; grid-template-columns: repeat(3,1fr);
-      gap: 28px; max-width: 1160px; margin: 0 auto;
-    }
-    @media(max-width:900px){ .staff-grid-v2 { grid-template-columns:1fr; max-width:480px; } }
-
-    .sc2 {
-      background: var(--surface2); border: 1px solid var(--border);
-      border-radius: 24px; overflow: hidden;
-      transition: all 0.4s; position: relative;
-      display: flex; flex-direction: column;
-    }
-    .sc2:hover { transform: translateY(-8px); }
-    .sc2-cyan:hover  { box-shadow: 0 0 60px rgba(0,245,255,0.2);  border-color: rgba(0,245,255,0.45); }
-    .sc2-purple:hover{ box-shadow: 0 0 60px rgba(108,99,255,0.25); border-color: rgba(108,99,255,0.5); }
-    .sc2-green:hover { box-shadow: 0 0 60px rgba(0,255,178,0.2);  border-color: rgba(0,255,178,0.45); }
-
-    /* top accent bar */
-    .sc2::before {
-      content:''; position:absolute; top:0; left:0; right:0; height:3px;
-    }
-    .sc2-cyan::before   { background: linear-gradient(90deg,#00F5FF,#6C63FF); }
-    .sc2-purple::before { background: linear-gradient(90deg,#6C63FF,#A78BFA); }
-    .sc2-green::before  { background: linear-gradient(90deg,#00FFB2,#00F5FF); }
-
-    /* header band */
-    .sc2-header {
-      padding: 32px 28px 24px;
-      position: relative; overflow: hidden;
-    }
-    .sc2-cyan   .sc2-header { background: linear-gradient(135deg,rgba(0,245,255,0.07),transparent); }
-    .sc2-purple .sc2-header { background: linear-gradient(135deg,rgba(108,99,255,0.09),transparent); }
-    .sc2-green  .sc2-header { background: linear-gradient(135deg,rgba(0,255,178,0.07),transparent); }
-
-    /* status pill */
-    .sc2-status {
-      display: inline-flex; align-items: center; gap: 6px;
-      font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;
-      padding: 5px 13px; border-radius: 100px; margin-bottom: 20px;
-    }
-    .sc2-cyan   .sc2-status { background:rgba(0,245,255,0.12); color:#00F5FF; border:1px solid rgba(0,245,255,0.3); }
-    .sc2-purple .sc2-status { background:rgba(108,99,255,0.15); color:#A78BFA; border:1px solid rgba(108,99,255,0.35); }
-    .sc2-green  .sc2-status { background:rgba(0,255,178,0.12); color:#00FFB2; border:1px solid rgba(0,255,178,0.3); }
-    .sc2-status-dot { width:7px; height:7px; border-radius:50%; animation: blink 1.2s ease-in-out infinite; }
-    .sc2-cyan   .sc2-status-dot { background:#00F5FF; box-shadow:0 0 6px #00F5FF; }
-    .sc2-purple .sc2-status-dot { background:#A78BFA; box-shadow:0 0 6px #A78BFA; }
-    .sc2-green  .sc2-status-dot { background:#00FFB2; box-shadow:0 0 6px #00FFB2; }
-
-    /* avatar row */
-    .sc2-avatar-row { display:flex; align-items:center; gap:18px; margin-bottom:18px; }
-    .sc2-avatar {
-      width:72px; height:72px; border-radius:50%; flex-shrink:0;
-      display:flex; align-items:center; justify-content:center;
-      font-size:2rem; position:relative;
-    }
-    .sc2-cyan   .sc2-avatar { background:radial-gradient(circle,rgba(0,245,255,0.2),rgba(108,99,255,0.08)); border:2px solid rgba(0,245,255,0.45); box-shadow:0 0 28px rgba(0,245,255,0.3); }
-    .sc2-purple .sc2-avatar { background:radial-gradient(circle,rgba(108,99,255,0.2),rgba(167,139,250,0.06)); border:2px solid rgba(108,99,255,0.45); box-shadow:0 0 28px rgba(108,99,255,0.3); }
-    .sc2-green  .sc2-avatar { background:radial-gradient(circle,rgba(0,255,178,0.2),rgba(0,245,255,0.06)); border:2px solid rgba(0,255,178,0.45); box-shadow:0 0 28px rgba(0,255,178,0.3); }
-
-    .sc2-id { flex:1; }
-    .sc2-name { font-size:1.3rem; font-weight:900; color:#fff; margin-bottom:3px; }
-    .sc2-role-label {
-      font-size:0.75rem; font-weight:700; letter-spacing:1.5px; text-transform:uppercase;
-    }
-    .sc2-cyan   .sc2-role-label { color:#00F5FF; }
-    .sc2-purple .sc2-role-label { color:#A78BFA; }
-    .sc2-green  .sc2-role-label { color:#00FFB2; }
-
-    .sc2-desc { font-size:0.92rem; color:#C8C8E0; line-height:1.65; margin-bottom:0; }
-    .sc2-desc strong { color:#fff; }
-
-    /* channels row */
-    .sc2-channels {
-      display:flex; flex-wrap:wrap; gap:7px;
-      padding: 18px 28px; border-top:1px solid var(--border); border-bottom:1px solid var(--border);
-    }
-    .sc2-ch {
-      display:inline-flex; align-items:center; gap:5px;
-      font-size:0.72rem; font-weight:700; padding:4px 11px; border-radius:100px;
-    }
-    .ch-c { background:rgba(0,245,255,0.1); color:#00F5FF; border:1px solid rgba(0,245,255,0.25); }
-    .ch-p { background:rgba(108,99,255,0.12); color:#A78BFA; border:1px solid rgba(108,99,255,0.3); }
-    .ch-g { background:rgba(0,255,178,0.1); color:#00FFB2; border:1px solid rgba(0,255,178,0.25); }
-    .ch-pink { background:rgba(255,45,120,0.1); color:#FF2D78; border:1px solid rgba(255,45,120,0.25); }
-
-    /* metrics row */
-    .sc2-metrics {
-      display:grid; grid-template-columns:repeat(3,1fr);
-      gap:0; padding:20px 28px;
-    }
-    .sc2-metric { text-align:center; padding:0 8px; border-right:1px solid var(--border); }
-    .sc2-metric:last-child { border-right:none; }
-    .sc2-mval {
-      font-size:1.4rem; font-weight:900; line-height:1;
-    }
-    .sc2-cyan   .sc2-mval { background:linear-gradient(90deg,#00F5FF,#A78BFA); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; filter:drop-shadow(0 0 8px rgba(0,245,255,0.4)); }
-    .sc2-purple .sc2-mval { background:linear-gradient(90deg,#A78BFA,#6C63FF); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; filter:drop-shadow(0 0 8px rgba(108,99,255,0.4)); }
-    .sc2-green  .sc2-mval { background:linear-gradient(90deg,#00FFB2,#00F5FF); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; filter:drop-shadow(0 0 8px rgba(0,255,178,0.4)); }
-    .sc2-mlabel { font-size:0.68rem; color:#8888AA; font-weight:600; margin-top:4px; text-transform:uppercase; letter-spacing:0.8px; }
-
-    /* footer cta */
-    .sc2-footer { padding:20px 28px; margin-top:auto; }
-    .sc2-cta {
-      display:flex; align-items:center; justify-content:center; gap:8px;
-      width:100%; padding:13px 20px; border-radius:12px;
-      font-weight:700; font-size:0.9rem; text-decoration:none;
-      transition:all 0.3s; cursor:pointer; border:none;
-    }
-    .sc2-cyan   .sc2-cta { background:rgba(0,245,255,0.1); color:#00F5FF; border:1.5px solid rgba(0,245,255,0.35); }
-    .sc2-cyan   .sc2-cta:hover { background:rgba(0,245,255,0.18); box-shadow:0 0 28px rgba(0,245,255,0.3); }
-    .sc2-purple .sc2-cta { background:rgba(108,99,255,0.12); color:#A78BFA; border:1.5px solid rgba(108,99,255,0.4); }
-    .sc2-purple .sc2-cta:hover { background:rgba(108,99,255,0.22); box-shadow:0 0 28px rgba(108,99,255,0.3); }
-    .sc2-green  .sc2-cta { background:rgba(0,255,178,0.1); color:#00FFB2; border:1.5px solid rgba(0,255,178,0.35); }
-    .sc2-green  .sc2-cta:hover { background:rgba(0,255,178,0.18); box-shadow:0 0 28px rgba(0,255,178,0.3); }
-
-    /* ===== DEMO SECTION — NEXT LEVEL ===== */
-    .demo-v2 {
-      background: var(--surface); border-top:1px solid var(--border); border-bottom:1px solid var(--border);
-    }
-    .demo-v2-inner {
-      max-width:1160px; margin:0 auto;
-      display:grid; grid-template-columns:1fr 1fr; gap:64px; align-items:center;
-    }
-    @media(max-width:900px){ .demo-v2-inner { grid-template-columns:1fr; gap:40px; } }
-
-    /* left text */
-    .demo-v2-text h2 { font-size:clamp(2rem,3.5vw,2.8rem); font-weight:900; color:#fff; line-height:1.15; margin-bottom:14px; }
-    .demo-v2-text .demo-neon {
-      font-size:1rem; font-weight:700;
-      background:linear-gradient(90deg,#00F5FF,#A78BFA);
-      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
-      filter:drop-shadow(0 0 8px rgba(0,245,255,0.4));
-      margin-bottom:14px;
-    }
-    .demo-v2-text p { color:#C8C8E0; font-size:0.95rem; line-height:1.7; margin-bottom:24px; }
-    .demo-v2-text p strong { color:#fff; }
-
-    /* feature pills */
-    .demo-pills { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:28px; }
-    .demo-pill {
-      display:inline-flex; align-items:center; gap:7px;
-      font-size:0.8rem; font-weight:700; padding:8px 16px; border-radius:100px;
-    }
-    .dp-cyan   { background:rgba(0,245,255,0.08); color:#00F5FF; border:1px solid rgba(0,245,255,0.25); }
-    .dp-green  { background:rgba(0,255,178,0.08); color:#00FFB2; border:1px solid rgba(0,255,178,0.25); }
-    .dp-purple { background:rgba(108,99,255,0.1); color:#A78BFA; border:1px solid rgba(108,99,255,0.3); }
-    .dp-pink   { background:rgba(255,45,120,0.08); color:#FF2D78; border:1px solid rgba(255,45,120,0.25); }
-
-    /* right: phone mockup + chat */
-    .demo-v2-visual {
-      position:relative; display:flex; flex-direction:column; align-items:center; gap:20px;
-    }
-
-    /* phone card */
-    .demo-phone-card {
-      background:var(--surface2); border:1px solid rgba(0,245,255,0.3);
-      border-radius:24px; padding:28px 32px; width:100%; max-width:380px;
-      position:relative; overflow:hidden;
-      box-shadow:0 0 50px rgba(0,245,255,0.12);
-    }
-    .demo-phone-card::before {
-      content:''; position:absolute; top:0; left:0; right:0; height:3px;
-      background:linear-gradient(90deg,#00F5FF,#6C63FF,#A78BFA);
-    }
-    .dpc-top { display:flex; align-items:center; gap:14px; margin-bottom:20px; }
-    .dpc-icon {
-      width:52px; height:52px; border-radius:50%;
-      background:linear-gradient(135deg,#6C63FF,#00F5FF);
-      display:flex; align-items:center; justify-content:center;
-      font-size:1.4rem; flex-shrink:0;
-      box-shadow:0 0 24px rgba(108,99,255,0.5);
-      animation:phoneBounce 3s ease-in-out infinite;
-    }
-    .dpc-info { flex:1; }
-    .dpc-name { font-size:1rem; font-weight:800; color:#fff; }
-    .dpc-status {
-      display:inline-flex; align-items:center; gap:5px;
-      font-size:0.72rem; font-weight:700; color:#00FFB2; margin-top:3px;
-    }
-    .dpc-status-dot { width:6px; height:6px; border-radius:50%; background:#00FFB2; box-shadow:0 0 6px #00FFB2; animation:blink 1.2s ease-in-out infinite; }
-    .dpc-number {
-      font-size:1.6rem; font-weight:900; letter-spacing:2px; text-align:center;
-      background:linear-gradient(90deg,#00F5FF,#A78BFA);
-      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
-      filter:drop-shadow(0 0 12px rgba(0,245,255,0.5));
-      margin-bottom:6px;
-    }
-    .dpc-sub { font-size:0.78rem; color:#8888AA; text-align:center; font-weight:600; margin-bottom:20px; }
-
-    /* pulse rings inside card */
-    .dpc-rings { position:relative; height:80px; display:flex; align-items:center; justify-content:center; margin-bottom:4px; }
-    .dpc-ring {
-      position:absolute; border-radius:50%; border:1px solid rgba(0,245,255,0.25);
-      animation:ringPulse 2.5s ease-out infinite;
-    }
-    .dpc-ring1 { width:60px; height:60px; animation-delay:0s; }
-    .dpc-ring2 { width:90px; height:90px; animation-delay:0.6s; }
-    .dpc-ring3 { width:120px; height:120px; animation-delay:1.2s; }
-    .dpc-center {
-      width:44px; height:44px; border-radius:50%;
-      background:linear-gradient(135deg,#6C63FF,#00F5FF);
-      display:flex; align-items:center; justify-content:center;
-      font-size:1.2rem; z-index:2;
-      box-shadow:0 0 24px rgba(108,99,255,0.6);
-    }
-
-    /* chat bubble card */
-    .demo-chat-card {
-      background:var(--surface2); border:1px solid rgba(108,99,255,0.3);
-      border-radius:20px; padding:20px 22px; width:100%; max-width:380px;
-      box-shadow:0 0 30px rgba(108,99,255,0.1);
-    }
-    .dcc-header { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
-    .dcc-avatar {
-      width:36px; height:36px; border-radius:50%;
-      background:linear-gradient(135deg,#A78BFA,#6C63FF);
-      display:flex; align-items:center; justify-content:center;
-      font-size:1rem; box-shadow:0 0 12px rgba(108,99,255,0.4);
-    }
-    .dcc-name { font-size:0.88rem; font-weight:800; color:#fff; }
-    .dcc-typing { font-size:0.72rem; color:#A78BFA; font-weight:600; }
-    .dcc-bubble {
-      background:rgba(108,99,255,0.12); border:1px solid rgba(108,99,255,0.2);
-      border-radius:4px 16px 16px 16px; padding:12px 16px;
-      font-size:0.88rem; color:#E0E0F0; line-height:1.55; margin-bottom:10px;
-    }
-    .dcc-bubble.user {
-      background:rgba(0,245,255,0.08); border-color:rgba(0,245,255,0.2);
-      border-radius:16px 4px 16px 16px; text-align:right; color:#C8E8FF;
-    }
-    .dcc-bubble strong { color:#00F5FF; }
-    .dcc-time { font-size:0.68rem; color:#6060A0; text-align:right; margin-top:4px; }
-
-    /* typing dots */
-    .typing-dots { display:inline-flex; gap:4px; align-items:center; padding:4px 0; }
-    .typing-dots span {
-      width:6px; height:6px; border-radius:50%; background:#A78BFA;
-      animation:typingBounce 1.2s ease-in-out infinite;
-    }
-    .typing-dots span:nth-child(2) { animation-delay:0.2s; }
-    .typing-dots span:nth-child(3) { animation-delay:0.4s; }
-    @keyframes typingBounce { 0%,60%,100%{transform:translateY(0);opacity:0.5;} 30%{transform:translateY(-5px);opacity:1;} }
-
-    /* lang badges */
-    .demo-langs { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
-    .lang-badge {
-      display:inline-flex; align-items:center; gap:6px;
-      font-size:0.78rem; font-weight:700; padding:7px 16px; border-radius:100px;
-      background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); color:#C8C8E0;
-    }
-
-    /* METRICS */
-    .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; max-width: 1000px; margin: 0 auto 60px; }
-    .metric-card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 16px; padding: 28px 24px; text-align: center;
-      transition: all 0.3s; position: relative; overflow: hidden;
-    }
-    .metric-card::before {
-      content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
-      background: linear-gradient(90deg, #00F5FF, #00FFB2);
-    }
-    .metric-card:hover { transform: translateY(-4px); box-shadow: 0 0 30px rgba(0,245,255,0.15); border-color: rgba(0,245,255,0.3); }
-    .metric-value {
-      font-size: 2.4rem; font-weight: 900;
-      background: linear-gradient(90deg, #00FFB2, #00F5FF);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-      filter: drop-shadow(0 0 12px rgba(0,255,178,0.5));
-    }
-    .metric-label { font-size: 0.88rem; color: #C0C0D8; font-weight: 600; margin-top: 8px; }
-    .metric-sub { font-size: 0.78rem; color: #8888AA; margin-top: 4px; }
-
-    /* BATTLE SECTION */
-    .battle-wrap {
-      max-width: 1100px; margin: 0 auto;
-      display: grid; grid-template-columns: 1fr auto 1fr; gap: 0;
-      align-items: stretch; position: relative;
-    }
-    .battle-side {
-      background: var(--surface2); border: 1px solid var(--border);
-      border-radius: 24px; padding: 36px 32px;
-      position: relative; overflow: hidden;
-      transition: all 0.4s;
-    }
-    .battle-side.human-side {
-      border-color: rgba(255,100,100,0.3);
-      background: linear-gradient(160deg, #12121C 60%, rgba(255,80,80,0.06));
-    }
-    .battle-side.ai-side {
-      border-color: rgba(0,245,255,0.35);
-      background: linear-gradient(160deg, #12121C 60%, rgba(0,245,255,0.07));
-      box-shadow: 0 0 60px rgba(0,245,255,0.1);
-    }
-    .battle-side.ai-side:hover { box-shadow: 0 0 80px rgba(0,245,255,0.2); transform: translateY(-4px); }
-    .battle-side.human-side:hover { transform: translateY(-4px); }
-
-    .battle-avatar {
-      width: 100px; height: 100px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 3rem; margin: 0 auto 20px;
-      position: relative;
-    }
-    .human-avatar {
-      background: radial-gradient(circle, rgba(255,100,80,0.2), rgba(255,100,80,0.05));
-      border: 2px solid rgba(255,100,80,0.4);
-      box-shadow: 0 0 30px rgba(255,100,80,0.2);
-    }
-    .ai-avatar {
-      background: radial-gradient(circle, rgba(0,245,255,0.2), rgba(108,99,255,0.1));
-      border: 2px solid rgba(0,245,255,0.5);
-      box-shadow: 0 0 40px rgba(0,245,255,0.35);
-      animation: aiGlow 2.5s ease-in-out infinite;
-    }
-    @keyframes aiGlow {
-      0%,100% { box-shadow: 0 0 40px rgba(0,245,255,0.35); }
-      50% { box-shadow: 0 0 70px rgba(0,245,255,0.6), 0 0 120px rgba(108,99,255,0.3); }
-    }
-    .battle-name {
-      font-size: 1.3rem; font-weight: 900; text-align: center; margin-bottom: 6px;
-    }
-    .human-name { color: #FF8080; }
-    .ai-name {
-      background: linear-gradient(90deg, #00F5FF, #A78BFA);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-      filter: drop-shadow(0 0 10px rgba(0,245,255,0.5));
-    }
-    .battle-subtitle {
-      font-size: 0.78rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
-      text-align: center; margin-bottom: 28px;
-    }
-    .human-subtitle { color: #FF8080; opacity: 0.7; }
-    .ai-subtitle { color: #00F5FF; opacity: 0.85; }
-
-    .battle-row {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 18px; gap: 12px;
-    }
-    .battle-label { font-size: 0.82rem; color: #A0A0C0; font-weight: 600; flex: 1; }
-    .battle-label.right { text-align: right; }
-    .battle-score {
-      font-size: 1.1rem; font-weight: 900; min-width: 52px; text-align: center;
-      padding: 6px 10px; border-radius: 8px;
-    }
-    .score-bad {
-      color: #FF8080;
-      background: rgba(255,80,80,0.1);
-      border: 1px solid rgba(255,80,80,0.25);
-    }
-    .score-good {
-      background: linear-gradient(135deg, rgba(0,245,255,0.15), rgba(108,99,255,0.15));
-      border: 1px solid rgba(0,245,255,0.35);
-      color: #00F5FF;
-      box-shadow: 0 0 12px rgba(0,245,255,0.2);
-    }
-    .battle-track {
-      flex: 1; height: 8px; background: rgba(255,255,255,0.06);
-      border-radius: 100px; overflow: hidden;
-    }
-    .battle-fill {
-      height: 100%; border-radius: 100px; width: 0;
-      transition: width 1.6s cubic-bezier(0.4,0,0.2,1);
-    }
-    .fill-bad { background: linear-gradient(90deg, #FF8080, #FF4040); }
-    .fill-good { background: linear-gradient(90deg, #00F5FF, #00FFB2); box-shadow: 0 0 8px rgba(0,245,255,0.5); }
-
-    /* WINNER BADGE */
-    .winner-badge {
-      position: absolute; top: -1px; left: 50%; transform: translateX(-50%);
-      background: linear-gradient(135deg, #00F5FF, #6C63FF);
-      color: #000; font-size: 0.7rem; font-weight: 900; letter-spacing: 1.5px;
-      text-transform: uppercase; padding: 5px 16px; border-radius: 0 0 12px 12px;
-      white-space: nowrap; box-shadow: 0 4px 20px rgba(0,245,255,0.4);
-    }
-
-    /* VS DIVIDER */
-    .battle-vs {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      padding: 0 20px; gap: 16px; position: relative; z-index: 2;
-    }
-    .vs-circle {
-      width: 64px; height: 64px; border-radius: 50%;
-      background: linear-gradient(135deg, #1a1a2e, #0E0E14);
-      border: 2px solid rgba(108,99,255,0.5);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.1rem; font-weight: 900; color: #A78BFA;
-      box-shadow: 0 0 30px rgba(108,99,255,0.3);
-      letter-spacing: 1px;
-    }
-    .vs-line {
-      width: 2px; height: 60px;
-      background: linear-gradient(180deg, transparent, rgba(108,99,255,0.4), transparent);
-    }
-
-    /* SCAN LINE EFFECT on AI side */
-    .ai-side::after {
-      content: '';
-      position: absolute; top: -100%; left: 0; right: 0; height: 40%;
-      background: linear-gradient(180deg, transparent, rgba(0,245,255,0.04), transparent);
-      animation: scanLine 3s linear infinite;
-      pointer-events: none;
-    }
-    @keyframes scanLine { 0% { top: -40%; } 100% { top: 110%; } }
-
-    /* BOTTOM VERDICT */
-    .battle-verdict {
-      max-width: 1100px; margin: 32px auto 0;
-      background: linear-gradient(135deg, rgba(0,245,255,0.08), rgba(108,99,255,0.08));
-      border: 1px solid rgba(0,245,255,0.25);
-      border-radius: 16px; padding: 28px 32px;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 14px; text-align: center;
-    }
-    .verdict-text { font-size: 1rem; font-weight: 700; color: #fff; max-width: 860px; }
-    .verdict-text span {
-      background: linear-gradient(90deg, #00F5FF, #00FFB2);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-    }
-    .verdict-savings {
-      font-size: 2.2rem; font-weight: 900; text-align: center; width: 100%;
-      background: linear-gradient(90deg, #00FFB2, #00F5FF);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-      filter: drop-shadow(0 0 14px rgba(0,255,178,0.5));
-    }
-
-    /* HUMAN-AI AVATAR */
-    .human-ai-avatar {
-      position: relative; overflow: visible;
-      background: radial-gradient(circle, rgba(0,245,255,0.18), rgba(108,99,255,0.08));
-    }
-    .ai-core-face {
-      width: 62px; height: 62px; border-radius: 50%; position: relative;
-      background: linear-gradient(145deg, #eafcff, #9fe7ff 55%, #7a7cff 100%);
-      box-shadow: 0 0 18px rgba(0,245,255,0.45), inset 0 -8px 14px rgba(108,99,255,0.18);
-    }
-    .ai-core-face::before {
-      content: ''; position: absolute; left: 50%; top: 10px; transform: translateX(-50%);
-      width: 26px; height: 10px; border-radius: 10px;
-      background: rgba(255,255,255,0.45); filter: blur(2px);
-    }
-    .ai-eye {
-      position: absolute; top: 24px; width: 8px; height: 8px; border-radius: 50%;
-      background: #13233a; box-shadow: 0 0 10px rgba(0,245,255,0.45);
-    }
-    .left-eye { left: 17px; }
-    .right-eye { right: 17px; }
-    .ai-mouth {
-      position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%);
-      width: 16px; height: 6px; border-radius: 0 0 10px 10px;
-      border-bottom: 2px solid #13233a; opacity: 0.75;
-    }
-    .ai-orbit {
-      position: absolute; inset: -8px; border-radius: 50%;
-      border: 1px solid rgba(0,245,255,0.22); pointer-events: none;
-    }
-    .orbit-1 { animation: orbitSpin 7s linear infinite; }
-    .orbit-2 { inset: -16px; border-color: rgba(167,139,250,0.18); animation: orbitSpinReverse 10s linear infinite; }
-    .orbit-1::before, .orbit-2::before {
-      content: ''; position: absolute; width: 8px; height: 8px; border-radius: 50%;
-      background: #00F5FF; box-shadow: 0 0 10px rgba(0,245,255,0.8);
-      top: 6px; left: 50%; transform: translateX(-50%);
-    }
-    .orbit-2::before { background: #A78BFA; box-shadow: 0 0 10px rgba(167,139,250,0.8); }
-    @keyframes orbitSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-    @keyframes orbitSpinReverse { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
-
-    @keyframes ringPulse { 0% { transform: scale(0.8); opacity: 0.8; } 100% { transform: scale(1.3); opacity: 0; } }
-    @keyframes phoneBounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-
-    /* TESTIMONIALS */
-    .testimonials-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; max-width: 1100px; margin: 0 auto; }
-    .testimonial-card {
-      background: var(--surface2); border: 1px solid var(--border);
-      border-radius: 20px; padding: 32px 28px;
-      transition: all 0.35s; position: relative; overflow: hidden;
-    }
-    .testimonial-card::before {
-      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-    }
-    .tc-cyan::before { background: linear-gradient(90deg, #00F5FF, #00FFB2); }
-    .tc-purple::before { background: linear-gradient(90deg, #6C63FF, #A78BFA); }
-    .tc-pink::before { background: linear-gradient(90deg, #FF2D78, #A78BFA); }
-    .testimonial-card:hover { transform: translateY(-5px); }
-    .tc-cyan:hover { box-shadow: 0 0 40px rgba(0,245,255,0.2); border-color: rgba(0,245,255,0.3); }
-    .tc-purple:hover { box-shadow: 0 0 40px rgba(108,99,255,0.2); border-color: rgba(108,99,255,0.3); }
-    .tc-pink:hover { box-shadow: 0 0 40px rgba(255,45,120,0.2); border-color: rgba(255,45,120,0.3); }
-    .t-stars { color: #FFD600; font-size: 1rem; margin-bottom: 14px; filter: drop-shadow(0 0 6px rgba(255,214,0,0.6)); }
-    .t-quote {
-      font-size: 1rem; font-weight: 600; line-height: 1.65;
-      color: #E0E0F0; margin-bottom: 20px; font-style: italic;
-    }
-    .t-quote .highlight-cyan { color: #00F5FF; font-style: normal; font-weight: 700; }
-    .t-quote .highlight-green { color: #00FFB2; font-style: normal; font-weight: 700; }
-    .t-quote .highlight-pink { color: #FF2D78; font-style: normal; font-weight: 700; }
-    .t-author { display: flex; align-items: center; gap: 14px; }
-    .t-avatar {
-      width: 46px; height: 46px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.3rem; font-weight: 800; color: #fff;
-      flex-shrink: 0;
-    }
-    .av-cyan { background: linear-gradient(135deg, #00F5FF, #6C63FF); box-shadow: 0 0 14px rgba(0,245,255,0.4); }
-    .av-purple { background: linear-gradient(135deg, #6C63FF, #A78BFA); box-shadow: 0 0 14px rgba(108,99,255,0.4); }
-    .av-pink { background: linear-gradient(135deg, #FF2D78, #A78BFA); box-shadow: 0 0 14px rgba(255,45,120,0.4); }
-    .t-name { font-size: 0.92rem; font-weight: 800; color: #fff; }
-    .t-company { font-size: 0.78rem; color: #9090B0; font-weight: 500; }
-
-    /* PRICING TIERS */
-    .pricing-grid {
-      display: grid; grid-template-columns: repeat(3, 1fr);
-      gap: 24px; max-width: 1100px; margin: 0 auto;
-      position: relative; z-index: 2;
-    }
-    .pricing-tier {
-      background: var(--surface2); border: 1px solid var(--border);
-      border-radius: 24px; padding: 36px 28px;
-      position: relative; overflow: visible;
-      transition: all 0.35s; display: flex; flex-direction: column;
-      z-index: 2; isolation: isolate;
-    }
-    .pricing-tier::after {
-      content: ''; position: absolute; inset: 0; border-radius: 24px;
-      background: var(--surface2); z-index: -1;
-    }
-    .pricing-tier::before {
-      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-    }
-    .tier-starter::before { background: linear-gradient(90deg, #6C63FF, #A78BFA); }
-    .tier-pro::before { background: linear-gradient(90deg, #00F5FF, #6C63FF); }
-    .tier-elite::before { background: linear-gradient(90deg, #FF2D78, #A78BFA, #00F5FF); }
-    .pricing-tier:hover { transform: translateY(-6px); }
-    .tier-starter:hover { box-shadow: 0 0 40px rgba(108,99,255,0.2); border-color: rgba(108,99,255,0.4); }
-    .tier-pro:hover { box-shadow: 0 0 50px rgba(0,245,255,0.25); border-color: rgba(0,245,255,0.45); }
-    .tier-elite:hover { box-shadow: 0 0 50px rgba(255,45,120,0.2); border-color: rgba(255,45,120,0.4); }
-
-    /* PRO = FEATURED */
-    .tier-pro {
-      border-color: rgba(0,245,255,0.4);
-      background: linear-gradient(160deg, #12121C 60%, rgba(0,245,255,0.05));
-      box-shadow: 0 0 40px rgba(0,245,255,0.15);
-      transform: scale(1.03);
-    }
-    .tier-pro:hover { transform: scale(1.03) translateY(-6px); }
-
-    .tier-badge {
-      display: inline-block; font-size: 0.7rem; font-weight: 800;
-      letter-spacing: 1.5px; text-transform: uppercase;
-      padding: 5px 14px; border-radius: 100px; margin-bottom: 20px;
-      align-self: flex-start;
-    }
-    .badge-starter { background: rgba(108,99,255,0.2); color: #A78BFA; border: 1px solid rgba(108,99,255,0.4); }
-    .badge-pro { background: linear-gradient(135deg, #00F5FF, #6C63FF); color: #000; box-shadow: 0 0 16px rgba(0,245,255,0.4); }
-    .badge-elite { background: rgba(255,45,120,0.15); color: #FF2D78; border: 1px solid rgba(255,45,120,0.4); }
-
-    .tier-name { font-size: 1.4rem; font-weight: 900; color: #fff; margin-bottom: 6px; }
-    .tier-tagline { font-size: 0.85rem; color: #9090B0; margin-bottom: 24px; line-height: 1.5; }
-
-    .tier-price {
-      margin-bottom: 8px;
-    }
-    .tier-setup {
-      font-size: 0.82rem; color: #8080A0; margin-bottom: 24px; font-weight: 500;
-    }
-    .tier-monthly {
-      font-size: 2.6rem; font-weight: 900; color: #fff; line-height: 1;
-    }
-    .tier-monthly span { font-size: 1rem; color: #8080A0; font-weight: 500; }
-
-    .tier-starter .tier-monthly { color: #A78BFA; }
-    .tier-pro .tier-monthly {
-      background: linear-gradient(90deg, #00F5FF, #A78BFA);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-      filter: drop-shadow(0 0 10px rgba(0,245,255,0.4));
-    }
-    .tier-elite .tier-monthly { color: #FF2D78; }
-
-    .tier-channels {
-      display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; width: 100%;
-    }
-    .channel-tag { white-space: nowrap; }
-    .channel-tag {
-      display: inline-flex; align-items: center; gap: 5px;
-      font-size: 0.75rem; font-weight: 700; padding: 5px 12px; border-radius: 100px;
-    }
-    .ch-starter { background: rgba(108,99,255,0.12); color: #A78BFA; border: 1px solid rgba(108,99,255,0.3); }
-    .ch-pro { background: rgba(0,245,255,0.1); color: #00F5FF; border: 1px solid rgba(0,245,255,0.3); }
-    .ch-elite { background: rgba(255,45,120,0.1); color: #FF2D78; border: 1px solid rgba(255,45,120,0.3); }
-
-    .tier-divider { height: 1px; background: var(--border); margin-bottom: 20px; }
-
-    .tier-features { list-style: none; flex: 1; margin-bottom: 28px; }
-    .tier-features li {
-      display: flex; align-items: flex-start; gap: 10px;
-      font-size: 0.86rem; color: #C8C8E0; font-weight: 500;
-      margin-bottom: 10px; line-height: 1.4;
-    }
-    .tier-features li .check {
-      width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; margin-top: 1px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 0.65rem; font-weight: 900; color: #000;
-    }
-    .check-purple { background: linear-gradient(135deg, #A78BFA, #6C63FF); box-shadow: 0 0 8px rgba(108,99,255,0.4); }
-    .check-cyan { background: linear-gradient(135deg, #00F5FF, #00FFB2); box-shadow: 0 0 8px rgba(0,245,255,0.4); }
-    .check-pink { background: linear-gradient(135deg, #FF2D78, #A78BFA); box-shadow: 0 0 8px rgba(255,45,120,0.4); }
-
-    .btn-tier {
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      padding: 14px 24px; border-radius: 12px;
-      font-weight: 700; font-size: 0.95rem; text-decoration: none;
-      transition: all 0.3s; cursor: pointer; border: none;
-    }
-    .btn-starter {
-      background: rgba(108,99,255,0.15); color: #A78BFA;
-      border: 1.5px solid rgba(108,99,255,0.4);
-    }
-    .btn-starter:hover { background: rgba(108,99,255,0.25); box-shadow: 0 0 24px rgba(108,99,255,0.3); }
-    .btn-pro {
-      background: linear-gradient(135deg, #00F5FF, #6C63FF); color: #000;
-      box-shadow: 0 0 24px rgba(0,245,255,0.4);
-    }
-    .btn-pro:hover { box-shadow: 0 0 40px rgba(0,245,255,0.6); transform: translateY(-2px); }
-    .btn-elite {
-      background: rgba(255,45,120,0.15); color: #FF2D78;
-      border: 1.5px solid rgba(255,45,120,0.4);
-    }
-    .btn-elite:hover { background: rgba(255,45,120,0.25); box-shadow: 0 0 24px rgba(255,45,120,0.3); }
-
-    @media (max-width: 900px) {
-      .pricing-grid { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; }
-      .tier-pro { transform: scale(1) !important; }
-      .tier-pro:hover { transform: translateY(-6px) !important; }
-    }
-
-    /* CTA SECTION */
-    .cta-section {
-      text-align: center; padding: 120px 24px;
-      background: radial-gradient(ellipse at center, rgba(108,99,255,0.15) 0%, transparent 70%);
-      position: relative; z-index: 1;
-    }
-    .cta-section h2 { font-size: clamp(2rem, 4vw, 3.2rem); font-weight: 900; color: #fff; margin-bottom: 16px; line-height: 1.2; }
-    .cta-section p {
-      font-size: 1.1rem; font-weight: 600;
-      background: linear-gradient(90deg, #00F5FF, #A78BFA);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-      margin-bottom: 40px;
-      filter: drop-shadow(0 0 10px rgba(0,245,255,0.3));
-    }
-
-    /* FOOTER */
-    footer {
-      text-align: center; padding: 40px 24px;
-      border-top: 1px solid var(--border);
-      position: relative; z-index: 1;
-    }
-    footer .logo { margin-bottom: 12px; display: inline-block; }
-    .footer-links { display: flex; justify-content: center; gap: 28px; margin-top: 16px; }
-    .footer-links a { color: #8888AA; text-decoration: none; font-size: 0.85rem; font-weight: 500; transition: color 0.2s; }
-    .footer-links a:hover { color: var(--cyan); }
-    .footer-copy { color: #6060808; font-size: 0.8rem; margin-top: 8px; }
-
-    /* MODAL */
-    .modal-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.85);
-      backdrop-filter: blur(8px); z-index: 200;
-      display: flex; align-items: center; justify-content: center;
-      opacity: 0; pointer-events: none; transition: opacity 0.3s;
-    }
-    .modal-overlay.active { opacity: 1; pointer-events: all; }
-    .modal {
-      background: var(--surface2); border: 1px solid rgba(108,99,255,0.4);
-      border-radius: 24px; padding: 48px 40px; max-width: 440px; width: 90%;
-      text-align: center; position: relative;
-      box-shadow: 0 0 80px rgba(108,99,255,0.3);
-    }
-    .modal h3 { font-size: 1.6rem; font-weight: 900; color: #fff; margin-bottom: 12px; }
-    .modal p { color: #C0C0D8; font-size: 0.95rem; margin-bottom: 28px; line-height: 1.6; }
-    .modal-number {
-      font-size: 1.8rem; font-weight: 900; letter-spacing: 2px;
-      background: linear-gradient(90deg, #00F5FF, #A78BFA);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-      margin-bottom: 24px;
-      filter: drop-shadow(0 0 14px rgba(0,245,255,0.5));
-    }
-    .modal-close {
-      position: absolute; top: 16px; right: 20px;
-      background: none; border: none; color: #6060808; font-size: 1.6rem;
-      cursor: pointer; transition: color 0.2s;
-    }
-    .modal-close:hover { color: #fff; }
-
-    /* FAQ */
-    .faq-wrap { max-width: 780px; margin: 0 auto; }
-    .faq-item {
-      background: var(--surface2); border: 1px solid var(--border);
-      border-radius: 16px; margin-bottom: 14px;
-      overflow: hidden; transition: all 0.3s;
-      position: relative;
-    }
-    .faq-item::before {
-      content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
-      background: linear-gradient(180deg, #6C63FF, #00F5FF);
-      border-radius: 3px 0 0 3px;
-    }
-    .faq-item:hover { border-color: rgba(108,99,255,0.4); box-shadow: 0 0 24px rgba(108,99,255,0.12); }
-    .faq-question {
-      width: 100%; background: none; border: none; cursor: pointer;
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 22px 24px 22px 28px; text-align: left; gap: 16px;
-    }
-    .faq-q-text {
-      font-size: 1rem; font-weight: 700; color: #fff; line-height: 1.4;
-    }
-    .faq-icon {
-      width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
-      background: linear-gradient(135deg, #6C63FF, #A78BFA);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.1rem; color: #fff; font-weight: 900;
-      transition: transform 0.3s, box-shadow 0.3s;
-      box-shadow: 0 0 12px rgba(108,99,255,0.4);
-    }
-    .faq-item.open .faq-icon { transform: rotate(45deg); box-shadow: 0 0 20px rgba(0,245,255,0.5); background: linear-gradient(135deg, #00F5FF, #6C63FF); }
-    .faq-answer {
-      max-height: 0; overflow: hidden;
-      transition: max-height 0.4s cubic-bezier(0.4,0,0.2,1), padding 0.3s;
-      padding: 0 28px;
-    }
-    .faq-item.open .faq-answer { max-height: 300px; padding: 0 28px 22px; }
-    .faq-answer p {
-      font-size: 0.95rem; line-height: 1.7; color: #C8C8E0;
-    }
-    .faq-answer p strong { color: #00F5FF; }
-    .faq-answer p .ans-green { color: #00FFB2; font-weight: 700; }
-    .faq-answer p .ans-pink { color: #FF2D78; font-weight: 700; }
-
-    @media (max-width: 768px) {
-      nav { padding: 16px 20px; }
-      nav ul { display: none; }
-      .demo-inner { grid-template-columns: 1fr; }
-      .pricing-blocks { grid-template-columns: 1fr; }
-      .pricing-features { grid-template-columns: 1fr; }
-      .stat-item { padding: 0 24px; }
-    }
-
-    /* ===== FLASH CTA ===== */
-    .flash-cta-wrap { position: relative; display: inline-block; margin-bottom: 4px; }
-    .flash-cta {
-      display: inline-flex; align-items: center; gap: 14px;
-      background: linear-gradient(135deg, #00F5FF 0%, #6C63FF 50%, #FF2D78 100%);
-      background-size: 200% 200%;
-      color: #000; padding: 18px 32px; border-radius: 16px;
-      font-weight: 900; font-size: 1rem; text-decoration: none;
-      position: relative; overflow: hidden; cursor: pointer;
-      animation: flashGradient 2.5s ease infinite, flashPulse 1.8s ease-in-out infinite;
-      box-shadow: 0 0 40px rgba(0,245,255,0.5), 0 0 80px rgba(108,99,255,0.3);
-      border: 1px solid rgba(255,255,255,0.3);
-    }
-    @keyframes flashGradient { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
-    @keyframes flashPulse {
-      0%,100%{ box-shadow:0 0 40px rgba(0,245,255,0.5),0 0 80px rgba(108,99,255,0.3); transform:scale(1); }
-      50%{ box-shadow:0 0 60px rgba(0,245,255,0.85),0 0 120px rgba(108,99,255,0.55),0 0 180px rgba(255,45,120,0.35); transform:scale(1.025); }
-    }
-    .flash-cta-shine {
-      position: absolute; top: -50%; left: -60%; width: 40%; height: 200%;
-      background: rgba(255,255,255,0.35); transform: skewX(-20deg);
-      animation: shineSlide 2.2s ease-in-out infinite;
-    }
-    @keyframes shineSlide { 0%,55%{left:-60%} 80%,100%{left:130%} }
-    .flash-cta-icon { font-size: 1.5rem; animation: iconBounce 1.5s ease-in-out infinite; flex-shrink:0; }
-    @keyframes iconBounce { 0%,100%{transform:rotate(-12deg) scale(1);} 50%{transform:rotate(12deg) scale(1.25);} }
-    .flash-cta-text { display: flex; flex-direction: column; gap: 3px; }
-    .flash-cta-main { font-size: 1rem; font-weight: 900; color: #000; line-height: 1; white-space:nowrap; }
-    .flash-cta-sub { font-size: 0.72rem; font-weight: 700; color: rgba(0,0,0,0.6); white-space:nowrap; }
-    .flash-cta-arrow { font-size: 1.4rem; font-weight: 900; color: #000; animation: arrowPulse 1s ease-in-out infinite; flex-shrink:0; }
-    @keyframes arrowPulse { 0%,100%{transform:translateX(0);} 50%{transform:translateX(6px);} }
-    .flash-cta-glow {
-      position: absolute; inset: -10px; border-radius: 22px; z-index: -1;
-      background: linear-gradient(135deg, #00F5FF, #6C63FF, #FF2D78);
-      filter: blur(18px); opacity: 0.5;
-      animation: glowPulse 1.8s ease-in-out infinite;
-    }
-    @keyframes glowPulse { 0%,100%{opacity:0.4;} 50%{opacity:0.8;} }
-
-    /* chat scroll */
-    #chatMessages { max-height: 260px; overflow-y: auto; scroll-behavior: smooth; }
-    #chatMessages::-webkit-scrollbar { width: 3px; }
-    #chatMessages::-webkit-scrollbar-thumb { background: rgba(108,99,255,0.4); border-radius:3px; }
-    /* ===== AGENT AVATAR ORBIT RINGS ===== */
-    .sc2-avatar { position: relative; overflow: visible !important; }
-    .sc2-orbit-ring {
-      position: absolute; border-radius: 50%; pointer-events: none;
-      animation: agentOrbit 5s linear infinite;
-    }
-    .r1-cyan  { inset: -10px; border: 1px solid rgba(0,245,255,0.3); animation-duration: 5s; }
-    .r2-cyan  { inset: -18px; border: 1px solid rgba(108,99,255,0.2); animation-duration: 8s; animation-direction: reverse; }
-    .r1-cyan::before  { content:''; position:absolute; width:7px; height:7px; border-radius:50%; background:#00F5FF; box-shadow:0 0 8px #00F5FF; top:4px; left:50%; transform:translateX(-50%); }
-    .r2-cyan::before  { content:''; position:absolute; width:5px; height:5px; border-radius:50%; background:#A78BFA; box-shadow:0 0 6px #A78BFA; bottom:2px; right:6px; }
-    .r1-purple{ inset: -10px; border: 1px solid rgba(167,139,250,0.3); animation-duration: 6s; }
-    .r2-purple{ inset: -18px; border: 1px solid rgba(108,99,255,0.2); animation-duration: 9s; animation-direction: reverse; }
-    .r1-purple::before{ content:''; position:absolute; width:7px; height:7px; border-radius:50%; background:#A78BFA; box-shadow:0 0 8px #A78BFA; top:4px; left:50%; transform:translateX(-50%); }
-    .r2-purple::before{ content:''; position:absolute; width:5px; height:5px; border-radius:50%; background:#00F5FF; box-shadow:0 0 6px #00F5FF; bottom:2px; right:6px; }
-    .r1-green { inset: -10px; border: 1px solid rgba(0,255,178,0.3); animation-duration: 5.5s; }
-    .r2-green { inset: -18px; border: 1px solid rgba(0,245,255,0.2); animation-duration: 7.5s; animation-direction: reverse; }
-    .r1-green::before { content:''; position:absolute; width:7px; height:7px; border-radius:50%; background:#00FFB2; box-shadow:0 0 8px #00FFB2; top:4px; left:50%; transform:translateX(-50%); }
-    .r2-green::before { content:''; position:absolute; width:5px; height:5px; border-radius:50%; background:#00F5FF; box-shadow:0 0 6px #00F5FF; bottom:2px; right:6px; }
-
-    /* HAMBURGER MENU */
-    .nav-hamburger {
-      display: none; flex-direction: column; gap: 5px;
-      background: none; border: none; cursor: pointer; padding: 4px;
-    }
-    .nav-hamburger span {
-      display: block; width: 24px; height: 2px; background: #fff;
-      border-radius: 2px; transition: all 0.3s;
-    }
-    .nav-hamburger.open span:nth-child(1) { transform: rotate(45deg) translate(5px,5px); }
-    .nav-hamburger.open span:nth-child(2) { opacity: 0; }
-    .nav-hamburger.open span:nth-child(3) { transform: rotate(-45deg) translate(5px,-5px); }
-    @media (max-width: 768px) {
-      .nav-hamburger { display: flex; }
-      #navMenu {
-        display: none; position: fixed; top: 60px; left: 0; right: 0;
-        background: rgba(6,6,8,0.97); backdrop-filter: blur(20px);
-        flex-direction: column; gap: 0; padding: 16px 0;
-        border-bottom: 1px solid rgba(108,99,255,0.3);
-        z-index: 99;
-      }
-      #navMenu.open { display: flex; }
-      #navMenu li { border-bottom: 1px solid rgba(255,255,255,0.06); }
-      #navMenu a { display: block; padding: 14px 24px; font-size: 1rem !important; color: #E0E0F8 !important; }
-      #navMenu .nav-cta { margin: 12px 24px; border-radius: 8px; text-align: center; }
-    }
-
-    @keyframes agentOrbit { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-    /* ===== MOBILE RESPONSIVE COMPREHENSIVE FIXES ===== */
-    @media (max-width: 768px) {
-      body { overflow-x: hidden; }
-      section { padding: 64px 16px; }
-      nav { padding: 14px 16px; }
-      nav ul { display: none; }
-      .hero { padding: 110px 16px 60px; }
-      .hero h1 { font-size: 2.4rem; letter-spacing: -1px; }
-      .hero-desc { font-size: 0.95rem; }
-      .hero-btns { flex-direction: column; align-items: center; gap: 12px; }
-      .btn-primary, .btn-secondary { width: 100%; max-width: 320px; justify-content: center; }
-      .stats-bar { flex-wrap: wrap; gap: 20px; padding: 24px 16px; }
-      .stat-item { border-right: none; border-bottom: 1px solid var(--border); padding: 0 0 16px; width: 45%; }
-      .stat-item:nth-child(3), .stat-item:nth-child(4) { border-bottom: none; }
-      .problem-grid { grid-template-columns: 1fr; }
-      .staff-grid-v2 { grid-template-columns: 1fr; max-width: 100%; }
-
-      /* BATTLE SECTION MOBILE */
-      .battle-wrap { display: flex; flex-direction: column; gap: 0; max-width: 100%; }
-      .battle-vs { flex-direction: row; padding: 12px 0; gap: 12px; justify-content: center; }
-      .vs-line { width: 60px; height: 2px; background: linear-gradient(90deg, transparent, rgba(108,99,255,0.4), transparent); }
-      .vs-circle { width: 52px; height: 52px; font-size: 0.95rem; }
-      .battle-side { border-radius: 16px; padding: 24px 20px; width: 100%; }
-      .battle-row { gap: 8px; }
-      .battle-score { font-size: 0.9rem; min-width: 44px; padding: 5px 8px; }
-      .battle-label { font-size: 0.78rem; }
-      .battle-avatar { width: 72px; height: 72px; font-size: 2rem; }
-      .battle-name { font-size: 1.1rem; }
-      .winner-badge { font-size: 0.65rem; padding: 4px 12px; }
-      .battle-verdict { margin: 20px 0 0; padding: 20px; border-radius: 12px; }
-      .verdict-text { font-size: 0.9rem; }
-      .verdict-savings { font-size: 1.8rem; }
-
-      .metrics-grid { grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 32px; }
-      .demo-v2-inner { grid-template-columns: 1fr; gap: 32px; }
-      .demo-phone-card, .demo-chat-card { max-width: 100%; }
-      .flash-cta { padding: 14px 20px; }
-      .flash-cta-main { font-size: 0.88rem; white-space: normal; }
-      .flash-cta-sub { font-size: 0.65rem; white-space: normal; }
-      .testimonials-grid { grid-template-columns: 1fr; }
-      .pricing-grid { grid-template-columns: 1fr; max-width: 100%; gap: 16px; margin: 0 auto; }
-      .tier-pro { transform: scale(1) !important; }
-      .section-title { font-size: 1.8rem; }
-      .section-sub { font-size: 0.92rem; margin-bottom: 36px; }
-      .faq-wrap { max-width: 100%; }
-    }
-
-    @media (max-width: 400px) {
-      .hero h1 { font-size: 2rem; }
-      .stat-item { width: 100%; }
-      .metrics-grid { grid-template-columns: 1fr; }
-    }
-
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>IO · Tu vida es el juego</title>
+<meta name="description" content="IO es un videojuego retro gratis donde subes de nivel haciendo tus hábitos reales. El reloj cuenta de verdad: si lees 20 minutos, tu personaje lee contigo.">
+<meta name="theme-color" content="#09090f">
+<link rel="alternate" hreflang="es" href="?lang=es">
+<link rel="alternate" hreflang="en" href="?lang=en">
+<link rel="alternate" hreflang="x-default" href="./">
+<script>/* idioma: si es inglés, esconde la página un instante hasta traducirla (evita ver el español) */
+(function(){try{var q=new URLSearchParams(location.search).get('lang'),s=localStorage.getItem('io.lang'),n=((navigator.languages&&navigator.languages[0])||navigator.language||'es').toLowerCase();var l=(q==='en'||q==='es')?q:(s==='en'||s==='es')?s:(n.indexOf('es')===0?'es':'en');document.documentElement.lang=l;if(l==='en'){document.documentElement.classList.add('i18n-wait');setTimeout(function(){document.documentElement.classList.remove('i18n-wait')},2500);}}catch(e){}})();
+</script>
+<style>.i18n-wait body{visibility:hidden}</style>
+<meta property="og:title" content="IO · Tu vida es el juego">
+<meta property="og:description" content="Un videojuego retro donde tus hábitos reales te suben de nivel. Gratis, sin anuncios.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="img/hero-perro.webp">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="app/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="app/icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#09090f;--s1:#111120;--s2:#181830;--s3:#1f1f3c;--s4:#2a2a52;
+  --acc:#7c5cff;--acc2:#a78bfa;--acc3:#c4b5fd;--cyan:#22d3ee;--green:#4ade80;--amber:#fbbf24;--red:#f87171;--pink:#f472b6;
+  --text:#eeecfc;--muted:#a3a1cc;--dim:#6b69a0;--border:rgba(124,92,255,.18);--bh:rgba(124,92,255,.4);
+  --glass:rgba(12,11,24,.72);
+  --font:'Space Grotesk',system-ui,sans-serif;--mono:'Space Mono',ui-monospace,monospace;--pixel:'Press Start 2P',ui-monospace,monospace;
+  --gb:#9bbc0f;--gb2:#8bac0f;--gb3:#306230;--gb4:#0f380f;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);overflow-x:hidden;line-height:1.55}
+a{color:inherit}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+input,select{font:inherit;color:var(--text)}
+img,video{display:block;max-width:100%}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:3px;border-radius:6px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+@media (max-width:520px){.wrap{padding:0 16px}}
+
+/* ============ mundo 3D de fondo ============ */
+#world{position:fixed;inset:0;width:100%;height:100%;z-index:0;display:block;transition:opacity .6s}
+body.deep #world{opacity:.5}
+@media (max-width:700px){body.deep #world{opacity:.3}}
+.hero .h1,.hero .lead{text-shadow:0 2px 24px rgba(9,9,15,.9),0 0 2px rgba(9,9,15,.8)}
+.hero .h1 .glow{text-shadow:none}
+.bg-fallback{position:fixed;inset:0;z-index:0;background:
+  radial-gradient(ellipse 70% 50% at 50% 100%,rgba(124,92,255,.35),transparent 70%),
+  radial-gradient(ellipse 60% 40% at 80% 10%,rgba(34,211,238,.14),transparent 70%),var(--bg)}
+.vignette{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse 120% 90% at 50% 40%,transparent 55%,rgba(5,5,10,.75))}
+.scan{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:.07;background:repeating-linear-gradient(0deg,#000 0 1px,transparent 1px 3px)}
+main,header,footer{position:relative;z-index:3}
+
+/* ============ intro tipo consola ============ */
+.boot{position:fixed;inset:0;z-index:100;display:grid;place-items:center;background:#05050a;transition:opacity .7s ease,visibility .7s}
+.boot.out{opacity:0;visibility:hidden}
+.gbx{position:relative;width:min(300px,78vw);aspect-ratio:10/16.4;background:linear-gradient(160deg,#dcd8ec,#b9b4d2);border-radius:14px 14px 56px 14px;padding:clamp(16px,6vw,22px) clamp(16px,6vw,22px) 0;box-shadow:inset -6px -8px 0 rgba(0,0,0,.12),0 30px 80px rgba(124,92,255,.35);transition:transform .9s cubic-bezier(.6,0,.2,1)}
+.boot.go .gbx{transform:scale(7) translateY(9%)}
+.gbx-bez{background:#3d3b5c;border-radius:8px 8px 30px 8px;padding:9% 9% 11%;position:relative}
+.gbx-led{position:absolute;left:4%;top:34%;width:7px;height:7px;border-radius:50%;background:#3a1a1a}
+.boot.on .gbx-led{background:#ff3b3b;box-shadow:0 0 8px #ff3b3b}
+.gbx-scr{aspect-ratio:10/9;background:var(--gb4);border-radius:3px;overflow:hidden;position:relative;display:grid;place-items:center;transition:background .4s}
+.boot.on .gbx-scr{background:var(--gb)}
+.gbx-logo{font-family:var(--pixel);font-size:clamp(26px,9vw,40px);color:var(--gb4);transform:translateY(-230%);letter-spacing:2px}
+.boot.on .gbx-logo{animation:bootDrop 1.5s cubic-bezier(.3,.7,.3,1) .3s forwards}
+@keyframes bootDrop{to{transform:translateY(-35%)}}
+.gbx-sub{position:absolute;bottom:30%;font-family:var(--pixel);font-size:7px;color:var(--gb3);opacity:0;letter-spacing:.5px}
+.gbx-ps{position:absolute;bottom:12%;font-family:var(--pixel);font-size:9px;color:var(--gb4);opacity:0}
+.boot.on .gbx-sub{animation:fadeIn .4s 1.8s forwards}
+.boot.on .gbx-ps{animation:fadeIn .1s 2.2s forwards,blink 1s 2.3s steps(1) infinite}
+@keyframes fadeIn{to{opacity:1}}
+@keyframes blink{50%{opacity:0}}
+.gbx-name{font-family:var(--pixel);font-size:8px;color:#3d3b5c;margin:6% 0 0 2%;letter-spacing:1px}
+.gbx-name .gl{font-family:var(--font);font-style:italic;font-weight:700;font-size:14px;letter-spacing:-.3px;display:inline-block;transform:skewX(-6deg);margin-left:4px}
+.gbx-name .gl b{color:#3d3b5c;margin-right:4px}.gbx-name .gl i{color:var(--acc);font-style:italic}
+.gbx-pad{position:absolute;left:10%;bottom:21%;width:26%;aspect-ratio:1}
+.gbx-pad::before,.gbx-pad::after{content:"";position:absolute;background:#2a2940;border-radius:3px}
+.gbx-pad::before{left:34%;top:0;width:32%;height:100%}.gbx-pad::after{top:34%;left:0;height:32%;width:100%}
+.gbx-ab{position:absolute;right:9%;bottom:24%;display:flex;gap:10px;transform:rotate(-25deg)}
+.gbx-ab span{width:clamp(22px,8vw,30px);aspect-ratio:1;border-radius:50%;background:#9c2a5c;box-shadow:inset -2px -3px 0 rgba(0,0,0,.25)}
+.boot-hint{position:absolute;bottom:max(24px,env(safe-area-inset-bottom));left:0;right:0;text-align:center;font-family:var(--pixel);font-size:9px;color:var(--dim);letter-spacing:1px}
+.boot-skip{position:absolute;top:max(16px,env(safe-area-inset-top));right:16px;font-size:13px;color:var(--muted);padding:8px 12px;border:1px solid var(--border);border-radius:10px}
+
+/* ============ encabezado ============ */
+header{position:fixed;top:0;left:0;right:0;z-index:50;transition:background .3s,border-color .3s;border-bottom:1px solid transparent}
+header.solid{background:rgba(9,9,15,.8);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-color:var(--border)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:64px;gap:14px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:700}
+.brand b{font-size:28px;letter-spacing:-1px;background:linear-gradient(90deg,var(--acc2),var(--cyan),var(--green),var(--amber),var(--pink),var(--acc2));background-size:300% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:rainbow 8s linear infinite}
+@keyframes rainbow{to{background-position:300% 0}}
+.brand small{font-family:var(--mono);font-size:11px;color:var(--dim)}
+.links{display:flex;gap:22px;font-size:14px;color:var(--muted)}
+.links a{text-decoration:none}.links a:hover{color:var(--text)}
+.navr{display:flex;align-items:center;gap:10px}
+.lang{display:flex;border:1px solid var(--bh);border-radius:10px;overflow:hidden}
+.lang button{font-family:var(--pixel);font-size:9px;padding:9px 9px;color:var(--muted)}
+.lang button.on{background:var(--acc);color:#fff}
+@media (max-width:860px){.links{display:none}.brand small{display:none}}
+
+/* ============ botones ============ */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:14px 22px;border-radius:14px;font-weight:700;text-decoration:none;font-size:16px;transition:transform .15s,box-shadow .2s;white-space:nowrap}
+.btn:active{transform:translateY(2px)}
+.btn-start{font-family:var(--pixel);font-size:13px;letter-spacing:1px;color:#1a1033;background:linear-gradient(180deg,#ffe27a,var(--amber));box-shadow:0 5px 0 #b7791f,0 0 30px rgba(251,191,36,.45)}
+.btn-start:hover{box-shadow:0 5px 0 #b7791f,0 0 50px rgba(251,191,36,.7)}
+.btn-start:active{box-shadow:0 1px 0 #b7791f}
+.btn-ghost{border:1px solid var(--bh);background:rgba(124,92,255,.12);color:var(--text)}
+.btn-ghost:hover{background:rgba(124,92,255,.22)}
+.btn-sm{padding:10px 14px;font-size:10px}
+
+/* ============ portada ============ */
+.hero{min-height:100svh;display:flex;flex-direction:column;justify-content:center;padding:96px 0 60px;position:relative}
+.hero .wrap{width:100%}
+.tag{display:inline-flex;align-items:center;gap:8px;font-family:var(--pixel);font-size:9px;letter-spacing:1px;color:var(--green);background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.3);padding:8px 12px;border-radius:30px}
+.tag i{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:blink 1.4s steps(1) infinite}
+.h1{font-size:clamp(48px,10vw,120px);line-height:.92;letter-spacing:-3px;font-weight:700;margin:22px 0 18px;max-width:11ch}
+.h1 .glow{background:linear-gradient(90deg,var(--acc2),var(--cyan) 40%,var(--green) 70%,var(--amber));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 30px rgba(124,92,255,.5))}
+.lead{font-size:clamp(17px,2.2vw,21px);color:var(--muted);max-width:40ch}
+.lead b{color:var(--text)}
+.cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px;align-items:center}
+.hero-stats{display:flex;flex-wrap:wrap;gap:26px;margin-top:40px;font-family:var(--mono);font-size:13px;color:var(--muted)}
+.hero-stats b{display:block;font-family:var(--pixel);font-size:15px;color:var(--text);margin-bottom:6px}
+.scrolldown{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);font-family:var(--pixel);font-size:8px;color:var(--dim);text-align:center;letter-spacing:1px;text-decoration:none}
+.scrolldown span{display:block;font-size:14px;animation:bob 1.4s ease-in-out infinite;margin-top:6px}
+@keyframes bob{50%{transform:translateY(6px)}}
+
+/* HUD del piso mientras bajas */
+.hud{position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:20;display:flex;flex-direction:column;align-items:center;gap:8px;font-family:var(--pixel);font-size:8px;color:var(--muted);pointer-events:none;transition:opacity .4s}
+.hud .rail{width:6px;height:160px;border-radius:4px;background:rgba(255,255,255,.08);position:relative;overflow:hidden}
+.hud .rail i{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(0deg,var(--amber),var(--cyan),var(--acc),var(--pink),var(--green));height:0}
+.hud .fl{color:var(--text);font-size:10px}
+.hud .wn{writing-mode:vertical-rl;transform:rotate(180deg);letter-spacing:1px;max-height:200px;white-space:nowrap}
+@media (max-width:700px){.hud{right:8px}.hud .wn{display:none}.hud .rail{height:110px}}
+
+/* ============ secciones ============ */
+section{padding:110px 0;position:relative}
+@media (max-width:700px){section{padding:76px 0}}
+.panel{background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--border);border-radius:28px}
+.eyebrow{font-family:var(--pixel);font-size:10px;letter-spacing:1.5px;color:var(--cyan);margin-bottom:16px}
+.h2{font-size:clamp(32px,5vw,56px);line-height:1.02;letter-spacing:-1.5px;font-weight:700;margin-bottom:18px;max-width:18ch}
+.h3{font-size:20px;font-weight:700;margin-bottom:6px}
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .8s ease,transform .8s cubic-bezier(.2,.7,.2,1)}
+.reveal.in{opacity:1;transform:none}
+
+/* qué es */
+.what{display:grid;grid-template-columns:1.05fr .95fr;gap:50px;align-items:center}
+@media (max-width:900px){.what{grid-template-columns:1fr}}
+.pillars{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:28px}
+@media (max-width:520px){.pillars{grid-template-columns:1fr}}
+.pill{padding:18px;border-radius:18px;background:rgba(255,255,255,.03);border:1px solid var(--border)}
+.pill .ic{font-size:26px;margin-bottom:8px}
+.pill p{color:var(--muted);font-size:15px}
+.stage{position:relative;display:grid;place-items:center;min-height:620px}
+.phone{position:relative;width:300px;aspect-ratio:390/780;border-radius:44px;padding:10px;background:linear-gradient(145deg,#2c2a4a,#121122);box-shadow:0 0 0 2px #3a3860,0 40px 90px rgba(0,0,0,.6),0 0 90px rgba(124,92,255,.3);transform:perspective(1200px) rotateY(-12deg) rotateX(4deg);transition:transform .6s}
+.phone:hover{transform:perspective(1200px) rotateY(0) rotateX(0)}
+.phone .sc{position:relative;width:100%;height:100%;border-radius:34px;overflow:hidden;background:#09090f}
+.phone iframe,.phone video,.phone img{position:absolute;inset:0;width:100%;height:100%;border:0;object-fit:cover}
+.phone iframe{width:390px;height:780px;transform-origin:0 0}
+.phone .notch{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:90px;height:24px;border-radius:0 0 14px 14px;background:#121122;z-index:3}
+.stage-note{position:absolute;bottom:-4px;font-size:13px;color:var(--dim);text-align:center;width:100%}
+.float{position:absolute;padding:10px 14px;border-radius:14px;font-size:13px;font-weight:600;background:rgba(17,17,32,.92);border:1px solid var(--bh);box-shadow:0 14px 30px rgba(0,0,0,.4);animation:floaty 5s ease-in-out infinite;white-space:nowrap;z-index:4}
+.float b{font-family:var(--pixel);font-size:9px;color:var(--amber)}
+@keyframes floaty{50%{transform:translateY(-10px)}}
+@media (max-width:520px){.float{display:none}.stage{min-height:560px}.phone{width:260px}}
+
+/* tráiler */
+.trailer{display:grid;grid-template-columns:auto 1fr;gap:48px;align-items:center;padding:36px}
+@media (max-width:820px){.trailer{grid-template-columns:1fr;padding:24px;text-align:center}.trailer .lead{margin-inline:auto}.trailer .cta{justify-content:center}}
+.tv{position:relative;width:280px;margin:0 auto;border-radius:30px;padding:9px;background:#15142a;box-shadow:0 0 0 2px #34325a,0 30px 70px rgba(0,0,0,.55)}
+.tv video{width:100%;border-radius:22px;aspect-ratio:360/780;object-fit:cover;background:#09090f}
+.tv .rec{position:absolute;top:22px;left:22px;font-family:var(--pixel);font-size:8px;color:#fff;background:rgba(0,0,0,.55);padding:5px 8px;border-radius:8px;display:flex;gap:6px;align-items:center}
+.tv .rec i{width:7px;height:7px;border-radius:50%;background:var(--red);animation:blink 1s steps(1) infinite}
+.scenes{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
+.scenes span{font-size:13px;padding:7px 11px;border-radius:30px;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--muted)}
+
+/* cómo se juega */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:40px;counter-reset:s}
+@media (max-width:980px){.steps{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){.steps{grid-template-columns:1fr}}
+.step{padding:24px;border-radius:22px;background:var(--glass);border:1px solid var(--border);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);position:relative;overflow:hidden;transition:transform .3s,border-color .3s}
+.step:hover{transform:translateY(-6px);border-color:var(--bh)}
+.step::before{counter-increment:s;content:"0" counter(s);position:absolute;right:16px;top:14px;font-family:var(--pixel);font-size:24px;color:rgba(124,92,255,.22)}
+.step .ic{width:54px;height:54px;border-radius:16px;display:grid;place-items:center;font-size:28px;margin-bottom:16px;background:linear-gradient(145deg,rgba(124,92,255,.3),rgba(34,211,238,.12));border:1px solid var(--bh)}
+.step p{color:var(--muted);font-size:15px}
+.controls{margin-top:22px;display:grid;grid-template-columns:auto 1fr;gap:34px;align-items:center;padding:28px}
+@media (max-width:760px){.controls{grid-template-columns:1fr;gap:20px}}
+.pad{position:relative;width:220px;height:120px;margin:0 auto}
+.dpad{position:absolute;left:0;top:14px;width:92px;height:92px}
+.dpad i{position:absolute;background:#26254a;border-radius:6px;box-shadow:inset 0 -3px 0 rgba(0,0,0,.35)}
+.dpad i:nth-child(1){left:31px;top:0;width:30px;height:92px}.dpad i:nth-child(2){top:31px;left:0;height:30px;width:92px}
+.dpad em{position:absolute;font-style:normal;font-size:10px;color:var(--muted)}
+.ab{position:absolute;right:0;top:20px;display:flex;gap:12px;transform:rotate(-20deg)}
+.ab b{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-family:var(--pixel);font-size:11px;color:#fff;box-shadow:inset -3px -4px 0 rgba(0,0,0,.25),0 0 22px rgba(244,114,182,.35)}
+.ab b:nth-child(1){background:#8b5cf6;margin-top:18px}.ab b:nth-child(2){background:#ec4899}
+.keys{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.key{display:flex;gap:12px;align-items:flex-start;font-size:15px;color:var(--muted)}
+.key kbd{flex:none;min-width:64px;text-align:center;font-family:var(--pixel);font-size:9px;color:var(--text);padding:8px;border-radius:9px;background:var(--s3);border:1px solid var(--bh);box-shadow:0 3px 0 var(--s1)}
+.key b{color:var(--text)}
+
+/* mundos */
+.worlds{display:flex;gap:16px;overflow-x:auto;padding:30px 20px 20px;margin:0 -20px;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;scrollbar-width:thin}
+@media (max-width:520px){.worlds{margin:0 -16px;padding:30px 16px 20px}}
+.wcard{flex:0 0 250px;scroll-snap-align:center;border-radius:24px;padding:22px;min-height:300px;display:flex;flex-direction:column;justify-content:flex-end;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.1);transition:transform .35s}
+.wcard:hover{transform:translateY(-8px) rotate(-1deg)}
+.wcard .fl{font-family:var(--pixel);font-size:9px;opacity:.85;margin-bottom:10px}
+.wcard h3{font-size:22px;line-height:1.1;margin-bottom:8px}
+.wcard p{font-size:14px;opacity:.85}
+.wcard .art{position:absolute;inset:0;z-index:-1}
+.wcard .bld{position:absolute;bottom:0;left:50%;transform:translateX(-50%);display:flex;align-items:flex-end;gap:6px;opacity:.55}
+.wcard .bld i{display:block;width:26px;background:repeating-linear-gradient(0deg,rgba(255,255,255,.35) 0 4px,transparent 4px 12px),rgba(0,0,0,.35);border-radius:3px 3px 0 0}
+.w1{background:linear-gradient(170deg,#3b2410,#1a1020)}.w2{background:linear-gradient(170deg,#0d3140,#0a1222)}.w3{background:linear-gradient(170deg,#2b1a66,#0f0c24)}.w4{background:linear-gradient(170deg,#5a1f4a,#1a1030)}.w5{background:linear-gradient(170deg,#0f3a2a,#06101a)}.w6{background:linear-gradient(170deg,#333,#0b0b14)}
+
+/* diferente */
+.cmp{width:100%;border-collapse:separate;border-spacing:0;margin-top:36px;font-size:15px;overflow:hidden;border-radius:22px}
+.cmp th,.cmp td{padding:16px 18px;text-align:left;border-bottom:1px solid var(--border)}
+.cmp thead th{font-family:var(--pixel);font-size:9px;letter-spacing:1px;color:var(--muted);background:rgba(17,17,32,.9)}
+.cmp thead th.io{color:var(--amber)}
+.cmp td{background:rgba(12,11,24,.78)}
+.cmp td.io{background:rgba(124,92,255,.16);color:var(--text);font-weight:600}
+.cmp td:not(.io):not(:first-child){color:var(--dim)}
+.cmp tr:last-child td{border-bottom:0}
+.cmp-wrap{overflow-x:auto;margin:0 -4px;padding:0 4px}
+.cmp{min-width:640px}
+
+/* metas */
+.goals{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:36px}
+@media (max-width:860px){.goals{grid-template-columns:1fr}}
+.goal{padding:26px;border-radius:22px;background:var(--glass);border:1px solid var(--border);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.goal .n{font-family:var(--pixel);font-size:26px;margin-bottom:14px;background:linear-gradient(90deg,var(--amber),var(--pink));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.goal p{color:var(--muted)}
+.road{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:22px}
+@media (max-width:860px){.road{grid-template-columns:1fr 1fr}}
+.rd{padding:18px;border-radius:18px;border:1px dashed var(--bh);font-size:14px;color:var(--muted);background:rgba(9,9,15,.6)}
+.rd b{display:block;color:var(--text);font-size:15px;margin-bottom:4px}
+.rd.now{border-style:solid;border-color:rgba(74,222,128,.5);background:rgba(74,222,128,.07)}
+.rd .when{font-family:var(--pixel);font-size:8px;color:var(--cyan);display:block;margin-bottom:10px}
+.rd.now .when{color:var(--green)}
+
+/* ranking */
+.rank{display:grid;grid-template-columns:.9fr 1.1fr;gap:40px;align-items:center;padding:36px}
+@media (max-width:860px){.rank{grid-template-columns:1fr;padding:22px}}
+.board{border-radius:20px;background:rgba(9,9,15,.8);border:1px solid var(--border);overflow:hidden}
+.board-h{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;font-family:var(--pixel);font-size:9px;color:var(--muted);border-bottom:1px solid var(--border)}
+.board-h .live{color:var(--green);display:flex;gap:6px;align-items:center}
+.board-h .live i{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 1.2s steps(1) infinite}
+.row{display:grid;grid-template-columns:34px 44px 1fr auto;gap:12px;align-items:center;padding:10px 18px;border-bottom:1px solid rgba(124,92,255,.08)}
+.row:last-child{border-bottom:0}
+.row .pos{font-family:var(--pixel);font-size:11px;color:var(--dim)}
+.row:nth-child(1) .pos{color:var(--amber)}.row:nth-child(2) .pos{color:#cbd5e1}.row:nth-child(3) .pos{color:#d97706}
+.row .av{width:44px;height:52px;border-radius:10px;background:var(--s2);overflow:hidden;display:grid;place-items:center}
+.row .av svg{width:44px;height:62px;margin-top:8px}
+.row .nm{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .nm small{display:block;font-weight:400;color:var(--dim);font-size:12px;font-family:var(--mono)}
+.row .xp{font-family:var(--pixel);font-size:10px;color:var(--acc3);text-align:right}
+.empty{padding:34px 20px;text-align:center;color:var(--muted)}
+.empty .crown{font-size:44px;margin-bottom:10px;animation:bob 2s ease-in-out infinite}
+.empty b{display:block;color:var(--text);font-size:18px;margin-bottom:6px}
+
+/* entrar e instalar */
+.enter{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:36px}
+@media (max-width:860px){.enter{grid-template-columns:1fr}}
+.en{padding:24px;border-radius:22px;background:var(--glass);border:1px solid var(--border);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.en .n{font-family:var(--pixel);font-size:10px;color:var(--amber);margin-bottom:12px}
+.en p{color:var(--muted);font-size:15px}
+.acc{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.acc span{font-size:13px;padding:7px 11px;border-radius:10px;background:var(--s2);border:1px solid var(--border)}
+.install{display:grid;grid-template-columns:1.2fr .8fr;gap:22px;margin-top:22px}
+@media (max-width:860px){.install{grid-template-columns:1fr}}
+.inst{padding:28px}
+.tabs{display:flex;gap:8px;margin:4px 0 18px;flex-wrap:wrap}
+.tabs button{padding:10px 14px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.03);font-weight:600;font-size:14px}
+.tabs button[aria-selected="true"]{background:var(--acc);border-color:var(--acc)}
+.howto{padding-left:22px;display:grid;gap:10px;color:var(--muted)}
+.howto b{color:var(--text)}
+.free{padding:28px;text-align:center;display:flex;flex-direction:column;justify-content:center}
+.free .big{font-family:var(--pixel);font-size:48px;color:var(--green);text-shadow:0 0 30px rgba(74,222,128,.45)}
+.free ul{list-style:none;text-align:left;display:grid;gap:8px;margin-top:18px;font-size:14px;color:var(--muted)}
+.free li::before{content:"✓ ";color:var(--green);font-weight:700}
+
+/* lista y apoyo */
+.wait{display:grid;grid-template-columns:1fr 1fr;gap:40px;padding:36px;align-items:start}
+@media (max-width:860px){.wait{grid-template-columns:1fr;padding:22px}}
+.form{display:grid;gap:12px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:520px){.two{grid-template-columns:1fr}}
+.field label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+.field input,.field select{width:100%;padding:13px 14px;border-radius:12px;border:1px solid var(--border);background:rgba(9,9,15,.8);font-size:16px}
+.field input:focus,.field select:focus{outline:none;border-color:var(--acc)}
+.hp{position:absolute;left:-9999px}
+.small{font-size:12.5px;color:var(--dim)}
+.err{color:var(--red);font-size:14px}
+.done{text-align:center;padding:20px 0}
+.done .crown{font-size:52px}
+.share{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+.share a,.share button{padding:10px 14px;border-radius:12px;border:1px solid var(--bh);background:rgba(124,92,255,.12);font-weight:600;text-decoration:none;font-size:14px}
+.tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}
+@media (max-width:520px){.tiers{grid-template-columns:1fr}}
+.tier{padding:14px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,.03);font-size:13px;color:var(--muted)}
+.tier b{display:block;font-family:var(--pixel);font-size:12px;color:var(--text);margin-bottom:6px}
+
+/* preguntas */
+.faq{display:grid;gap:10px;margin-top:30px;max-width:820px}
+.faq details{border-radius:16px;background:var(--glass);border:1px solid var(--border);padding:0 20px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.faq summary{cursor:pointer;padding:18px 0;font-weight:700;list-style:none;display:flex;justify-content:space-between;gap:12px}
+.faq summary::after{content:"+";font-family:var(--pixel);color:var(--acc2)}
+.faq details[open] summary::after{content:"−"}
+.faq summary::-webkit-details-marker{display:none}
+.faq p{padding-bottom:18px;color:var(--muted)}
+
+/* cierre */
+.final{text-align:center;padding:140px 0 120px}
+.final .h2{margin:0 auto 18px;max-width:14ch;font-size:clamp(40px,7vw,84px)}
+.final .lead{margin:0 auto}
+.final .cta{justify-content:center}
+footer{padding:30px 0 40px;border-top:1px solid var(--border);background:rgba(9,9,15,.85);font-size:13px;color:var(--dim)}
+footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+footer a{color:var(--muted)}
+.bin{font-family:var(--mono)}
+
+/* botón fijo en celular */
+.sticky-play{position:fixed;left:16px;right:16px;bottom:max(14px,env(safe-area-inset-bottom));z-index:40;display:none}
+.sticky-play .btn{width:100%}
+@media (max-width:700px){.sticky-play.show{display:block}}
+
+@media (prefers-reduced-motion:reduce){
+  .reveal{opacity:1;transform:none;transition:none}
+  .float,.empty .crown,.scrolldown span,.brand b{animation:none}
+  html{scroll-behavior:auto}
+}
+</style>
 </head>
 <body>
 
-<div class="cursor" id="cursor"></div>
-<div class="cursor-glow" id="cursorGlow"></div>
-<div id="particles"></div>
-
-<!-- NAV -->
-<nav>
-  <div class="logo"><span class="ai-part">AI</span><span class="staff-part">Staff</span></div>
-  <ul id="navMenu">
-    <li><a href="#roles" onclick="closeMenu()">Our Staff</a></li>
-    <li><a href="#demo" onclick="closeMenu()">Live Demo</a></li>
-    <li><a href="#results" onclick="closeMenu()">Results</a></li>
-    <li><a href="#pricing" onclick="closeMenu()">Pricing</a></li>
-    <li><a href="#faq" onclick="closeMenu()">FAQ</a></li>
-    <li><a href="#" class="nav-cta" onclick="openModal(); closeMenu(); return false;">Hire Now →</a></li>
-  </ul>
-  <button class="nav-hamburger" id="navHamburger" onclick="toggleMenu()" aria-label="Menu">
-    <span></span><span></span><span></span>
-  </button>
-</nav>
-
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-orb orb1"></div>
-  <div class="hero-orb orb2"></div>
-  <div class="hero-orb orb3"></div>
-
-  <div class="badge"><span class="badge-dot"></span>NOW HIRING — VIRTUAL STAFF AVAILABLE 24/7</div>
-
-  <h1>Your Next Great<br/><span class="grad">Employee Is AI.</span></h1>
-  <p class="hero-sub">⚡ Never miss a call. Never lose a lead. Never pay overtime.</p>
-  <p class="hero-desc">
-    HumanaiStaff deploys <strong>AI-powered virtual employees</strong> that answer calls, reply on WhatsApp, respond to Instagram DMs, and close deals — <strong>across every channel, 24/7, in 3 languages.</strong>
-  </p>
-  <div class="hero-btns">
-    <a href="tel:+13056149424" class="btn-primary">📞 Call Alex — Try It Live</a>
-    <a href="#roles" class="btn-secondary">See Our Staff →</a>
+<!-- intro: la consola se prende -->
+<div class="boot" id="boot" role="dialog" aria-label="Intro de IO" hidden>
+  <button class="boot-skip" id="bootSkip">Saltar intro ›</button>
+  <div class="gbx" id="gbx">
+    <div class="gbx-bez"><span class="gbx-led"></span>
+      <div class="gbx-scr"><div class="gbx-logo">IO</div><div class="gbx-sub">TU VIDA ES EL JUEGO</div><div class="gbx-ps">PRESS START</div></div>
+    </div>
+    <div class="gbx-name" translate="no">IO <span class="gl"><b>GAME</b><i>LIFE</i></span></div>
+    <div class="gbx-pad"></div><div class="gbx-ab"><span></span><span></span></div>
   </div>
-
-  <!-- CHANNELS ROW -->
-  <div style="display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:36px; position:relative; z-index:1;">
-    <div style="display:inline-flex; align-items:center; gap:7px; background:rgba(0,245,255,0.08); border:1px solid rgba(0,245,255,0.25); border-radius:100px; padding:8px 18px; font-size:0.8rem; font-weight:700; color:#00F5FF;">📞 Phone Calls</div>
-    <div style="display:inline-flex; align-items:center; gap:7px; background:rgba(0,255,178,0.08); border:1px solid rgba(0,255,178,0.25); border-radius:100px; padding:8px 18px; font-size:0.8rem; font-weight:700; color:#00FFB2;">💬 WhatsApp</div>
-    <div style="display:inline-flex; align-items:center; gap:7px; background:rgba(255,45,120,0.08); border:1px solid rgba(255,45,120,0.25); border-radius:100px; padding:8px 18px; font-size:0.8rem; font-weight:700; color:#FF2D78;">📸 Instagram DMs</div>
-    <div style="display:inline-flex; align-items:center; gap:7px; background:rgba(167,139,250,0.08); border:1px solid rgba(167,139,250,0.25); border-radius:100px; padding:8px 18px; font-size:0.8rem; font-weight:700; color:#A78BFA;">🌐 Web Chat</div>
-  </div>
-</section>
-
-<!-- STATS BAR -->
-<div class="stats-bar">
-  <div class="stat-item">
-    <div class="stat-number" data-target="98" data-suffix="%">0%</div>
-    <div class="stat-label">Call Answer Rate</div>
-  </div>
-  <div class="stat-item">
-    <div class="stat-number" data-target="24" data-suffix="/7">0/7</div>
-    <div class="stat-label">Always Available</div>
-  </div>
-  <div class="stat-item">
-    <div class="stat-number" data-target="7" data-suffix=" days">0 days</div>
-    <div class="stat-label">Live in</div>
-  </div>
-  <div class="stat-item">
-    <div class="stat-number" data-target="3" data-suffix="x">0x</div>
-    <div class="stat-label">More Leads Captured</div>
-  </div>
+  <div class="boot-hint">TOCA LA PANTALLA O PRESIONA ENTER</div>
 </div>
 
-<!-- PROBLEM -->
-<section>
-  <div class="center">
-    <div class="section-label">The Problem</div>
-    <h2 class="section-title">Your business is losing money<br/>every time the phone rings.</h2>
-    <p class="section-sub">Every missed call is a missed client. Every voicemail is a lost deal.</p>
+<div class="bg-fallback" aria-hidden="true"></div>
+<canvas id="world" aria-hidden="true"></canvas>
+<div class="vignette" aria-hidden="true"></div>
+<div class="scan" aria-hidden="true"></div>
+
+<div class="hud" id="hud" aria-hidden="true">
+  <span class="fl" id="hudFl">P1</span>
+  <div class="rail"><i id="hudBar"></i></div>
+  <span class="wn" id="hudWn">Edificio Barrio</span>
+</div>
+
+<header id="hdr">
+  <div class="wrap nav">
+    <a class="brand" href="#top"><b>IO</b><small>el código de tu vida</small></a>
+    <nav class="links" aria-label="Secciones">
+      <a href="#que-es">Qué es</a><a href="#como">Cómo se juega</a><a href="#diferente">Por qué IO</a><a href="#ranking">Ranking</a><a href="#entrar">Entrar</a>
+    </nav>
+    <div class="navr"><div class="lang" translate="no" role="group" aria-label="Idioma / Language"><button data-lang="es">ES</button><button data-lang="en">EN</button></div>
+    <a class="btn btn-start btn-sm" href="app/">▶ JUGAR</a></div>
   </div>
-  <div class="problem-grid">
-    <div class="problem-card">
-      <div class="problem-icon">📵</div>
-      <h3>Missed Calls = Missed Revenue</h3>
-      <p>62% of calls to small businesses go <strong>unanswered</strong>. That's your competitor's gain.</p>
+</header>
+
+<main id="top">
+
+<section class="hero">
+  <div class="wrap">
+    <span class="tag"><i></i>PRIMERA TEMPORADA · GRATIS</span>
+    <h1 class="h1">Tu vida es <span class="glow">el juego.</span></h1>
+    <p class="lead">IO es un videojuego retro donde <b>subes de nivel haciendo tus hábitos reales</b>. Leer, orar, entrenar, sacar al perro, estudiar: el reloj cuenta de verdad y tu personaje lo hace contigo.</p>
+    <div class="cta">
+      <a class="btn btn-start" href="app/">▶ PRESS START</a>
+      <a class="btn btn-ghost" href="#como">Cómo se juega</a>
     </div>
-    <div class="problem-card">
-      <div class="problem-icon">😴</div>
-      <h3>Staff Can't Work 24/7</h3>
-      <p>Humans sleep. Humans quit. Humans call in sick. <strong>Your AI employee never does.</strong></p>
+    <div class="hero-stats">
+      <div><b>$0</b>gratis y sin anuncios</div>
+      <div><b>23</b>actividades animadas</div>
+      <div><b>100+</b>pisos por subir</div>
+      <div id="heroPlayersBox" hidden><b id="heroPlayers"></b><span id="heroPlayersL"></span></div>
     </div>
-    <div class="problem-card">
-      <div class="problem-icon">💸</div>
-      <h3>Hiring Is Expensive</h3>
-      <p>A full-time receptionist costs <strong>$40,000+/year</strong>. HumanaiStaff costs a fraction.</p>
+  </div>
+  <a class="scrolldown" href="#que-es">SUBE LA TORRE<span>▼</span></a>
+</section>
+
+<section id="que-es">
+  <div class="wrap what">
+    <div class="reveal">
+      <div class="eyebrow">¿QUÉ ES IO?</div>
+      <h2 class="h2">Un Game Life para tus hábitos.</h2>
+      <p class="lead">Eliges los hábitos que quieres construir. Cada vez que haces uno, enciendes el reloj y tu personaje aparece haciéndolo en su cuarto. Cuando terminas, ganas <b>XP</b> para subir de piso y <b>bits</b> para decorar tu cuarto.</p>
+      <div class="pillars">
+        <div class="pill"><div class="ic">⏱️</div><b>Puntos que valen</b><p>Nada de marcar casillas. Si dices 20 minutos, el reloj cuenta 20 minutos.</p></div>
+        <div class="pill"><div class="ic">🏢</div><b>Un edificio que es tuyo</b><p>Cada nivel es un piso. Subes en ascensor por cinco mundos.</p></div>
+        <div class="pill"><div class="ic">🎨</div><b>Tu personaje, tu cuarto</b><p>Diseña tu avatar, gana objetos y decora repisas, mesas y paredes.</p></div>
+        <div class="pill"><div class="ic">🔥</div><b>Rachas que dan ganas</b><p>Misiones del día, cofres, mascota que evoluciona y ranking con personas reales.</p></div>
+      </div>
     </div>
-    <div class="problem-card">
-      <div class="problem-icon">🌐</div>
-      <h3>Language Barriers</h3>
-      <p>Lose clients because no one speaks their language? <strong>Our staff speaks 3 fluently.</strong></p>
+    <div class="stage reveal">
+      <div class="phone"><div class="notch"></div><div class="sc" id="phoneSc">
+        <img src="img/hero-home.webp" alt="Pantalla de inicio de IO: el cuarto del personaje dentro de una consola" id="phoneImg" loading="lazy">
+      </div></div>
+      <div class="float" style="top:12%;left:0"><b>+30 XP</b> Leer · 20 min</div>
+      <div class="float" style="top:44%;right:0;animation-delay:-1.6s">🔥 Racha de 7 días</div>
+      <div class="float" style="bottom:14%;left:4%;animation-delay:-3s">🐕 Nivel 7 · Piso 7</div>
+      <p class="stage-note" id="stageNote">Es el juego de verdad. Tócalo y pruébalo.</p>
     </div>
   </div>
 </section>
 
-<!-- STAFF ROLES — NEXT LEVEL -->
-<section id="roles" style="background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
-  <div class="center">
-    <div class="section-label">Meet The Team</div>
-    <h2 class="section-title">Your virtual staff. Ready to hire.</h2>
-    <p class="section-sub">Three elite AI employees — each trained for a specific role, live in 7 days.</p>
-  </div>
-  <div class="staff-grid-v2">
-
-    <!-- CARD 1: RECEPTIONIST -->
-    <div class="sc2 sc2-cyan">
-      <div class="sc2-header">
-        <div class="sc2-status"><span class="sc2-status-dot"></span>ONLINE NOW · 24/7</div>
-        <div class="sc2-avatar-row">
-          <div class="sc2-avatar">
-            <!-- Alex: cyan humanoid -->
-            <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:relative;z-index:2;">
-              <!-- Head -->
-              <ellipse cx="26" cy="18" rx="11" ry="12" fill="url(#alexHead)" />
-              <!-- Face glow -->
-              <ellipse cx="26" cy="15" rx="6" ry="4" fill="rgba(255,255,255,0.18)" />
-              <!-- Eyes -->
-              <circle cx="21.5" cy="17" r="2.2" fill="#0a1a2e"/>
-              <circle cx="30.5" cy="17" r="2.2" fill="#0a1a2e"/>
-              <circle cx="22.2" cy="16.3" r="0.7" fill="#00F5FF" opacity="0.9"/>
-              <circle cx="31.2" cy="16.3" r="0.7" fill="#00F5FF" opacity="0.9"/>
-              <!-- Smile -->
-              <path d="M22 21.5 Q26 24 30 21.5" stroke="#0a1a2e" stroke-width="1.2" stroke-linecap="round" fill="none"/>
-              <!-- Neck -->
-              <rect x="23" y="29" width="6" height="5" rx="2" fill="url(#alexHead)"/>
-              <!-- Body / shirt -->
-              <path d="M14 46 Q14 36 26 34 Q38 36 38 46 Z" fill="url(#alexBody)"/>
-              <!-- Collar line -->
-              <path d="M22 34 L26 39 L30 34" stroke="rgba(0,245,255,0.5)" stroke-width="1" fill="none"/>
-              <!-- Headset arc -->
-              <path d="M15 18 Q15 7 26 7 Q37 7 37 18" stroke="#00F5FF" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.9"/>
-              <!-- Headset ear pieces -->
-              <rect x="13" y="17" width="5" height="7" rx="2.5" fill="#00F5FF" opacity="0.85"/>
-              <rect x="34" y="17" width="5" height="7" rx="2.5" fill="#00F5FF" opacity="0.85"/>
-              <!-- Mic boom -->
-              <path d="M18 23 L14 27 L17 27" stroke="#00F5FF" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-              <circle cx="17" cy="27" r="1.5" fill="#00FFB2"/>
-              <!-- Orbit 1 -->
-              <ellipse cx="26" cy="26" rx="24" ry="8" stroke="rgba(0,245,255,0.22)" stroke-width="1" fill="none" style="animation:sc-orbit1 6s linear infinite;transform-origin:26px 26px;"/>
-              <!-- Orbit dot 1 -->
-              <circle r="2.5" fill="#00F5FF" filter="url(#alexGlow)" style="animation:sc-orbitdot1 6s linear infinite;transform-origin:26px 26px;">
-                <animateTransform attributeName="transform" type="rotate" from="0 26 26" to="360 26 26" dur="6s" repeatCount="indefinite"/>
-                <animate attributeName="cx" values="50;2;50" dur="6s" repeatCount="indefinite"/>
-                <animate attributeName="cy" values="26;26;26" dur="6s" repeatCount="indefinite"/>
-              </circle>
-              <defs>
-                <linearGradient id="alexHead" x1="15" y1="6" x2="37" y2="30" gradientUnits="userSpaceOnUse">
-                  <stop offset="0%" stop-color="#c8f8ff"/>
-                  <stop offset="60%" stop-color="#7dd8f0"/>
-                  <stop offset="100%" stop-color="#6C63FF"/>
-                </linearGradient>
-                <linearGradient id="alexBody" x1="14" y1="34" x2="38" y2="46" gradientUnits="userSpaceOnUse">
-                  <stop offset="0%" stop-color="#0a2540"/>
-                  <stop offset="100%" stop-color="#0d1b30"/>
-                </linearGradient>
-                <filter id="alexGlow" x="-100%" y="-100%" width="300%" height="300%">
-                  <feGaussianBlur stdDeviation="2" result="blur"/>
-                  <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-                </filter>
-              </defs>
-            </svg>
-            <!-- Orbiting rings overlay -->
-            <div class="sc2-orbit-ring r1-cyan"></div>
-            <div class="sc2-orbit-ring r2-cyan"></div>
-          </div>
-          <div class="sc2-id">
-            <div class="sc2-name">Alex</div>
-            <div class="sc2-role-label">Virtual Receptionist</div>
-          </div>
-        </div>
-        <p class="sc2-desc">Answers every call with a <strong>warm, professional voice</strong>. Books appointments, handles FAQs, and routes urgent calls — in 3 languages, zero wait time.</p>
+<section id="trailer" style="padding-top:20px">
+  <div class="wrap">
+    <div class="panel trailer reveal">
+      <div class="tv"><span class="rec"><i></i>REC · JUEGO REAL</span>
+        <video id="trailerV" src="img/trailer.webm" poster="img/trailer-poster.webp" muted loop playsinline preload="none" aria-label="Video del juego: el personaje saca al perro, ora, entrena y lee mientras corre el reloj"></video>
       </div>
-      <div class="sc2-channels">
-        <span class="sc2-ch ch-c">📞 Phone Calls</span>
-        <span class="sc2-ch ch-c">🌐 Web Chat</span>
-        <span class="sc2-ch ch-g">💬 WhatsApp</span>
-      </div>
-      <div class="sc2-metrics">
-        <div class="sc2-metric"><div class="sc2-mval">98%</div><div class="sc2-mlabel">Answer Rate</div></div>
-        <div class="sc2-metric"><div class="sc2-mval">&lt;2s</div><div class="sc2-mlabel">Response</div></div>
-        <div class="sc2-metric"><div class="sc2-mval">3</div><div class="sc2-mlabel">Languages</div></div>
-      </div>
-      <div class="sc2-footer">
-        <button class="sc2-cta" href="tel:+13056149424">📞 Talk to Alex →</button>
+      <div>
+        <div class="eyebrow">MODO ENFOQUE</div>
+        <h2 class="h2">Mientras tú lo haces, tu personaje también.</h2>
+        <p class="lead">Enciendes el reloj y la pantalla se convierte en tu escena: camina con el perro por el parque, ora con rayos de luz, levanta pesas, pasa las páginas del libro. Un coach te acompaña y la radio pone música retro.</p>
+        <div class="scenes"><span>🐕 Sacar al perro</span><span>🙏 Orar</span><span>🏋️ Gym</span><span>📖 Leer</span><span>🧘 Respirar</span><span>💧 Tomar agua</span><span>🏃 Correr</span><span>✍️ Escribir</span><span>🎨 Pintar</span><span>📚 Estudiar</span><span>+13 más</span></div>
       </div>
     </div>
-
-    <!-- CARD 2: BOOKER -->
-    <div class="sc2 sc2-purple">
-      <div class="sc2-header">
-        <div class="sc2-status"><span class="sc2-status-dot"></span>ACTIVE · FOLLOWING UP</div>
-        <div class="sc2-avatar-row">
-          <div class="sc2-avatar">
-            <!-- Maya: purple humanoid -->
-            <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:relative;z-index:2;">
-              <ellipse cx="26" cy="13" rx="12" ry="7" fill="#2d1b6b"/>
-              <path d="M14 15 Q13 26 15 30" stroke="#3b1fa8" stroke-width="3" stroke-linecap="round" fill="none"/>
-              <path d="M38 15 Q39 26 37 30" stroke="#3b1fa8" stroke-width="3" stroke-linecap="round" fill="none"/>
-              <ellipse cx="26" cy="19" rx="10.5" ry="11" fill="url(#mayaHead)"/>
-              <ellipse cx="24" cy="15" rx="5" ry="3" fill="rgba(255,255,255,0.2)"/>
-              <ellipse cx="21.5" cy="18.5" rx="2.5" ry="2.2" fill="#1a0a30"/>
-              <ellipse cx="30.5" cy="18.5" rx="2.5" ry="2.2" fill="#1a0a30"/>
-              <circle cx="22.2" cy="17.8" r="0.8" fill="#A78BFA" opacity="0.9"/>
-              <circle cx="31.2" cy="17.8" r="0.8" fill="#A78BFA" opacity="0.9"/>
-              <path d="M22.5 22.5 Q26 25.5 29.5 22.5" stroke="#1a0a30" stroke-width="1.2" stroke-linecap="round" fill="none"/>
-              <rect x="23" y="29" width="6" height="5" rx="2" fill="url(#mayaHead)"/>
-              <path d="M14 47 Q14 36 26 34 Q38 36 38 47 Z" fill="#1a1040"/>
-              <path d="M22 34 L24 38 L26 34" stroke="#6C63FF" stroke-width="1.2" fill="rgba(108,99,255,0.3)"/>
-              <path d="M30 34 L28 38 L26 34" stroke="#6C63FF" stroke-width="1.2" fill="rgba(108,99,255,0.3)"/>
-              <rect x="36" y="30" width="5" height="8" rx="1.5" fill="#A78BFA" opacity="0.6"/>
-              <rect x="37" y="31.5" width="3" height="5" rx="0.8" fill="#12121C" opacity="0.8"/>
-              <ellipse cx="26" cy="26" rx="23" ry="7" stroke="rgba(167,139,250,0.2)" stroke-width="1" fill="none"/>
-              <defs>
-                <linearGradient id="mayaHead" x1="16" y1="8" x2="36" y2="30" gradientUnits="userSpaceOnUse">
-                  <stop offset="0%" stop-color="#e8d5c4"/>
-                  <stop offset="60%" stop-color="#d4b896"/>
-                  <stop offset="100%" stop-color="#b89070"/>
-                </linearGradient>
-              </defs>
-            </svg>
-            <div class="sc2-orbit-ring r1-purple"></div>
-            <div class="sc2-orbit-ring r2-purple"></div>
-          </div>
-          <div class="sc2-id">
-            <div class="sc2-name">Maya</div>
-            <div class="sc2-role-label">Lead Booker & Follow-Up</div>
-          </div>
-        </div>
-        <p class="sc2-desc">Follows up with every lead <strong>automatically</strong>. Sends reminders, re-engages cold prospects, and fills your calendar — without you lifting a finger.</p>
-      </div>
-      <div class="sc2-channels">
-        <span class="sc2-ch ch-p">💬 WhatsApp</span>
-        <span class="sc2-ch ch-pink">📸 Instagram DMs</span>
-        <span class="sc2-ch ch-p">📧 Email</span>
-      </div>
-      <div class="sc2-metrics">
-        <div class="sc2-metric"><div class="sc2-mval">+340%</div><div class="sc2-mlabel">More Leads</div></div>
-        <div class="sc2-metric"><div class="sc2-mval">0</div><div class="sc2-mlabel">Leads Lost</div></div>
-        <div class="sc2-metric"><div class="sc2-mval">Auto</div><div class="sc2-mlabel">Follow-Up</div></div>
-      </div>
-      <div class="sc2-footer">
-        <a href="#pricing" class="sc2-cta">🚀 Hire Maya →</a>
-      </div>
-    </div>
-
-    <!-- CARD 3: CLOSER -->
-    <div class="sc2 sc2-green">
-      <div class="sc2-header">
-        <div class="sc2-status"><span class="sc2-status-dot"></span>QUALIFYING LEADS NOW</div>
-        <div class="sc2-avatar-row">
-          <div class="sc2-avatar">
-            <!-- Jordan: green humanoid -->
-            <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:relative;z-index:2;">
-              <!-- Short hair -->
-              <ellipse cx="26" cy="13" rx="11" ry="6" fill="#1a2c1a"/>
-              <rect x="15" y="13" width="22" height="5" rx="0" fill="#1a2c1a"/>
-              <!-- Head -->
-              <ellipse cx="26" cy="19" rx="10.5" ry="11" fill="url(#jordanHead)"/>
-              <ellipse cx="24" cy="14" rx="5" ry="3" fill="rgba(255,255,255,0.18)"/>
-              <!-- Eyes - slight squint (confident) -->
-              <ellipse cx="21.5" cy="18" rx="2.8" ry="2" fill="#0d1a0d"/>
-              <ellipse cx="30.5" cy="18" rx="2.8" ry="2" fill="#0d1a0d"/>
-              <circle cx="22.3" cy="17.5" r="0.8" fill="#00FFB2" opacity="0.9"/>
-              <circle cx="31.3" cy="17.5" r="0.8" fill="#00FFB2" opacity="0.9"/>
-              <!-- Confident smile -->
-              <path d="M22 22 Q26 26 30 22" stroke="#0d1a0d" stroke-width="1.4" stroke-linecap="round" fill="none"/>
-              <!-- Neck -->
-              <rect x="23" y="29" width="6" height="5" rx="2" fill="url(#jordanHead)"/>
-              <!-- Suit body -->
-              <path d="M13 47 Q13 36 26 34 Q39 36 39 47 Z" fill="#0a1f0a"/>
-              <!-- Tie -->
-              <path d="M25 34 L26 44 L27 34" fill="#00FFB2" opacity="0.6"/>
-              <!-- Suit collar -->
-              <path d="M21 34 L23 38 L26 34" stroke="#00FFB2" stroke-width="0.8" fill="rgba(0,255,178,0.15)"/>
-              <path d="M31 34 L29 38 L26 34" stroke="#00FFB2" stroke-width="0.8" fill="rgba(0,255,178,0.15)"/>
-              <!-- Data chart in hand -->
-              <rect x="35" y="28" width="9" height="11" rx="1.5" fill="#0a2010" stroke="#00FFB2" stroke-width="0.8" opacity="0.7"/>
-              <rect x="36.5" y="35" width="1.5" height="3" rx="0.5" fill="#00FFB2" opacity="0.8"/>
-              <rect x="38.5" y="33" width="1.5" height="5" rx="0.5" fill="#00F5FF" opacity="0.8"/>
-              <rect x="40.5" y="31" width="1.5" height="7" rx="0.5" fill="#00FFB2" opacity="0.8"/>
-              <!-- Orbit ring -->
-              <ellipse cx="26" cy="26" rx="23" ry="7" stroke="rgba(0,255,178,0.2)" stroke-width="1" fill="none"/>
-              <defs>
-                <linearGradient id="jordanHead" x1="16" y1="8" x2="36" y2="30" gradientUnits="userSpaceOnUse">
-                  <stop offset="0%" stop-color="#c8a878"/>
-                  <stop offset="60%" stop-color="#a07848"/>
-                  <stop offset="100%" stop-color="#805830"/>
-                </linearGradient>
-              </defs>
-            </svg>
-            <div class="sc2-orbit-ring r1-green"></div>
-            <div class="sc2-orbit-ring r2-green"></div>
-          </div>
-          <div class="sc2-id">
-            <div class="sc2-name">Jordan</div>
-            <div class="sc2-role-label">Sales Closer & Qualifier</div>
-          </div>
-        </div>
-        <p class="sc2-desc">Qualifies inbound leads, handles objections, and <strong>books strategy calls</strong> with your hottest prospects — so you only talk to people ready to buy.</p>
-      </div>
-      <div class="sc2-channels">
-        <span class="sc2-ch ch-g">📞 Phone Calls</span>
-        <span class="sc2-ch ch-g">💬 WhatsApp</span>
-        <span class="sc2-ch ch-c">🌐 Web Chat</span>
-      </div>
-      <div class="sc2-metrics">
-        <div class="sc2-metric"><div class="sc2-mval">3x</div><div class="sc2-mlabel">Conversions</div></div>
-        <div class="sc2-metric"><div class="sc2-mval">97%</div><div class="sc2-mlabel">Satisfaction</div></div>
-        <div class="sc2-metric"><div class="sc2-mval">24/7</div><div class="sc2-mlabel">Available</div></div>
-      </div>
-      <div class="sc2-footer">
-        <a href="#pricing" class="sc2-cta">💼 Hire Jordan →</a>
-      </div>
-    </div>
-
   </div>
 </section>
 
-<!-- RESULTS / METRICS -->
-<section id="results">
-  <div class="center">
-    <div class="section-label">Real Results</div>
-    <h2 class="section-title">Numbers that speak for themselves.</h2>
-    <p class="section-sub">Our clients see measurable ROI within the first 30 days.</p>
-  </div>
-  <div class="metrics-grid">
-    <div class="metric-card">
-      <div class="metric-value">+340%</div>
-      <div class="metric-label">More Leads Captured</div>
-      <div class="metric-sub">vs. traditional receptionist</div>
+<section id="como">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="eyebrow">CÓMO SE JUEGA</div>
+      <h2 class="h2">Cuatro pasos. Todos los días.</h2>
+      <p class="lead">Una partida dura lo que dura tu hábito. Así se ve un día en IO.</p>
     </div>
-    <div class="metric-card">
-      <div class="metric-value"><2s</div>
-      <div class="metric-label">Average Response Time</div>
-      <div class="metric-sub">Every call, every time</div>
+    <div class="steps">
+      <div class="step reveal"><div class="ic">🎮</div><h3 class="h3">Crea tu jugador</h3><p>Entra con Google o tu correo, elige tu personaje y hasta tres hábitos. Toma un minuto.</p></div>
+      <div class="step reveal"><div class="ic">▶️</div><h3 class="h3">Dale START</h3><p>Cuando vayas a hacer un hábito, abre IO y enciende el reloj. Puedes pausar; el tiempo sigue aunque bloquees el celular.</p></div>
+      <div class="step reveal"><div class="ic">👑</div><h3 class="h3">Reclama la corona</h3><p>Al terminar aparece la corona: tócala y ganas XP, bits y racha. A tiempo, ganas más.</p></div>
+      <div class="step reveal"><div class="ic">🛗</div><h3 class="h3">Sube de piso</h3><p>Cada nivel desbloquea un piso nuevo. Compra objetos, decora tu cuarto y visita a otros jugadores.</p></div>
     </div>
-    <div class="metric-card">
-      <div class="metric-value">$28K</div>
-      <div class="metric-label">Avg. Annual Savings</div>
-      <div class="metric-sub">vs. hiring a full-time employee</div>
-    </div>
-    <div class="metric-card">
-      <div class="metric-value">97%</div>
-      <div class="metric-label">Client Retention Rate</div>
-      <div class="metric-sub">After first 90 days</div>
-    </div>
-  </div>
-
-  <!-- BATTLE: HUMAN VS AI -->
-  <div class="battle-wrap">
-
-    <!-- HUMAN SIDE -->
-    <div class="battle-side human-side">
-      <div class="battle-avatar human-avatar">👨‍💼</div>
-      <div class="battle-name human-name">Traditional Staff</div>
-      <div class="battle-subtitle human-subtitle">Human Employee</div>
-
-      <div class="battle-row">
-        <div class="battle-label">Leads Captured</div>
-        <div class="battle-score score-bad">38%</div>
-      </div>
-      <div class="battle-track" style="margin-bottom:18px;"><div class="battle-fill fill-bad" data-width="38"></div></div>
-
-      <div class="battle-row">
-        <div class="battle-label">Response Time</div>
-        <div class="battle-score score-bad">4–8 hrs</div>
-      </div>
-      <div class="battle-track" style="margin-bottom:18px;"><div class="battle-fill fill-bad" data-width="22"></div></div>
-
-      <div class="battle-row">
-        <div class="battle-label">Availability</div>
-        <div class="battle-score score-bad">40 hrs/wk</div>
-      </div>
-      <div class="battle-track" style="margin-bottom:18px;"><div class="battle-fill fill-bad" data-width="24"></div></div>
-
-      <div class="battle-row">
-        <div class="battle-label">Annual Cost</div>
-        <div class="battle-score score-bad">$45K+</div>
-      </div>
-      <div class="battle-track" style="margin-bottom:18px;"><div class="battle-fill fill-bad" data-width="100"></div></div>
-
-      <div class="battle-row">
-        <div class="battle-label">Languages</div>
-        <div class="battle-score score-bad">1</div>
-      </div>
-      <div class="battle-track"><div class="battle-fill fill-bad" data-width="15"></div></div>
-    </div>
-
-    <!-- VS DIVIDER -->
-    <div class="battle-vs">
-      <div class="vs-line"></div>
-      <div class="vs-circle">VS</div>
-      <div class="vs-line"></div>
-    </div>
-
-    <!-- AI SIDE -->
-    <div class="battle-side ai-side">
-      <div class="winner-badge">🏆 Winner</div>
-      <div class="battle-avatar ai-avatar human-ai-avatar">
-        <div class="ai-core-face">
-          <div class="ai-eye left-eye"></div>
-          <div class="ai-eye right-eye"></div>
-          <div class="ai-mouth"></div>
-        </div>
-        <div class="ai-orbit orbit-1"></div>
-        <div class="ai-orbit orbit-2"></div>
-      </div>
-      <div class="battle-name ai-name">AIStaff</div>
-      <div class="battle-subtitle ai-subtitle">Virtual AI Employee</div>
-
-      <div class="battle-row">
-        <div class="battle-label">Leads Captured</div>
-        <div class="battle-score score-good">98%</div>
-      </div>
-      <div class="battle-track" style="margin-bottom:18px;"><div class="battle-fill fill-good" data-width="98"></div></div>
-
-      <div class="battle-row">
-        <div class="battle-label">Response Time</div>
-        <div class="battle-score score-good">&lt; 2 sec</div>
-      </div>
-      <div class="battle-track" style="margin-bottom:18px;"><div class="battle-fill fill-good" data-width="99"></div></div>
-
-      <div class="battle-row">
-        <div class="battle-label">Availability</div>
-        <div class="battle-score score-good">24/7/365</div>
-      </div>
-      <div class="battle-track" style="margin-bottom:18px;"><div class="battle-fill fill-good" data-width="100"></div></div>
-
-      <div class="battle-row">
-        <div class="battle-label">Annual Cost</div>
-        <div class="battle-score score-good">~$9.6K</div>
-      </div>
-      <div class="battle-track" style="margin-bottom:18px;"><div class="battle-fill fill-good" data-width="21"></div></div>
-
-      <div class="battle-row">
-        <div class="battle-label">Languages</div>
-        <div class="battle-score score-good">3+</div>
-      </div>
-      <div class="battle-track"><div class="battle-fill fill-good" data-width="90"></div></div>
-    </div>
-  </div>
-
-  <!-- VERDICT -->
-  <div class="battle-verdict">
-    <div class="verdict-text">Switching to AIStaff saves you an average of <span>$35,000/year</span> — while capturing <span>3x more leads</span> and never missing a call.</div>
-    <div class="verdict-savings">Save $35K/yr 🚀</div>
-  </div>
-</section>
-
-<!-- LIVE DEMO — NEXT LEVEL -->
-<section id="demo" class="demo-v2">
-  <div style="padding:100px 24px;">
-  <div class="demo-v2-inner">
-
-    <!-- LEFT: TEXT -->
-    <div class="demo-v2-text">
-      <div class="section-label">Live Demo</div>
-      <h2>Talk to Alex.<br/>Right now. For free.</h2>
-      <p class="demo-neon">⚡ Experience your future employee in real time.</p>
-      <p>Alex is our <strong>Senior Virtual Receptionist</strong>. Call the number below, ask anything — pricing, availability, services — and see exactly what your clients will experience every single day.</p>
-      <div class="demo-pills">
-        <span class="demo-pill dp-cyan">📞 Phone Call</span>
-        <span class="demo-pill dp-green">💬 WhatsApp</span>
-        <span class="demo-pill dp-purple">🌐 Web Chat</span>
-        <span class="demo-pill dp-pink">📸 Instagram DMs</span>
-      </div>
-      <!-- FLASH CTA -->
-      <div class="flash-cta-wrap">
-        <a href="tel:+13056149424" class="flash-cta">
-          <span class="flash-cta-shine"></span>
-          <span class="flash-cta-icon">📞</span>
-          <span class="flash-cta-text">
-            <span class="flash-cta-main">Call Alex Now — It's Free</span>
-            <span class="flash-cta-sub">Available 24/7 · No credit card · Answer in &lt;2 sec</span>
-          </span>
-          <span class="flash-cta-arrow">→</span>
-        </a>
-        <div class="flash-cta-glow"></div>
-      </div>
-      <div class="demo-langs" style="margin-top:20px;">
-        <span class="lang-badge">🇺🇸 English</span>
-        <span class="lang-badge">🇪🇸 Español</span>
-        <span class="lang-badge">🇫🇷 Français</span>
-      </div>
-    </div>
-
-    <!-- RIGHT: VISUAL -->
-    <div class="demo-v2-visual">
-
-      <!-- Phone card -->
-      <div class="demo-phone-card">
-        <div class="dpc-top">
-          <div class="dpc-icon">🤖</div>
-          <div class="dpc-info">
-            <div class="dpc-name">Alex — Virtual Receptionist</div>
-            <div class="dpc-status"><span class="dpc-status-dot"></span>Online · Ready to answer</div>
-          </div>
-        </div>
-        <div class="dpc-rings">
-          <div class="dpc-ring dpc-ring1"></div>
-          <div class="dpc-ring dpc-ring2"></div>
-          <div class="dpc-ring dpc-ring3"></div>
-          <div class="dpc-center">📞</div>
-        </div>
-        <div class="dpc-number">+1 (305) 614-9424</div>
-        <div class="dpc-sub">Available 24/7 · No commitment · No credit card</div>
-      </div>
-
-      <!-- Chat preview card — animated full conversation -->
-      <div class="demo-chat-card" id="chatCard">
-        <div class="dcc-header">
-          <div class="dcc-avatar">🤖</div>
-          <div>
-            <div class="dcc-name">Alex</div>
-            <div class="dcc-typing" id="alexStatus">Virtual Receptionist · AIStaff</div>
-          </div>
-        </div>
-        <div id="chatMessages"></div>
-      </div>
-
-    </div>
-  </div>
-  </div>
-</section>
-
-<!-- TESTIMONIALS -->
-<section id="testimonials" style="background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
-  <div class="center">
-    <div class="section-label">Client Stories</div>
-    <h2 class="section-title">They hired virtual. They never looked back.</h2>
-    <p class="section-sub">Real businesses. Real results. Real revenue.</p>
-  </div>
-  <div class="testimonials-grid">
-    <div class="testimonial-card tc-cyan">
-      <div class="t-stars">★★★★★</div>
-      <p class="t-quote">"We went from missing <span class="highlight-cyan">40% of our calls</span> to capturing every single one. Our bookings increased by <span class="highlight-green">$12,000 in the first month</span>. This is not a tool — it's a team member."</p>
-      <div class="t-author">
-        <div class="t-avatar av-cyan">DR</div>
-        <div>
-          <div class="t-name">Dr. Rafael Moreno</div>
-          <div class="t-company">Moreno Dental Clinic · Miami, FL</div>
-        </div>
-      </div>
-    </div>
-    <div class="testimonial-card tc-purple">
-      <div class="t-stars">★★★★★</div>
-      <p class="t-quote">"I was skeptical at first. But after the first week, my calendar was <span class="highlight-cyan">fully booked</span>. The AI sounds so natural — clients don't even realize. <span class="highlight-green">Best investment I've made.</span>"</p>
-      <div class="t-author">
-        <div class="t-avatar av-purple">SL</div>
-        <div>
-          <div class="t-name">Sophie Lavoie</div>
-          <div class="t-company">Lavoie Real Estate · Montreal, QC</div>
-        </div>
-      </div>
-    </div>
-    <div class="testimonial-card tc-pink">
-      <div class="t-stars">★★★★★</div>
-      <p class="t-quote">"We replaced a $45K/year receptionist with HumanaiStaff. <span class="highlight-pink">Saved $38,000 in year one</span> and our response rate went from 60% to <span class="highlight-cyan">100%</span>. Unbelievable ROI."</p>
-      <div class="t-author">
-        <div class="t-avatar av-pink">MK</div>
-        <div>
-          <div class="t-name">Marcus Kim</div>
-          <div class="t-company">KimTech Solutions · Toronto, ON</div>
-        </div>
-      </div>
-    </div>
-    <div class="testimonial-card tc-cyan">
-      <div class="t-stars">★★★★★</div>
-      <p class="t-quote">"Our Spanish-speaking clients finally feel <span class="highlight-green">heard and valued</span>. The trilingual capability alone was worth it. We've seen a <span class="highlight-cyan">+280% increase</span> in Hispanic client retention."</p>
-      <div class="t-author">
-        <div class="t-avatar av-cyan">AL</div>
-        <div>
-          <div class="t-name">Ana López</div>
-          <div class="t-company">López Law Group · Los Angeles, CA</div>
-        </div>
-      </div>
-    </div>
-    <div class="testimonial-card tc-purple">
-      <div class="t-stars">★★★★★</div>
-      <p class="t-quote">"Setup took <span class="highlight-cyan">less than a week</span>. By day 10, Alex had already booked <span class="highlight-green">14 new consultations</span>. My team can now focus on what matters — serving clients."</p>
-      <div class="t-author">
-        <div class="t-avatar av-purple">JB</div>
-        <div>
-          <div class="t-name">James Beaumont</div>
-          <div class="t-company">Beaumont Consulting · New York, NY</div>
-        </div>
-      </div>
-    </div>
-    <div class="testimonial-card tc-pink">
-      <div class="t-stars">★★★★★</div>
-      <p class="t-quote">"I run a med spa and <span class="highlight-pink">after-hours bookings</span> were always lost. Now HumanaiStaff captures them all. <span class="highlight-green">Revenue up 40%</span> in 60 days. I tell every business owner I know."</p>
-      <div class="t-author">
-        <div class="t-avatar av-pink">VR</div>
-        <div>
-          <div class="t-name">Valentina Reyes</div>
-          <div class="t-company">Glow Med Spa · Chicago, IL</div>
+    <div class="panel controls reveal">
+      <div class="pad" aria-hidden="true"><div class="dpad"><i></i><i></i></div><div class="ab"><b>B</b><b>A</b></div></div>
+      <div>
+        <h3 class="h3" style="margin-bottom:14px">Los controles de la consola</h3>
+        <div class="keys">
+          <div class="key"><kbd>◀ ▶</kbd><span><b>Camina</b> por tu cuarto. En el computador, con las flechas.</span></div>
+          <div class="key"><kbd>A</kbd><span><b>Usa</b> lo que tienes enfrente: la puerta del ascensor, un objeto, la mascota. Tecla Z.</span></div>
+          <div class="key"><kbd>B</kbd><span><b>Vuelve</b> o cierra. Tecla X.</span></div>
+          <div class="key"><kbd>SELECT</kbd><span><b>Decora:</b> mueve objetos entre piso, mesa y repisas.</span></div>
+          <div class="key"><kbd>START</kbd><span><b>Menú</b> y el próximo hábito. Tecla Enter.</span></div>
+          <div class="key"><kbd>HUD</kbd><span>Toca <b>XP, bits o racha</b> arriba y el juego te explica cuánto llevas y cuánto falta.</span></div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- PRICING -->
-<section id="pricing" style="position:relative; z-index:2; overflow:visible;">
-  <div class="center">
-    <div class="section-label">Investment</div>
-    <h2 class="section-title">Choose your virtual team.</h2>
-    <p class="section-sub">Every plan includes a dedicated AI employee. Scale your channels as you grow.</p>
-  </div>
-  <div class="pricing-grid">
-
-    <!-- STARTER -->
-    <div class="pricing-tier tier-starter">
-      <span class="tier-badge badge-starter">Starter</span>
-      <div class="tier-name">Voice Agent</div>
-      <div class="tier-tagline">Perfect for businesses that want to capture every call and never miss a lead.</div>
-      <div class="tier-price">
-        <div class="tier-monthly">$599 <span>/ mo</span></div>
-      </div>
-      <div class="tier-setup">+ $1,500 one-time setup</div>
-      <div class="tier-channels">
-        <span class="channel-tag ch-starter">📞 Phone Calls</span>
-        <span class="channel-tag ch-starter">🌐 Web Chat</span>
-      </div>
-      <div class="tier-divider"></div>
-      <ul class="tier-features">
-        <li><span class="check check-purple">✓</span> Custom AI voice & personality</li>
-        <li><span class="check check-purple">✓</span> 24/7 call answering</li>
-        <li><span class="check check-purple">✓</span> Appointment booking</li>
-        <li><span class="check check-purple">✓</span> Google Calendar sync</li>
-        <li><span class="check check-purple">✓</span> Trilingual (EN / ES / FR)</li>
-        <li><span class="check check-purple">✓</span> Monthly performance report</li>
-        <li><span class="check check-purple">✓</span> Live in 7 business days</li>
-      </ul>
-      <a href="#" class="btn-tier btn-starter" onclick="openModal(); return false;">Get Started →</a>
+<section id="mundos" style="padding-top:20px">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="eyebrow">LOS MUNDOS</div>
+      <h2 class="h2">De tu barrio a una estación orbital.</h2>
+      <p class="lead">El fondo que ves mientras bajas es tu torre. Cada mundo trae un ascensor nuevo, otra vista por la ventana y objetos que no hay abajo.</p>
     </div>
-
-    <!-- PRO -->
-    <div class="pricing-tier tier-pro">
-      <span class="tier-badge badge-pro">⚡ Most Popular</span>
-      <div class="tier-name">Voice + Messaging</div>
-      <div class="tier-tagline">Capture leads from calls AND WhatsApp. Your agent never sleeps on any channel.</div>
-      <div class="tier-price">
-        <div class="tier-monthly">$999 <span>/ mo</span></div>
-      </div>
-      <div class="tier-setup">+ $2,000 one-time setup</div>
-      <div class="tier-channels">
-        <span class="channel-tag ch-pro">📞 Phone Calls</span>
-        <span class="channel-tag ch-pro">💬 WhatsApp</span>
-        <span class="channel-tag ch-pro">🌐 Web Chat</span>
-      </div>
-      <div class="tier-divider"></div>
-      <ul class="tier-features">
-        <li><span class="check check-cyan">✓</span> Everything in Starter</li>
-        <li><span class="check check-cyan">✓</span> WhatsApp Business integration</li>
-        <li><span class="check check-cyan">✓</span> Automated lead follow-up via WhatsApp</li>
-        <li><span class="check check-cyan">✓</span> CRM integration (HubSpot / Notion)</li>
-        <li><span class="check check-cyan">✓</span> Lead qualification & scoring</li>
-        <li><span class="check check-cyan">✓</span> Dedicated account manager</li>
-        <li><span class="check check-cyan">✓</span> Priority support</li>
-      </ul>
-      <a href="#" class="btn-tier btn-pro" onclick="openModal(); return false;">Hire Your Agent →</a>
+    <div class="worlds" id="worldsRow">
+      <div class="wcard w1 reveal"><div class="bld"><i style="height:90px"></i><i style="height:60px"></i><i style="height:120px"></i></div><div class="fl">PISOS 1–10 · ASCENSOR DE MADERA</div><h3>Edificio Barrio</h3><p>Tu primer cuarto. Aprendes el ritmo del reloj y la racha.</p></div>
+      <div class="wcard w2 reveal"><div class="bld"><i style="height:140px"></i><i style="height:100px"></i><i style="height:170px"></i></div><div class="fl">PISOS 11–25 · ACERO</div><h3>Torre Centro</h3><p>Llega la ciudad por la ventana, la tienda crece y aparecen las ligas.</p></div>
+      <div class="wcard w3 reveal"><div class="bld"><i style="height:200px"></i><i style="height:150px"></i><i style="height:230px"></i></div><div class="fl">PISOS 26–50 · CRISTAL</div><h3>Rascacielos IO</h3><p>Objetos raros y legendarios. Tu mascota ya es grande.</p></div>
+      <div class="wcard w4 reveal"><div class="bld"><i style="height:110px"></i><i style="height:80px"></i><i style="height:130px"></i></div><div class="fl">PISOS 51–75 · ORO</div><h3>Ciudad en las nubes</h3><p>Por encima de todo. Pocos llegan hasta aquí.</p></div>
+      <div class="wcard w5 reveal"><div class="bld"><i style="height:60px"></i><i style="height:140px"></i><i style="height:60px"></i></div><div class="fl">PISOS 76–100 · NEÓN</div><h3>Estación orbital</h3><p>El mundo final… por ahora.</p></div>
+      <div class="wcard w6 reveal"><div class="fl">PISO 101+</div><h3>Sectores secretos</h3><p>Sector Nova, Anillo Ámbar, Nébula Índigo y más. Nadie los ha visto todavía.</p></div>
     </div>
-
-    <!-- ELITE -->
-    <div class="pricing-tier tier-elite">
-      <span class="tier-badge badge-elite">Elite</span>
-      <div class="tier-name">Omnichannel Staff</div>
-      <div class="tier-tagline">Full presence across every channel. Your brand never goes offline — anywhere.</div>
-      <div class="tier-price">
-        <div class="tier-monthly">$1,499 <span>/ mo</span></div>
-      </div>
-      <div class="tier-setup">+ $2,500 one-time setup</div>
-      <div class="tier-channels">
-        <span class="channel-tag ch-elite">📞 Phone</span>
-        <span class="channel-tag ch-elite">💬 WhatsApp</span>
-        <span class="channel-tag ch-elite">📸 Instagram DMs</span>
-        <span class="channel-tag ch-elite">🌐 Web Chat</span>
-      </div>
-      <div class="tier-divider"></div>
-      <ul class="tier-features">
-        <li><span class="check check-pink">✓</span> Everything in Pro</li>
-        <li><span class="check check-pink">✓</span> Instagram DM automation</li>
-        <li><span class="check check-pink">✓</span> Comment-to-DM funnels</li>
-        <li><span class="check check-pink">✓</span> Multi-channel lead unification</li>
-        <li><span class="check check-pink">✓</span> Advanced analytics dashboard</li>
-        <li><span class="check check-pink">✓</span> Custom AI persona per channel</li>
-        <li><span class="check check-pink">✓</span> White-glove onboarding</li>
-      </ul>
-      <a href="#" class="btn-tier btn-elite" onclick="openModal(); return false;">Go Elite →</a>
-    </div>
-
-  </div>
-
-  <!-- PRICING NOTE -->
-  <p style="text-align:center; margin-top: 32px; font-size: 0.85rem; color: #7070A0; font-weight: 500;">
-    No long-term contracts · Cancel anytime · All plans include trilingual support (EN / ES / FR)
-  </p>
-</section>
-
-<!-- FAQ -->
-<section id="faq" style="background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
-  <div class="center">
-    <div class="section-label">FAQ</div>
-    <h2 class="section-title">Frequently asked questions.</h2>
-    <p class="section-sub">Everything you need to know before hiring your first virtual employee.</p>
-  </div>
-  <div class="faq-wrap">
-
-    <div class="faq-item">
-      <button class="faq-question" onclick="toggleFaq(this)">
-        <span class="faq-q-text">Does the AI sound like a robot or a real person?</span>
-        <span class="faq-icon">+</span>
-      </button>
-      <div class="faq-answer"><p>Our agents use <strong>next-generation voices</strong> — natural, warm, and with human-like pauses. Most clients <span class="ans-green">don't realize they're talking to an AI</span> until you tell them.</p></div>
-    </div>
-
-    <div class="faq-item">
-      <button class="faq-question" onclick="toggleFaq(this)">
-        <span class="faq-q-text">How long does it take to get my agent up and running?</span>
-        <span class="faq-icon">+</span>
-      </button>
-      <div class="faq-answer"><p>Your virtual employee will be <strong>live within 7 business days</strong>. We handle everything: voice, personality, integrations, and testing. <span class="ans-green">You just approve the final result.</span></p></div>
-    </div>
-
-    <div class="faq-item">
-      <button class="faq-question" onclick="toggleFaq(this)">
-        <span class="faq-q-text">What happens if the AI doesn't know how to answer something?</span>
-        <span class="faq-icon">+</span>
-      </button>
-      <div class="faq-answer"><p>The agent is trained to handle <strong>95% of common questions</strong> for your business. If it encounters something outside its scope, it <span class="ans-green">escalates the call to a human</span> or takes a message professionally.</p></div>
-    </div>
-
-    <div class="faq-item">
-      <button class="faq-question" onclick="toggleFaq(this)">
-        <span class="faq-q-text">Does it work with my current booking system or CRM?</span>
-        <span class="faq-icon">+</span>
-      </button>
-      <div class="faq-answer"><p>Yes. We integrate with <strong>Google Calendar, Calendly, HubSpot, Notion</strong> and more. If you use a different system, we evaluate it during onboarding. <span class="ans-green">Most integrations are included</span> in the setup fee.</p></div>
-    </div>
-
-    <div class="faq-item">
-      <button class="faq-question" onclick="toggleFaq(this)">
-        <span class="faq-q-text">Is there a long-term contract?</span>
-        <span class="faq-icon">+</span>
-      </button>
-      <div class="faq-answer"><p><span class="ans-green">No long-term contracts.</span> The monthly membership can be cancelled at any time. We believe in results, not locking you in with fine print. <strong>If you don't see ROI, there's no reason to stay.</strong></p></div>
-    </div>
-
-    <div class="faq-item">
-      <button class="faq-question" onclick="toggleFaq(this)">
-        <span class="faq-q-text">What languages can the agent handle?</span>
-        <span class="faq-icon">+</span>
-      </button>
-      <div class="faq-answer"><p>Your agent can serve clients in <strong>English, Spanish, and French</strong> — and automatically detects the caller's language. <span class="ans-green">No extra setup, no additional cost.</span></p></div>
-    </div>
-
-    <div class="faq-item">
-      <button class="faq-question" onclick="toggleFaq(this)">
-        <span class="faq-q-text">What types of businesses can use AIStaff?</span>
-        <span class="faq-icon">+</span>
-      </button>
-      <div class="faq-answer"><p>We work with <strong>dental clinics, real estate agencies, spas, medical offices, law firms</strong> and any business that receives calls or leads. If clients are calling you, <span class="ans-pink">you're leaving money on the table without a virtual agent.</span></p></div>
-    </div>
-
   </div>
 </section>
 
-<!-- CTA FINAL -->
-<section class="cta-section">
-  <h2>Your best employee<br/>is waiting to be hired.</h2>
-  <p>Stop losing clients to unanswered calls. Start with HumanaiStaff today.</p>
-  <a href="#" class="btn-primary" onclick="openModal(); return false;">📞 Hire Your Virtual Staff Now</a>
+<section id="diferente">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="eyebrow">¿POR QUÉ ES DIFERENTE?</div>
+      <h2 class="h2">No es otra lista de pendientes.</h2>
+      <p class="lead">Las apps de hábitos te piden marcar casillas. Los videojuegos te piden horas de tu vida. IO usa lo mejor de los juegos para que esas horas vuelvan a ti.</p>
+    </div>
+    <div class="cmp-wrap reveal">
+      <table class="cmp">
+        <thead><tr><th></th><th>App de hábitos</th><th>Videojuego normal</th><th class="io">IO</th></tr></thead>
+        <tbody>
+          <tr><td>Cómo ganas puntos</td><td>Marcas una casilla</td><td>Jugando más horas</td><td class="io">Haciendo el hábito con el reloj</td></tr>
+          <tr><td>Lo que ves mientras tanto</td><td>Una lista</td><td>Una pantalla que te atrapa</td><td class="io">Tu personaje haciendo lo mismo que tú</td></tr>
+          <tr><td>Lo que te hace volver</td><td>Notificaciones</td><td>Recompensas infinitas</td><td class="io">Racha, misiones, tu cuarto y tu torre</td></tr>
+          <tr><td>Se compra con dinero</td><td>Plan premium</td><td>Monedas y cofres</td><td class="io">Nada. Los bits solo se ganan haciendo</td></tr>
+          <tr><td>Con otras personas</td><td>Casi nunca</td><td>Competir por competir</td><td class="io">Ranking real, likes y salas para enfocarse juntos</td></tr>
+          <tr><td>Lo que te llevas</td><td>Un porcentaje</td><td>Horas jugadas</td><td class="io">Horas de lectura, oración, gym, estudio</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </section>
 
-<!-- FOOTER -->
+<section id="metas" style="padding-top:20px">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="eyebrow">PARA QUÉ SIRVE · NUESTRAS METAS</div>
+      <h2 class="h2">Que tu mejor versión sea divertida.</h2>
+    </div>
+    <div class="goals">
+      <div class="goal reveal"><div class="n">01</div><h3 class="h3">Constancia, no perfección</h3><p>Hábitos pequeños que se sostienen: una racha de 7 días primero, luego 30. Con escudos para cuando la vida pasa.</p></div>
+      <div class="goal reveal"><div class="n">02</div><h3 class="h3">Tiempo que vuelve a ti</h3><p>Cada minuto dentro de IO es un minuto haciendo algo real. La meta es que cierres la app y hayas leído, orado o entrenado.</p></div>
+      <div class="goal reveal"><div class="n">03</div><h3 class="h3">Una comunidad que suma</h3><p>Un ranking con personas reales, sin bots ni datos inventados, donde subir significa haber hecho más.</p></div>
+    </div>
+    <div class="road reveal">
+      <div class="rd now"><span class="when">AHORA</span><b>Temporada 1 en la web</b>Juega gratis desde el navegador e instálalo como app.</div>
+      <div class="rd"><span class="when">SIGUIENTE</span><b>Google Play</b>La misma partida, desde la tienda de Android.</div>
+      <div class="rd"><span class="when">DESPUÉS</span><b>App Store</b>Llegamos al iPhone con widgets y recordatorios.</div>
+      <div class="rd"><span class="when">EN CAMINO</span><b>Clanes y eventos</b>Retos por equipos, temporadas con premios y mundos nuevos.</div>
+    </div>
+  </div>
+</section>
+
+<section id="ranking">
+  <div class="wrap">
+    <div class="panel rank reveal">
+      <div>
+        <div class="eyebrow">RANKING EN VIVO</div>
+        <h2 class="h2">Solo jugadores reales.</h2>
+        <p class="lead">Aquí aparece el nombre que eliges al crear tu cuenta. Sin bots, sin números inventados: si estás arriba es porque lo hiciste.</p>
+        <div class="cta"><a class="btn btn-start" href="app/">▶ ENTRAR AL RANKING</a></div>
+      </div>
+      <div class="board">
+        <div class="board-h"><span>TOP 10 · XP TOTAL</span><span class="live" id="rkLive"><i></i>EN VIVO</span></div>
+        <div id="rkRows"><div class="empty"><b>Cargando…</b></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="entrar">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="eyebrow">CÓMO ENTRAR A JUGAR</div>
+      <h2 class="h2">Listo en un minuto. Sin tienda.</h2>
+      <p class="lead">IO se juega desde el navegador y se instala como una app normal. Tu cuenta guarda la partida en la nube: si cambias de celular, sigues donde ibas.</p>
+    </div>
+    <div class="enter">
+      <div class="en reveal"><div class="n">PASO 1</div><h3 class="h3">Abre IO</h3><p>Toca <b>PRESS START</b> o entra a <b class="host">esta página</b><b>/app</b> desde tu celular.</p><div class="cta" style="margin-top:14px"><a class="btn btn-start btn-sm" href="app/">▶ ABRIR IO</a></div></div>
+      <div class="en reveal"><div class="n">PASO 2</div><h3 class="h3">Crea tu cuenta</h3><p>Durante la bienvenida eliges tu personaje, tus hábitos y entras con:</p><div class="acc"><span>🟢 Google</span><span>✉️ Correo con código</span></div></div>
+      <div class="en reveal"><div class="n">PASO 3</div><h3 class="h3">Instálalo</h3><p>Agrégalo a tu pantalla de inicio (abajo te decimos cómo). Se abre como app y funciona sin internet.</p></div>
+    </div>
+    <div class="install">
+      <div class="panel inst reveal">
+        <h3 class="h3">Instalar en tu celular o computador</h3>
+        <div class="tabs" role="tablist" aria-label="Tu dispositivo">
+          <button role="tab" aria-selected="true" data-os="android">🤖 Android</button>
+          <button role="tab" aria-selected="false" data-os="iphone">🍎 iPhone</button>
+          <button role="tab" aria-selected="false" data-os="pc">💻 Computador</button>
+        </div>
+        <ol class="howto" data-os="android"><li>Abre <b><span class="host">esta página</span>/app</b> en <b>Chrome</b>.</li><li>Toca el menú <b>⋮</b> arriba a la derecha.</li><li>Elige <b>Instalar app</b> o <b>Agregar a la pantalla de inicio</b>.</li><li>Ábrelo desde el ícono <b>IO</b>. Mantén presionado el ícono para ver atajos como “▶ Próximo hábito”.</li></ol>
+        <ol class="howto" data-os="iphone" hidden><li>Abre <b><span class="host">esta página</span>/app</b> en <b>Safari</b>.</li><li>Toca <b>Compartir</b> (el cuadrado con la flecha hacia arriba).</li><li>Baja y elige <b>Agregar a inicio</b>.</li><li>Ábrelo desde el ícono <b>IO</b>. Así funcionan los recordatorios (iOS 16.4 o más reciente).</li></ol>
+        <ol class="howto" data-os="pc" hidden><li>Abre <b><span class="host">esta página</span>/app</b> en <b>Chrome</b> o <b>Edge</b>.</li><li>Haz clic en el ícono de <b>instalar</b> al final de la barra de direcciones.</li><li>Con el teclado: flechas para caminar, <b>Z</b> es A, <b>X</b> es B, <b>Enter</b> es START.</li></ol>
+      </div>
+      <div class="panel free reveal">
+        <div class="big">$0</div>
+        <p style="margin-top:8px;font-size:18px;font-weight:700">Gratis hoy, gratis siempre.</p>
+        <ul>
+          <li>Sin anuncios.</li>
+          <li>Nada se compra con dinero: XP, bits y objetos solo se ganan haciendo.</li>
+          <li>El ranking muestra solo tu nombre, nivel, XP, racha y personaje. Tus hábitos son privados.</li>
+          <li>Borras tu cuenta y tus datos cuando quieras, desde Ajustes.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="lista" style="padding-top:20px">
+  <div class="wrap">
+    <div class="panel wait reveal">
+      <div>
+        <div class="eyebrow">TIENDAS · APOYO</div>
+        <h2 class="h2">Avísame cuando llegue a las tiendas.</h2>
+        <p class="lead">Ya puedes jugar gratis en la web. Déjanos tu correo y te avisamos cuando IO llegue a Google Play y App Store, y cuando abra la campaña para apoyar el proyecto.</p>
+        <div class="tiers">
+          <div class="tier"><b>$5</b>Tu nombre en el Muro de Fundadores del lobby.</div>
+          <div class="tier"><b>$15</b>Insignia “Fundador” junto a tu nombre en el ranking.</div>
+          <div class="tier"><b>$40</b>Diseñas con nosotros el siguiente mundo.</div>
+        </div>
+        <p class="small" style="margin-top:12px">Regla de oro: apoyar nunca da XP, bits ni ventajas. Solo reconocimiento. La campaña aún no abre.</p>
+      </div>
+      <div>
+        <form class="form" name="lista-espera" id="waitForm" method="POST" data-netlify="true" netlify-honeypot="bot-field" novalidate>
+          <input type="hidden" name="form-name" value="lista-espera">
+          <p class="hp"><label>No llenes esto: <input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
+          <div class="two">
+            <div class="field"><label for="f-nombre">Tu nombre</label><input id="f-nombre" name="nombre" autocomplete="given-name" maxlength="40" placeholder="Tu nombre"></div>
+            <div class="field"><label for="f-email">Correo</label><input id="f-email" name="email" type="email" autocomplete="email" required placeholder="tu@correo.com"></div>
+          </div>
+          <div class="two">
+            <div class="field"><label for="f-disp">Tu celular</label><select id="f-disp" name="dispositivo"><option>Android</option><option>iPhone</option><option>Los dos</option></select></div>
+            <div class="field"><label for="f-apoyo">¿Quieres apoyar?</label><select id="f-apoyo" name="apoyo"><option>Solo avísame</option><option>Apoyo $5</option><option>Fundador $15</option><option>Constructor $40</option></select></div>
+          </div>
+          <input type="hidden" name="ref" id="f-ref">
+          <button class="btn btn-start" type="submit" id="f-go">AVÍSAME</button>
+          <p class="small">Solo usamos tu correo para estos avisos. Puedes pedir que lo borremos cuando quieras.</p>
+          <p class="err" id="f-err" hidden></p>
+        </form>
+        <div class="done" id="waitDone" hidden>
+          <div class="crown">👑</div>
+          <h3 class="h3">¡Listo, te avisamos!</h3>
+          <p style="color:var(--muted)">Mientras tanto, empieza tu racha. Y si invitas a tus amigos, compiten contigo en el ranking.</p>
+          <div class="share"><a id="shWa" target="_blank" rel="noopener">WhatsApp</a><a id="shX" target="_blank" rel="noopener">X</a><button type="button" id="shCopy">Copiar enlace</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="preguntas">
+  <div class="wrap">
+    <div class="eyebrow">PREGUNTAS</div>
+    <h2 class="h2">Lo que más nos preguntan.</h2>
+    <div class="faq">
+      <details><summary>¿De verdad es gratis?</summary><p>Sí. IO es gratis y sin anuncios. Si algún día existe IO+, será opcional y para extras como temas o estadísticas. Nunca venderemos XP, bits ni objetos.</p></details>
+      <details><summary>¿Necesito crear una cuenta?</summary><p>Sí, con Google o con tu correo (te llega un código de 6 números, sin contraseñas). Así tu partida queda guardada en la nube, puedes cambiar de celular y apareces en el ranking con el nombre que elijas.</p></details>
+      <details><summary>¿Por qué el reloj es obligatorio?</summary><p>Porque es lo que hace que los puntos valgan. Si lees 20 minutos, el reloj cuenta 20 minutos. Puedes pausar y seguir después, pero la corona solo aparece cuando el reloj llega al final. El tiempo sigue contando aunque bloquees la pantalla.</p></details>
+      <details><summary>¿Quién ve mis datos?</summary><p>Tu partida solo la ves tú. En el ranking aparecen tu nombre público, tu nivel, tu XP, tu racha y tu personaje. Los nombres de tus hábitos nunca se publican. Puedes borrar tu cuenta y todos tus datos desde ⚙️ Ajustes.</p></details>
+      <details><summary>¿Funciona sin internet?</summary><p>Sí. Una vez instalado, el reloj, el juego, la tienda y la radio funcionan sin conexión. Cuando vuelve el internet, tu partida se sincroniza sola. El ranking y las salas con amigos necesitan conexión.</p></details>
+      <details><summary>¿Cuándo llega a Google Play y App Store?</summary><p>Primero Google Play y después App Store. Deja tu correo arriba y te avisamos el primer día. Tu cuenta y tu partida serán las mismas.</p></details>
+      <details><summary>¿Qué hábitos puedo poner?</summary><p>Los que quieras. Hay 23 actividades con animación propia (leer, orar, gym, correr, sacar al perro, estudiar, escribir, pintar, respirar, tomar agua y más) y también hábitos de conteo, como vasos de agua.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="final">
+  <div class="wrap reveal">
+    <div class="eyebrow">PLAYER 1, ¿LISTO?</div>
+    <h2 class="h2">Tu primer piso te está esperando.</h2>
+    <p class="lead">Un minuto para crear tu personaje. Veinte para tu primer hábito. Toda una torre para subir.</p>
+    <div class="cta"><a class="btn btn-start" href="app/">▶ PRESS START</a></div>
+  </div>
+</section>
+
+</main>
+
+<div class="sticky-play" id="stickyPlay"><a class="btn btn-start" href="app/">▶ PRESS START · GRATIS</a></div>
+
 <footer>
-  <div class="logo"><span class="ai-part">AI</span><span class="staff-part">Staff</span></div>
-  <p class="footer-copy" style="color: #6060A0; font-size: 0.8rem; margin-top: 8px;">© 2025 HumanaiStaff. All rights reserved.</p>
-  <div class="footer-links">
-    <a href="#">Privacy</a>
-    <a href="#">Terms</a>
-    <a href="mailto:hello@meetaistaff.com">Contact</a>
-  </div>
+  <div class="wrap"><span>IO · tu vida es el juego · gratis · nada se compra con dinero</span><span class="bin">01001001 01001111</span></div>
 </footer>
 
-<!-- MODAL -->
-<div class="modal-overlay" id="modal">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal()">×</button>
-    <div style="font-size: 2.5rem; margin-bottom: 16px;">📞</div>
-    <h3>Call Alex Now</h3>
-    <p>Our Senior Virtual Recruiter is available right now. Call the number below and experience HumanaiStaff firsthand — in English, Spanish, or French.</p>
-    <div class="modal-number">+1 (305) 614-9424</div>
-    <a href="tel:+13056149424" class="btn-primary" style="width: 100%; justify-content: center;">Tap to Call</a>
-    <p style="margin-top: 16px; font-size: 0.8rem; color: #9090B0;">Available 24/7 · No commitment required</p>
-  </div>
-</div>
-
+<!-- Idiomas: español o inglés (automático por el idioma del celular, o con los botones ES / EN) -->
+<script type="module">
+import * as I from './app/i18n.js';
+import EN from './i18n-landing-en.js';
+if (I.isEn) I.addDict(EN);
+I.start(); window.IOt = I.t;
+document.documentElement.classList.remove('i18n-wait');
+document.querySelectorAll('.lang button').forEach(b => { b.classList.toggle('on', b.dataset.lang === I.lang); b.onclick = () => b.dataset.lang !== I.lang && I.setLang(b.dataset.lang); });
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
 <script>
-  // CURSOR
-  const cursor = document.getElementById('cursor');
-  const glow = document.getElementById('cursorGlow');
-  document.addEventListener('mousemove', e => {
-    cursor.style.left = e.clientX + 'px';
-    cursor.style.top = e.clientY + 'px';
-    glow.style.left = e.clientX + 'px';
-    glow.style.top = e.clientY + 'px';
-  });
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const store = { get(k) { try { return sessionStorage.getItem(k); } catch { return null; } }, set(k, v) { try { sessionStorage.setItem(k, v); } catch {} } };
 
-  // PARTICLES
-  const container = document.getElementById('particles');
-  for (let i = 0; i < 50; i++) {
-    const p = document.createElement('div');
-    p.className = 'particle';
-    p.style.left = Math.random() * 100 + 'vw';
-    p.style.animationDuration = (8 + Math.random() * 14) + 's';
-    p.style.animationDelay = (Math.random() * 12) + 's';
-    p.style.width = p.style.height = (1 + Math.random() * 3) + 'px';
-    const colors = ['#6C63FF', '#A78BFA', '#00F5FF', '#FF2D78', '#00FFB2', '#FFD600'];
-    p.style.background = colors[Math.floor(Math.random() * colors.length)];
-    p.style.boxShadow = `0 0 6px ${p.style.background}`;
-    container.appendChild(p);
+  // La versión anterior del juego vivía en /io/; si quedó su service worker, lo quitamos para que esta página cargue fresca.
+  if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => {
+    try { const s = new URL(r.scope); if (s.pathname === location.pathname.replace(/[^/]*$/, '')) r.unregister(); } catch {}
+  })).catch(() => {});
+
+  // Dirección real para las instrucciones de instalación.
+  const base = (location.host ? location.host + location.pathname.replace(/[^/]*$/, '').replace(/\/$/, '') : '');
+  if (base && /^https?:/.test(location.protocol)) document.querySelectorAll('.host').forEach(e => e.textContent = base);
+
+  /* ---------- intro de consola ---------- */
+  const boot = document.getElementById('boot');
+  let audio;
+  function chime() {
+    try {
+      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      const t = audio.currentTime;
+      [[988, 0], [1319, .09]].forEach(([f, d]) => {
+        const o = audio.createOscillator(), g = audio.createGain(); o.type = 'square'; o.frequency.value = f;
+        g.gain.setValueAtTime(0, t + d); g.gain.linearRampToValueAtTime(.08, t + d + .01); g.gain.exponentialRampToValueAtTime(.001, t + d + .5);
+        o.connect(g).connect(audio.destination); o.start(t + d); o.stop(t + d + .55);
+      });
+    } catch {}
+  }
+  let booted = false;
+  function endBoot(withSound) {
+    if (booted) return; booted = true; store.set('io.boot', '1');
+    if (withSound) chime();
+    boot.classList.add('go');
+    setTimeout(() => boot.classList.add('out'), reduce ? 50 : 650);
+    setTimeout(() => { boot.hidden = true; }, 1400);
+    window.dispatchEvent(new Event('io:booted'));
+  }
+  if (!store.get('io.boot') && !reduce) {
+    boot.hidden = false;
+    requestAnimationFrame(() => requestAnimationFrame(() => boot.classList.add('on')));
+    boot.addEventListener('click', () => endBoot(true));
+    document.getElementById('bootSkip').addEventListener('click', e => { e.stopPropagation(); endBoot(false); });
+    addEventListener('keydown', e => { if (!booted && (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape')) { e.preventDefault(); endBoot(e.key !== 'Escape'); } });
+    setTimeout(() => endBoot(false), 5200);
+  } else { booted = true; }
+
+  /* ---------- encabezado, HUD, botón fijo ---------- */
+  const hdr = document.getElementById('hdr'), sticky = document.getElementById('stickyPlay');
+  const hudFl = document.getElementById('hudFl'), hudBar = document.getElementById('hudBar'), hudWn = document.getElementById('hudWn');
+  const WORLDS = [[1, 'Edificio Barrio'], [11, 'Torre Centro'], [26, 'Rascacielos IO'], [51, 'Ciudad en las nubes'], [76, 'Estación orbital']];
+  window.IOscroll = 0;
+  function onScroll() {
+    const max = Math.max(1, document.documentElement.scrollHeight - innerHeight);
+    const p = Math.min(1, Math.max(0, scrollY / max)); window.IOscroll = p;
+    hdr.classList.toggle('solid', scrollY > 40); document.body.classList.toggle('deep', scrollY > innerHeight * .6);
+    sticky.classList.toggle('show', scrollY > innerHeight * .8 && p < .97);
+    const fl = 1 + Math.round(p * 99); hudFl.textContent = 'P' + fl; hudBar.style.height = (p * 100) + '%';
+    hudWn.textContent = WORLDS.filter(w => fl >= w[0]).pop()[1];
+  }
+  addEventListener('scroll', onScroll, { passive: true }); onScroll();
+
+  /* ---------- aparecer al bajar ---------- */
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { rootMargin: '0px 0px -8% 0px' });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  /* ---------- celular con el juego de verdad (demo aislada) ---------- */
+  const sc = document.getElementById('phoneSc');
+  const canEmbed = /^https?:/.test(location.protocol) && !window.IO_NO_IFRAME;
+  if (canEmbed) {
+    const lo = new IntersectionObserver(es => { if (!es[0].isIntersecting) return; lo.disconnect();
+      const f = document.createElement('iframe'); f.src = 'app/?demo=1'; f.title = 'IO en modo demo'; f.loading = 'lazy';
+      f.setAttribute('allow', 'autoplay');
+      const fit = () => { const w = sc.clientWidth; f.style.transform = `scale(${w / 390})`; f.style.height = (sc.clientHeight * 390 / w) + 'px'; };
+      f.addEventListener('load', () => { fit(); document.getElementById('phoneImg').remove(); });
+      sc.appendChild(f); fit(); addEventListener('resize', fit);
+    }, { rootMargin: '200px' });
+    lo.observe(sc);
+  } else {
+    // sin servidor: galería de pantallas reales del juego
+    const shots = ['hero-home', 'hero-perro', 'hero-orar', 'hero-gym', 'hero-tienda'].map(n => (window.IO_IMG || 'img/') + n + '.webp');
+    const img = document.getElementById('phoneImg'); let i = 0;
+    document.getElementById('stageNote').textContent = 'Pantallas reales del juego.';
+    if (!reduce) setInterval(() => { i = (i + 1) % shots.length; img.style.opacity = 0; setTimeout(() => { img.src = shots[i]; img.style.opacity = 1; }, 250); }, 2600);
+    img.style.transition = 'opacity .25s';
   }
 
-  // COUNTER ANIMATION
-  function animateCounters() {
-    document.querySelectorAll('.stat-number').forEach(el => {
-      const target = parseInt(el.dataset.target);
-      const suffix = el.dataset.suffix || '%';
-      let current = 0;
-      const step = target / 60;
-      const timer = setInterval(() => {
-        current += step;
-        if (current >= target) { current = target; clearInterval(timer); }
-        el.textContent = Math.floor(current) + suffix;
-      }, 20);
-    });
-  }
+  /* ---------- tráiler: solo corre cuando se ve ---------- */
+  const tv = document.getElementById('trailerV');
+  const vo = new IntersectionObserver(es => es.forEach(e => {
+    if (e.isIntersecting) { if (tv.preload === 'none') tv.preload = 'auto'; if (!reduce) tv.play().catch(() => {}); } else tv.pause();
+  }), { threshold: .35 });
+  vo.observe(tv);
+  if (reduce) tv.controls = true;
 
-  // CHART BARS
-  function animateBars() {
-    document.querySelectorAll('.battle-fill').forEach(bar => {
-      bar.style.width = bar.dataset.width + '%';
-    });
-  }
+  /* ---------- pestañas de instalación ---------- */
+  const tabs = document.querySelectorAll('.tabs button');
+  const pick = os => { tabs.forEach(b => b.setAttribute('aria-selected', b.dataset.os === os)); document.querySelectorAll('.howto').forEach(o => o.hidden = o.dataset.os !== os); };
+  tabs.forEach(b => b.addEventListener('click', () => pick(b.dataset.os)));
+  const ua = navigator.userAgent; pick(/iPhone|iPad|iPod/.test(ua) ? 'iphone' : /Android/.test(ua) ? 'android' : 'pc');
 
-  // INTERSECTION OBSERVERS
-  const statsBar = document.querySelector('.stats-bar');
-  new IntersectionObserver(entries => {
-    if (entries[0].isIntersecting) { animateCounters(); }
-  }, { threshold: 0.3 }).observe(statsBar);
-
-  const battleWrap = document.querySelector('.battle-wrap');
-  if (battleWrap) {
-    new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting) { animateBars(); }
-    }, { threshold: 0.3 }).observe(battleWrap);
-  }
-
-  // SCROLL REVEAL
-  const revealEls = document.querySelectorAll('.staff-card, .problem-card, .testimonial-card, .metric-card');
-  const revealObserver = new IntersectionObserver(entries => {
-    entries.forEach((entry, i) => {
-      if (entry.isIntersecting) {
-        setTimeout(() => {
-          entry.target.style.opacity = '1';
-          entry.target.style.transform = 'translateY(0)';
-        }, i * 80);
-        revealObserver.unobserve(entry.target);
+  /* ---------- lista de espera (Netlify Forms) ---------- */
+  const form = document.getElementById('waitForm'), err = document.getElementById('f-err');
+  try { const r = new URLSearchParams(location.search).get('ref'); if (r) document.getElementById('f-ref').value = r.slice(0, 40); } catch {}
+  form.addEventListener('submit', async e => {
+    e.preventDefault(); err.hidden = true;
+    const email = form.email.value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { err.textContent = 'Revisa tu correo: parece que le falta algo.'; err.hidden = false; form.email.focus(); return; }
+    const btn = document.getElementById('f-go'); btn.disabled = true; btn.textContent = 'ENVIANDO…';
+    try {
+      const cfg = await import('./app/config.js').then(m => m.RANKING).catch(() => null);
+      if (cfg?.url && cfg?.key) {
+        // Lista de espera en Supabase (tabla io_waitlist: se puede anotar, nadie la puede leer desde la web).
+        const f = new FormData(form); const row = { email: email.toLowerCase().slice(0, 120) };
+        for (const k of ['nombre', 'dispositivo', 'apoyo', 'ref']) { const v = String(f.get(k) || '').trim(); if (v) row[k] = v.slice(0, 80); }
+        const r = await fetch(`${cfg.url}/rest/v1/io_waitlist`, { method: 'POST', headers: { apikey: cfg.key, Authorization: `Bearer ${cfg.key}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify(row) });
+        if (!r.ok && r.status !== 409) throw new Error(r.status); // 409 = ese correo ya estaba anotado
+      } else {
+        // Sin Supabase: Netlify Forms.
+        const r = await fetch(location.pathname, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(new FormData(form)).toString() });
+        if (!r.ok) throw new Error(r.status);
       }
-    });
-  }, { threshold: 0.1 });
-  revealEls.forEach(el => {
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(28px)';
-    el.style.transition = 'opacity 0.55s ease, transform 0.55s ease';
-    revealObserver.observe(el);
-  });
-
-  // FAQ TOGGLE
-  function toggleFaq(btn) {
-    const item = btn.closest('.faq-item');
-    const isOpen = item.classList.contains('open');
-    document.querySelectorAll('.faq-item.open').forEach(el => el.classList.remove('open'));
-    if (!isOpen) item.classList.add('open');
-  }
-
-  // MODAL
-  function openModal() { document.getElementById('modal').classList.add('active'); }
-  function closeModal() { document.getElementById('modal').classList.remove('active'); }
-  document.getElementById('modal').addEventListener('click', function(e) {
-    if (e.target === this) closeModal();
-  });
-
-  // ===== ANIMATED CHAT =====
-  const chatMessages = [
-    { from: 'alex', text: "Hi! I'm Alex 👋 How can I help you today? I can book appointments, answer questions, or connect you with the team." },
-    { from: 'user', text: "Do you have availability this Friday at 3pm?" },
-    { from: 'alex', text: "Let me check that for you! ✅ Friday at 3:00 PM is available. May I have your name and phone number to confirm?" },
-    { from: 'user', text: "Sure! It's Maria, +1 555 234 7890" },
-    { from: 'alex', text: "Perfect, Maria! 🎉 You're confirmed for Friday at 3:00 PM. You'll get a reminder 1 hour before. Anything else?" },
-    { from: 'user', text: "That's it, thank you!" },
-    { from: 'alex', text: "My pleasure! See you Friday 😊 Have a great day!" }
-  ];
-  let chatIdx = 0;
-  const chatContainer = document.getElementById('chatMessages');
-  const alexStatus = document.getElementById('alexStatus');
-
-  function addChatBubble(msg) {
-    const div = document.createElement('div');
-    div.className = 'dcc-bubble' + (msg.from === 'user' ? ' user' : '');
-    div.style.opacity = '0';
-    div.style.transform = 'translateY(8px)';
-    div.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
-    div.innerHTML = msg.text;
-    chatContainer.appendChild(div);
-    requestAnimationFrame(() => { div.style.opacity = '1'; div.style.transform = 'translateY(0)'; });
-    chatContainer.scrollTop = chatContainer.scrollHeight;
-  }
-
-  function showTyping() {
-    const div = document.createElement('div');
-    div.className = 'dcc-bubble';
-    div.id = 'typingIndicator';
-    div.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
-    chatContainer.appendChild(div);
-    chatContainer.scrollTop = chatContainer.scrollHeight;
-  }
-  function removeTyping() {
-    const t = document.getElementById('typingIndicator');
-    if (t) t.remove();
-  }
-
-  function runChat() {
-    if (chatIdx >= chatMessages.length) {
-      setTimeout(() => {
-        chatContainer.innerHTML = '';
-        chatIdx = 0;
-        alexStatus.textContent = 'Virtual Receptionist · AIStaff';
-        setTimeout(runChat, 1500);
-      }, 3500);
-      return;
+      form.hidden = true; document.getElementById('waitDone').hidden = false;
+      const link = location.origin + location.pathname;
+      const msg = (window.IOt || String)(`Estoy jugando IO: un videojuego donde subes de nivel haciendo tus hábitos reales. Es gratis 👉 ${link}`);
+      document.getElementById('shWa').href = 'https://wa.me/?text=' + encodeURIComponent(msg);
+      document.getElementById('shX').href = 'https://x.com/intent/post?text=' + encodeURIComponent(msg);
+      document.getElementById('shCopy').onclick = () => navigator.clipboard?.writeText(link).then(() => document.getElementById('shCopy').textContent = '¡Copiado!');
+    } catch {
+      err.textContent = 'No pudimos guardar tu correo en este momento. Intenta de nuevo en un rato.'; err.hidden = false;
+      btn.disabled = false; btn.textContent = 'AVÍSAME';
     }
-    const msg = chatMessages[chatIdx];
-    if (msg.from === 'alex') {
-      alexStatus.textContent = 'Alex is typing...';
-      showTyping();
-      const delay = msg.text.length < 60 ? 900 : 1300;
-      setTimeout(() => {
-        removeTyping();
-        alexStatus.textContent = 'Virtual Receptionist · AIStaff';
-        addChatBubble(msg);
-        chatIdx++;
-        setTimeout(runChat, 1600);
-      }, delay);
-    } else {
-      setTimeout(() => {
-        addChatBubble(msg);
-        chatIdx++;
-        setTimeout(runChat, 1000);
-      }, 500);
-    }
-  }
-  setTimeout(runChat, 800);
+  });
+})();
+</script>
 
-  // HAMBURGER MENU
-  function toggleMenu() {
-    const menu = document.getElementById('navMenu');
-    const btn = document.getElementById('navHamburger');
-    menu.classList.toggle('open');
-    btn.classList.toggle('open');
+<!-- Ranking real: lee la misma base de datos del juego. Si no está configurada, no inventa nada. -->
+<script type="module">
+const rows = document.getElementById('rkRows'), live = document.getElementById('rkLive');
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmt = n => (+n || 0).toLocaleString('es');
+const emptyHTML = (t, s) => `<div class="empty"><div class="crown">👑</div><b>${t}</b>${s}</div>`;
+try {
+  const [{ RANKING }, A] = await Promise.all([import('./app/config.js'), import('./app/avatar.js')]);
+  if (!RANKING?.url || !RANKING?.key) throw new Error('off');
+  const h = { apikey: RANKING.key, Authorization: `Bearer ${RANKING.key}` };
+  const r = await fetch(`${RANKING.url}/rest/v1/io_ranking?select=name,level,xp,streak,look&order=xp.desc&limit=10`, { headers: { ...h, Prefer: 'count=exact' } });
+  if (!r.ok) throw new Error('http');
+  const list = await r.json(); const total = +(r.headers.get('content-range') || '').split('/')[1] || list.length;
+  if (total) { document.getElementById('heroPlayers').textContent = fmt(total); document.getElementById('heroPlayersL').textContent = total === 1 ? 'jugador ya empezó' : 'jugadores ya empezaron'; document.getElementById('heroPlayersBox').hidden = false; }
+  if (!list.length) { rows.innerHTML = emptyHTML('La cima está libre.', 'El primero en terminar un hábito se queda con el puesto #1.'); }
+  else rows.innerHTML = list.map((p, i) => {
+    let av = ''; try { av = A.avatarSVG(A.normLook(p.look?.a || p.look), 'av', '0 0 120 200'); } catch {}
+    return `<div class="row"><span class="pos">#${i + 1}</span><span class="av">${av}</span><span class="nm">${esc(String(p.name || 'Jugador').slice(0, 20))}<small>Nivel ${fmt(p.level)} · 🔥 ${fmt(p.streak)}</small></span><span class="xp">${fmt(p.xp)} XP</span></div>`;
+  }).join('') + (total > list.length ? `<div class="empty" style="padding:14px">y ${fmt(total - list.length)} jugadores más</div>` : '');
+} catch (e) {
+  live.innerHTML = 'PRONTO';
+  rows.innerHTML = emptyHTML('El ranking abre con el lanzamiento.', 'Cuando haya jugadores reales, aparecen aquí. Nada de bots ni números inventados.');
+}
+</script>
+
+<!-- Mundo 3D: la torre de IO -->
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const cv = document.getElementById('world');
+  function start() {
+    if (!window.THREE) return fallback();
+    const T = THREE; let r;
+    try { r = new T.WebGLRenderer({ canvas: cv, antialias: true, alpha: true, powerPreference: 'high-performance' }); } catch { return fallback(true); }
+    const mobile = innerWidth < 700;
+    r.setPixelRatio(Math.min(devicePixelRatio || 1, mobile ? 1.5 : 1.75));
+    const scene = new T.Scene(); scene.fog = new T.FogExp2(0x09090f, .024);
+    const cam = new T.PerspectiveCamera(mobile ? 62 : 50, 1, .1, 500);
+
+    scene.add(new T.AmbientLight(0x6a5acd, .55));
+    const key = new T.PointLight(0x22d3ee, 1.4, 90); key.position.set(14, 20, 14); scene.add(key);
+    const rim = new T.PointLight(0xf472b6, 1.1, 90); rim.position.set(-16, 40, -10); scene.add(rim);
+
+    // Torre: 5 mundos de 10 pisos cada uno, cada vez más angosta
+    const COLS = [0xfbbf24, 0x22d3ee, 0x7c5cff, 0xf472b6, 0x4ade80];
+    const FLOORS = 50, FH = 1.1;
+    const tower = new T.Group(); scene.add(tower);
+    const bodyMat = new T.MeshStandardMaterial({ color: 0x14132a, roughness: .7, metalness: .3 });
+    const winGeo = new T.PlaneGeometry(.42, .5);
+    const winMat = new T.MeshBasicMaterial({ color: 0xffffff });
+    const perFace = 5, nWin = FLOORS * 4 * perFace;
+    const wins = new T.InstancedMesh(winGeo, winMat, nWin);
+    const m4 = new T.Matrix4(), q = new T.Quaternion(), sc = new T.Vector3(1, 1, 1), pos = new T.Vector3(), col = new T.Color();
+    const winBase = []; let wi = 0;
+    for (let f = 0; f < FLOORS; f++) {
+      const w = Math.floor(f / 10), W = 4.4 - w * .45, y = f * FH;
+      const body = new T.Mesh(new T.BoxGeometry(W, FH * .86, W), bodyMat); body.position.y = y + FH * .43; tower.add(body);
+      const slab = new T.Mesh(new T.BoxGeometry(W + .25, .08, W + .25), new T.MeshBasicMaterial({ color: COLS[w] }));
+      slab.position.y = y + FH * .9; tower.add(slab);
+      if (f % 10 === 9) { // anillo de luz al cambiar de mundo
+        const ring = new T.Mesh(new T.TorusGeometry(W * .95, .05, 8, 64), new T.MeshBasicMaterial({ color: COLS[w] }));
+        ring.rotation.x = Math.PI / 2; ring.position.y = y + FH; tower.add(ring);
+      }
+      for (let s = 0; s < 4; s++) {
+        const ang = s * Math.PI / 2; q.setFromAxisAngle(new T.Vector3(0, 1, 0), ang);
+        for (let k = 0; k < perFace; k++) {
+          const off = (k - (perFace - 1) / 2) * (W / (perFace + .5));
+          pos.set(Math.sin(ang) * (W / 2 + .01) + Math.cos(ang) * off, y + FH * .45, Math.cos(ang) * (W / 2 + .01) - Math.sin(ang) * off);
+          m4.compose(pos, q, sc); wins.setMatrixAt(wi, m4);
+          const lit = Math.random() < .55; const c = lit ? COLS[w] : 0x1d1b38;
+          winBase.push({ w, lit }); col.set(c); if (lit) col.lerp(new T.Color(0xffffff), .35);
+          wins.setColorAt(wi, col); wi++;
+        }
+      }
+    }
+    tower.add(wins);
+    // antena + faro
+    const topY = FLOORS * FH;
+    const ant = new T.Mesh(new T.CylinderGeometry(.05, .08, 3, 8), new T.MeshBasicMaterial({ color: 0x9391bd })); ant.position.y = topY + 1.5; tower.add(ant);
+    const beacon = new T.Mesh(new T.SphereGeometry(.2, 16, 16), new T.MeshBasicMaterial({ color: 0xf87171 })); beacon.position.y = topY + 3.1; tower.add(beacon);
+    const halo = new T.Mesh(new T.TorusGeometry(3.4, .06, 8, 80), new T.MeshBasicMaterial({ color: 0x4ade80, transparent: true, opacity: .7 })); halo.position.y = topY + 1; tower.add(halo);
+    // ascensor que sube y baja por fuera
+    const elev = new T.Mesh(new T.BoxGeometry(.6, .8, .12), new T.MeshBasicMaterial({ color: 0xfbbf24 })); tower.add(elev);
+    const shaft = new T.Mesh(new T.BoxGeometry(.05, topY, .05), new T.MeshBasicMaterial({ color: 0x3a3860 })); shaft.position.set(0, topY / 2, 2.35); tower.add(shaft);
+
+    // piso de neón
+    const grid = new T.GridHelper(240, 96, 0x7c5cff, 0x2a2a52); grid.material.transparent = true; grid.material.opacity = .55; scene.add(grid);
+    const glow = new T.Mesh(new T.CircleGeometry(9, 48), new T.MeshBasicMaterial({ color: 0x7c5cff, transparent: true, opacity: .16 })); glow.rotation.x = -Math.PI / 2; glow.position.y = .01; scene.add(glow);
+
+    // estrellas
+    const sg = new T.BufferGeometry(); const sp = new Float32Array(1400 * 3);
+    for (let i = 0; i < 1400; i++) { const th = Math.random() * Math.PI * 2, ph = Math.random() * Math.PI * .5, R = 140 + Math.random() * 80; sp.set([R * Math.cos(th) * Math.sin(ph), R * Math.cos(ph) * .7 + 20, R * Math.sin(th) * Math.sin(ph)], i * 3); }
+    sg.setAttribute('position', new T.BufferAttribute(sp, 3));
+    scene.add(new T.Points(sg, new T.PointsMaterial({ color: 0xffffff, size: .7, sizeAttenuation: true, transparent: true, opacity: .8 })));
+
+    // unos y ceros flotando
+    const tex = ch => { const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'); x.font = 'bold 50px "Space Mono", monospace'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillStyle = '#fff'; x.shadowColor = '#fff'; x.shadowBlur = 10; x.fillText(ch, 32, 34); return new T.CanvasTexture(c); };
+    const T1 = tex('1'), T0 = tex('0'); const bits = [];
+    const NB = mobile ? 90 : 170;
+    for (let i = 0; i < NB; i++) {
+      const m = new T.SpriteMaterial({ map: Math.random() < .5 ? T1 : T0, color: COLS[i % 5], transparent: true, opacity: .75, depthWrite: false });
+      const s = new T.Sprite(m); const a = Math.random() * Math.PI * 2, rr = 6 + Math.random() * 26;
+      s.position.set(Math.cos(a) * rr, Math.random() * 70, Math.sin(a) * rr); const z = .35 + Math.random() * .6; s.scale.set(z, z, z);
+      s.userData.v = .01 + Math.random() * .035; scene.add(s); bits.push(s);
+    }
+
+    let W = 0, H = 0;
+    function size() { W = innerWidth; H = innerHeight; r.setSize(W, H, false); cam.aspect = W / H; cam.updateProjectionMatrix(); }
+    addEventListener('resize', size); size();
+    const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
+    addEventListener('pointermove', e => { mouse.tx = e.clientX / W - .5; mouse.ty = e.clientY / H - .5; }, { passive: true });
+
+    let t = 0, sy = 0, last = performance.now(), running = true, intro = 0;
+    // al terminar la intro, la cámara baja desde el cielo
+    const introStart = () => { intro = 1; };
+    addEventListener('io:booted', introStart);
+    if (document.getElementById('boot').hidden) intro = .6;
+    document.addEventListener('visibilitychange', () => { running = !document.hidden; if (running) { last = performance.now(); requestAnimationFrame(loop); } });
+
+    function frame(dt) {
+      t += dt;
+      const p = window.IOscroll || 0; sy += (p - sy) * Math.min(1, dt * 3);
+      mouse.x += (mouse.tx - mouse.x) * .05; mouse.y += (mouse.ty - mouse.y) * .05;
+      intro = Math.max(0, intro - dt * .45);
+      const ease = intro * intro;
+      const ang = (reduce ? 0 : t * .07) + sy * 5.2 + mouse.x * .5;
+      const rad = (mobile ? 23 : 14) - sy * 2 + ease * 20;
+      const cy = 2.5 + sy * (topY - 2) + ease * 40 - mouse.y * 2;
+      cam.position.set(Math.cos(ang) * rad, cy, Math.sin(ang) * rad);
+      cam.lookAt(0, 2 + sy * (topY - 4) + 3 + ease * 10, 0);
+      // la torre se corre a la derecha en pantallas anchas para dejar espacio al texto
+      tower.position.x = grid.position.x = glow.position.x = 0;
+      if (!mobile) { const off = new T.Vector3(); cam.getWorldDirection(off); const right = new T.Vector3().crossVectors(off, cam.up).normalize(); cam.position.addScaledVector(right, -6.5 * (1 - sy)); }
+      if (!reduce) {
+        elev.position.set(0, (Math.sin(t * .35) * .5 + .5) * (topY - 1) + .4, 2.3);
+        beacon.material.color.setHex(Math.sin(t * 4) > 0 ? 0xf87171 : 0x3a1010);
+        halo.rotation.z = t * .3; halo.rotation.x = Math.PI / 2 + Math.sin(t * .5) * .15;
+        for (const s of bits) { s.position.y += s.userData.v * 60 * dt; if (s.position.y > 75) s.position.y = -2; }
+      }
+      r.render(scene, cam);
+    }
+    // parpadeo de ventanas
+    if (!reduce) setInterval(() => {
+      if (!running) return;
+      for (let k = 0; k < 14; k++) {
+        const i = Math.floor(Math.random() * nWin), b = winBase[i]; b.lit = !b.lit;
+        col.set(b.lit ? COLS[b.w] : 0x1d1b38); if (b.lit) col.lerp(new T.Color(0xffffff), .35); wins.setColorAt(i, col);
+      }
+      wins.instanceColor.needsUpdate = true;
+    }, 180);
+    function loop(now) {
+      if (!running) return;
+      const dt = Math.min(.05, (now - last) / 1000); last = now; frame(dt);
+      if (!reduce || Math.abs((window.IOscroll || 0) - sy) > .0005) requestAnimationFrame(loop);
+      else stopped = true;
+    }
+    let stopped = false;
+    if (reduce) addEventListener('scroll', () => { if (stopped) { stopped = false; last = performance.now(); requestAnimationFrame(loop); } }, { passive: true });
+    requestAnimationFrame(loop);
+    document.querySelector('.bg-fallback').style.opacity = '.55';
   }
-  function closeMenu() {
-    document.getElementById('navMenu').classList.remove('open');
-    document.getElementById('navHamburger').classList.remove('open');
+
+  // Sin WebGL: lluvia de unos y ceros en 2D
+  function fallback(replace) {
+    let c = cv; if (replace) { c = cv.cloneNode(); cv.replaceWith(c); }
+    const x = c.getContext('2d'); if (!x) return;
+    let W, H, cols, drops; const fs = 16;
+    const size = () => { W = c.width = innerWidth; H = c.height = innerHeight; cols = Math.ceil(W / fs); drops = Array.from({ length: cols }, () => Math.random() * -H / fs); };
+    addEventListener('resize', size); size();
+    const COLS = ['#7c5cff', '#22d3ee', '#4ade80', '#fbbf24', '#f472b6'];
+    function step() {
+      x.fillStyle = 'rgba(9,9,15,.12)'; x.fillRect(0, 0, W, H); x.font = fs + 'px "Space Mono", monospace';
+      for (let i = 0; i < cols; i++) { if (Math.random() < .02) continue; x.fillStyle = COLS[i % 5]; x.globalAlpha = .35; x.fillText(Math.random() < .5 ? '1' : '0', i * fs, drops[i] * fs); x.globalAlpha = 1; drops[i] += .5; if (drops[i] * fs > H && Math.random() > .97) drops[i] = 0; }
+      if (!reduce) requestAnimationFrame(step);
+    }
+    step();
   }
+  if (window.THREE) start(); else addEventListener('load', start);
+})();
 </script>
 </body>
 </html>

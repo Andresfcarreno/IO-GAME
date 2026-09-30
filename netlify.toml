@@ -1,4 +1,4 @@
-# IO como sitio propio en Netlify (Base directory: io). Ver DEPLOY.md.
+# IO como sitio propio en Netlify (raíz del repositorio). Ver DEPLOY.md.
 [build]
   publish = "."
 
