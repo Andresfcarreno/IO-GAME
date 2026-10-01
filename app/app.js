@@ -2,6 +2,7 @@
 import * as S from './store.js';
 import { cfg, saveCfg, todayIso } from './store.js';
 import * as W from './world.js';
+import * as HF from './habform.js';
 import * as H from './habits.js';
 import * as G from './engine.js';
 import * as Focus from './focus.js';
@@ -44,23 +45,24 @@ function renderHabits() {
   const now = new Date(); const nowM = now.getHours() * 60 + now.getMinutes();
   const next = H.nextUp();
   if (next && stateOf(next) === 'todo') {
-    const diff = H.minutesOf(next.hora) - nowM;
-    $('hNext').innerHTML = `<span class="hn-ic">${esc(next.emoji)}</span><div><b>${diff > 0 ? `En ${diff >= 60 ? Math.floor(diff / 60) + 'h ' : ''}${diff % 60} min` : diff >= -30 ? '¡Es la hora!' : 'Pendiente'}</b><small>${esc(next.nombre)} · ${next.hora} · ${next.min} min${diff <= 30 && diff >= -30 ? ' · empieza ya y gana +25%' : ''}</small></div><button class="hn-go" data-act="start" data-id="${next.id}" aria-label="Empezar ${esc(next.nombre)}">▶</button>`;
+    const timed = H.hasTime(next); const diff = timed ? H.minutesOf(next.hora) - nowM : 0;
+    $('hNext').innerHTML = `<span class="hn-ic">${esc(next.emoji)}</span><div><b>${!timed ? 'Cuando puedas' : diff > 0 ? `En ${diff >= 60 ? Math.floor(diff / 60) + 'h ' : ''}${diff % 60} min` : diff >= -30 ? '¡Es la hora!' : 'Pendiente'}</b><small>${esc(next.nombre)}${timed ? ' · ' + next.hora : ''}${H.isMark(next) ? ' · un toque' : H.isCount(next) ? '' : ' · ' + next.min + ' min'}${timed && diff <= 30 && diff >= -30 ? ' · empieza ya y gana +25%' : ''}</small></div><button class="hn-go" data-act="start" data-id="${next.id}" aria-label="Empezar ${esc(next.nombre)}">▶</button>`;
     $('hNext').hidden = false;
   } else $('hNext').hidden = true;
   if (!hs.length) { $('habitList').innerHTML = `<div class="empty">${H.list().length ? 'Hoy no tienes hábitos programados. Descansa 🌙' : 'Aún no tienes hábitos. Crea el primero 👇'}</div>`; }
   else $('habitList').innerHTML = hs.map(h => {
-    const st = stateOf(h); const s = H.sess(h.id); const el = H.elapsed(h.id); const cnt = H.isCount(h); const p = cnt ? (s.n || 0) / (h.meta || 1) : el / (h.min * 60);
-    const streak = H.streakOf(h.id); const late = st === 'todo' && H.minutesOf(h.hora) < nowM - 30;
+    const st = stateOf(h); const s = H.sess(h.id); const el = H.elapsed(h.id); const cnt = H.isCount(h); const mk = H.isMark(h); const p = mk ? (s.done ? 1 : 0) : cnt ? (s.n || 0) / (h.meta || 1) : el / (h.min * 60);
+    const streak = H.streakOf(h.id); const late = st === 'todo' && H.hasTime(h) && H.minutesOf(h.hora) < nowM - 30;
     const btn = st === 'claimed' ? `<span class="hb-ok">✓ +${s.reward?.xp ?? ''} XP</span>`
       : st === 'crown' ? `<button class="hb-btn crown" data-act="claim" data-id="${h.id}">👑 Activar</button>`
       : st === 'running' ? `<button class="hb-btn run" data-act="start" data-id="${h.id}">● ${mmss(h.min * 60 - el)}</button>`
       : st === 'paused' ? `<button class="hb-btn" data-act="start" data-id="${h.id}">⏯ ${mmss(h.min * 60 - el)}</button>`
+      : mk ? `<button class="hb-btn go" data-act="start" data-id="${h.id}">✓ Marcar</button>`
       : cnt ? (H.countWait(h.id) ? `<button class="hb-btn" data-act="count" data-id="${h.id}">⏳ ${H.countWait(h.id)} min</button>` : `<button class="hb-btn go" data-act="count" data-id="${h.id}">＋1 · ${s.n || 0}/${h.meta}</button>`)
       : `<button class="hb-btn go" data-act="start" data-id="${h.id}">▶ Empezar</button>`;
     return `<div class="hab st-${st}${late ? ' late' : ''}" data-hid="${h.id}">
       <div class="hab-ic">${ring(st === 'claimed' ? 1 : p, st === 'claimed' ? 'var(--green)' : st === 'crown' ? 'var(--amber)' : 'var(--acc2)')}<span>${st === 'crown' ? '👑' : esc(h.emoji)}</span></div>
-      <button class="hab-inf" data-act="editHabit" data-id="${h.id}"><b>${esc(h.nombre)}</b><small>${h.hora} · ${cnt ? `${s.n || 0}/${h.meta} ${esc(h.unidad || '')}` : `${h.min} min`}${streak ? ` · 🔥${streak}` : ''}${late ? ' · se te pasó la hora' : ''}</small></button>
+      <button class="hab-inf" data-act="editHabit" data-id="${h.id}"><b>${esc(h.nombre)}</b><small>${H.timeLabel(h)} · ${mk ? 'solo marcar' : cnt ? `${s.n || 0}/${h.meta} ${esc(h.unidad || '')}` : `${h.min} min`}${streak ? ` · 🔥${streak}` : ''}${late ? ' · se te pasó la hora' : ''}</small></button>
       ${btn}</div>`;
   }).join('');
   const others = H.list().filter(h => !H.scheduled(h, todayIso()));
@@ -90,10 +92,10 @@ function renderMini() {
   const show = !!h && cfg.onboarded && !listVisible && !Focus.isOpen() && $('onb').hidden;
   m.classList.toggle('show', show); if (!show) return;
   const el = H.elapsed(h.id); const st = stateOf(h);
-  const p = st === 'claimed' ? 1 : H.isCount(h) ? (H.sess(h.id).n || 0) / (h.meta || 1) : el / (h.min * 60);
+  const p = st === 'claimed' ? 1 : H.isMark(h) ? (H.sess(h.id).done ? 1 : 0) : H.isCount(h) ? (H.sess(h.id).n || 0) / (h.meta || 1) : el / (h.min * 60);
   m.innerHTML = `<div class="mi-bar"><i style="width:${Math.min(100, p * 100)}%"></i></div>
     <span class="mi-e">${st === 'crown' ? '👑' : esc(h.emoji)}</span>
-    <div class="mi-t"><b>${esc(h.nombre)}</b><small>${st === 'crown' ? 'Corona lista: actívala' : H.isCount(h) ? `${H.sess(h.id).n || 0}/${h.meta} ${esc(h.unidad || '')} · toca +1` : st === 'running' ? `● quedan ${mmss(h.min * 60 - el)}` : st === 'paused' ? `⏸ pausado · quedan ${mmss(h.min * 60 - el)}` : `Próximo · ${h.hora} · ${h.min} min`}</small></div>
+    <div class="mi-t"><b>${esc(h.nombre)}</b><small>${st === 'crown' ? 'Corona lista: actívala' : H.isMark(h) ? 'Un toque y listo' : H.isCount(h) ? `${H.sess(h.id).n || 0}/${h.meta} ${esc(h.unidad || '')} · toca +1` : st === 'running' ? `● quedan ${mmss(h.min * 60 - el)}` : st === 'paused' ? `⏸ pausado · quedan ${mmss(h.min * 60 - el)}` : `Próximo · ${h.hora} · ${h.min} min`}</small></div>
     ${st === 'crown' ? `<button class="mi-go crown" data-act="claim" data-id="${h.id}" aria-label="Activar corona">👑</button>` : `<button class="mi-go" data-act="start" data-id="${h.id}" aria-label="${st === 'running' ? 'Abrir reloj' : 'Empezar'}">${st === 'running' ? '⤢' : '▶'}</button>`}`;
 }
 
@@ -107,8 +109,18 @@ function countHabit(id) {
   renderAll();
   if (r.done) setTimeout(() => claimFlow(id), 700);
 }
+/** Hábito de "solo marcar": un toque y sale la corona. */
+function markHabit(id) {
+  const h = H.get(id); const r = H.mark(id);
+  if (!r.ok) return;
+  G.blip('coin'); try { navigator.vibrate?.(25); } catch { /* */ }
+  G.act(ANIM[H.actOf(h)] || 'jump', h.emoji); G.floatText(`✓ ${h.emoji}`);
+  renderAll(); setTimeout(() => claimFlow(id), 600);
+}
 function startHabit(id) {
   if (H.isCount(H.get(id))) return countHabit(id);
+  if (H.isMark(H.get(id))) return markHabit(id);
+  Rem.timerEnd(id);
   Focus.open(id, { onClaim: claimFlow, onClose: () => { renderAll(); G.say('Pausado. Lo que llevas quedó guardado ⏸', 3000); } });
   renderAll();
 }
@@ -149,30 +161,17 @@ function openChest() {
 
 /* ================= sheets ================= */
 
-const EMOJIS = ['📖', '🧘', '🏃', '🏋️', '🥗', '🇬🇧', '💻', '🎓', '🎸', '🚶', '✍️', '🧹', '📵', '🌬️', '🎨', '🙏', '💤', '🧠', '🍳', '💧', '🚴', '🏊', '📚', '⭐'];
 function habitSheet(id) {
-  const h = id ? H.get(id) : { emoji: '⭐', nombre: '', min: 20, hora: '08:00', dias: [0, 1, 2, 3, 4, 5, 6], motivo: '' };
-  openSheet(id ? 'Editar hábito' : 'Nuevo hábito', `
-    <div class="emo-row">${EMOJIS.map(e => `<button class="emo${h.emoji === e ? ' on' : ''}" data-act="pickEmoji" data-e="${e}">${e}</button>`).join('')}</div>
-    <input type="hidden" id="hfEmoji" value="${esc(h.emoji)}">
-    <div class="field"><label for="hfName">Hábito</label><input class="inp" id="hfName" value="${esc(h.nombre)}" placeholder="Leer, meditar, ir a clase…" maxlength="40"></div>
-    <div class="field"><label>Tipo</label><div class="seg" id="hfTipo"><button class="${H.isCount(h) ? '' : 'on'}" data-act="hfTipo" data-v="reloj">⏱ Con reloj</button><button class="${H.isCount(h) ? 'on' : ''}" data-act="hfTipo" data-v="conteo">🔢 De conteo</button></div></div>
-    <div class="row cnt-only"${H.isCount(h) ? '' : ' hidden'}><div class="field"><label for="hfMeta">¿Cuántas veces?</label><input class="inp" id="hfMeta" type="number" min="1" max="50" value="${h.meta || 8}" inputmode="numeric"></div>
-      <div class="field"><label for="hfUni">¿De qué?</label><input class="inp" id="hfUni" value="${esc(h.unidad || 'veces')}" maxlength="14"></div>
-      <div class="field"><label for="hfPausa">Cada (min)</label><input class="inp" id="hfPausa" type="number" min="1" max="240" value="${h.pausa ?? 30}" inputmode="numeric"></div></div>
-    <div class="row"><div class="field tmr-only"${H.isCount(h) ? ' hidden' : ''}><label for="hfMin">Duración (min)</label><input class="inp" id="hfMin" type="number" min="1" max="240" value="${h.min}" inputmode="numeric"></div>
-    <div class="field"><label for="hfHora">Hora</label><input class="inp" id="hfHora" type="time" value="${esc(h.hora)}"></div></div>
-    <div class="field"><label>Días</label><div class="hb-days big" id="hfDays">${H.DAYS.map((d, k) => `<button class="${(h.dias || []).includes(k) ? 'on' : ''}" data-act="toggleDay" data-k="${k}">${d}</button>`).join('')}</div></div>
-    <div class="field"><label for="hfAct">Tu personaje durante el reloj</label><select class="inp" id="hfAct">${Object.entries(H.ACTS).map(([k, [e, l]]) => `<option value="${k}"${k === H.actOf(h) ? ' selected' : ''}>${e} ${l}</option>`).join('')}</select></div>
-    <div class="field"><label for="hfMot">¿Por qué? (te lo recordaremos si quieres pausar)</label><input class="inp" id="hfMot" value="${esc(h.motivo || '')}" maxlength="120" placeholder="Quiero…"></div>
+  const h = id ? H.get(id) : HF.blank();
+  openSheet(id ? 'Editar hábito' : 'Nuevo hábito', `<div id="hfRoot">${HF.formHTML(h, { examples: !id })}</div>
     <div class="stack"><button class="btn-acc" data-act="saveHabit" data-id="${id || ''}">Guardar</button>
     ${id ? `<button class="btn-ghost danger" data-act="delHabit" data-id="${id}">Eliminar hábito</button>` : ''}</div>`);
-  let manual = !!id; $('hfAct').onchange = () => { manual = true; };
-  $('hfName').oninput = () => { if (manual) return; const a = H.guessAct($('hfName').value, $('hfEmoji').value); $('hfAct').value = a; };
+  HF.mount($('hfRoot'), h);
+  if (!id) setTimeout(() => $('hfRoot')?.querySelector('[data-hf-in]')?.focus({ preventScroll: true }), 350);
 }
 function allHabitsSheet() {
   const hs = H.list();
-  openSheet('Todos mis hábitos', `${hs.map(h => `<button class="list-row" data-act="editHabit" data-id="${h.id}"><span>${esc(h.emoji)}</span><div><b>${esc(h.nombre)}</b><small>${h.hora} · ${h.min} min · ${(h.dias || []).length === 7 ? 'todos los días' : (h.dias || []).map(d => H.DAYS[d]).join(' ')}</small></div><em>✎</em></button>`).join('') || '<div class="empty">Sin hábitos.</div>'}
+  openSheet('Todos mis hábitos', `${hs.map(h => `<button class="list-row" data-act="editHabit" data-id="${h.id}"><span>${esc(h.emoji)}</span><div><b>${esc(h.nombre)}</b><small>${H.timeLabel(h)} · ${H.isMark(h) ? 'solo marcar' : H.isCount(h) ? h.meta + ' ' + (h.unidad || '') : h.min + ' min'} · ${(h.dias || []).length === 7 ? 'todos los días' : (h.dias || []).map(d => H.DAYS[d]).join(' ')}</small></div><em>✎</em></button>`).join('') || '<div class="empty">Sin hábitos.</div>'}
     <button class="btn-acc" data-act="newHabit" style="margin-top:12px">＋ Nuevo hábito</button>`);
 }
 
@@ -221,7 +220,7 @@ function celebrate(o) {
 function bagSheet() {
   const g = W.game(); const items = W.CATALOG.filter(i => W.bagCount(g, i.id) > 0);
   const wear = W.WEAR.filter(i => g.owned[i.id]);
-  openSheet('Mochila', `${items.length ? `<div class="grid">${items.map(i => `<button class="it" data-act="place" data-id="${i.id}"><span class="e">${i.e}</span><span class="n">${esc(i.n)}</span><span class="p">COLOCAR AQUÍ</span><span class="bag">×${W.bagCount(g, i.id)}</span></button>`).join('')}</div>` : '<div class="empty">Tu mochila está vacía. En modo decorar (SELECT, luego START) puedes guardar objetos aquí.</div>'}
+  openSheet('Mochila', `${items.length ? `<div class="grid">${items.map(i => `<button class="it" data-act="place" data-id="${i.id}"><span class="e">${i.e}</span><span class="n">${esc(i.n)}</span><span class="p">COLOCAR AQUÍ</span><span class="bag">×${W.bagCount(g, i.id)}</span></button>`).join('')}</div>` : '<div class="empty">Tu mochila está vacía 🎒<br><small>Lo que compres o guardes aparece aquí para colocarlo en tu piso.</small></div><button class="btn-acc" data-act="shop" style="margin-top:12px">🛒 Ir a la tienda</button>'}
     ${wear.length ? `<div class="sec-t">Ropa y accesorios</div><div class="grid">${wear.map(i => `<button class="it${g.wear[i.slot] === i.id ? ' on' : ''}" data-act="buy" data-id="${i.id}"><span class="e">${i.e}</span><span class="n">${esc(i.n)}</span><span class="p">${g.wear[i.slot] === i.id ? 'PUESTO' : 'PONER'}</span></button>`).join('')}</div>` : ''}`);
 }
 function mapSheet() {
@@ -265,11 +264,11 @@ function statsSheet(focus = 'xp') {
     <div class="stack"><button class="btn-ghost" data-act="tab" data-t="ranking">🏆 Ver ranking</button><button class="btn-ghost" data-act="tab" data-t="tienda">🛒 Gastar bits</button></div>`);
 }
 function calendarSheet() {
-  const hs = H.list();
+  const hs = H.list().filter(H.hasTime);
   openSheet('Tu calendario', `<p class="note">Tus hábitos como eventos que se repiten, con alarma ${+(cfg.remindLead ?? 5) ? (cfg.remindLead ?? 5) + ' min antes' : 'a la hora'}. Funcionan aunque IO esté cerrada, y al tocarlos se abre el reloj.</p>
     <button class="btn-acc" data-act="icsAll">📅 Descargar todos (.ics)</button>
     <p class="note">Sirve para Google Calendar, Apple Calendario y Outlook. O agrégalos uno por uno a Google:</p>
-    ${hs.map(h => `<a class="list-row" href="${Rem.googleLink(h)}" target="_blank" rel="noopener"><span>${esc(h.emoji)}</span><div><b>${esc(h.nombre)}</b><small>${h.hora} · ${h.min} min · ${(h.dias || []).length === 7 ? 'todos los días' : (h.dias || []).map(d => H.DAYS[d]).join(' ')}</small></div><em>＋ Google</em></a>`).join('') || '<div class="empty">Sin hábitos aún.</div>'}`);
+    ${hs.map(h => `<a class="list-row" href="${Rem.googleLink(h)}" target="_blank" rel="noopener"><span>${esc(h.emoji)}</span><div><b>${esc(h.nombre)}</b><small>${H.timeLabel(h)} · ${H.isMark(h) ? 'solo marcar' : H.isCount(h) ? h.meta + ' ' + (h.unidad || '') : h.min + ' min'} · ${(h.dias || []).length === 7 ? 'todos los días' : (h.dias || []).map(d => H.DAYS[d]).join(' ')}</small></div><em>＋ Google</em></a>`).join('') || '<div class="empty">Sin hábitos aún.</div>'}`);
 }
 function achievementsTab() { L.show('progreso'); setTimeout(() => $('achSec')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60); }
 function decoSheet(u) {
@@ -365,17 +364,12 @@ const A = {
   claim: el => claimFlow(el.dataset.id),
   chest: openChest,
   newHabit: () => habitSheet(null), editHabit: el => habitSheet(el.dataset.id), allHabits: allHabitsSheet,
-  pickEmoji: el => { $('hfEmoji').value = el.dataset.e; document.querySelectorAll('.emo').forEach(b => b.classList.toggle('on', b === el)); },
-  toggleDay: el => el.classList.toggle('on'),
-  hfTipo: el => { document.querySelectorAll('#hfTipo button').forEach(b => b.classList.toggle('on', b === el)); const c = el.dataset.v === 'conteo'; document.querySelector('.cnt-only').hidden = !c; document.querySelector('.tmr-only').hidden = c; },
   saveHabit: el => {
-    const nombre = $('hfName').value.trim(); if (!nombre) return toast('Ponle nombre al hábito');
-    const dias = [...document.querySelectorAll('#hfDays button')].map((b, k) => b.classList.contains('on') ? k : -1).filter(k => k >= 0);
-    if (!dias.length) return toast('Elige al menos un día');
+    const f = HF.read($('hfRoot')); if (!f || !f.nombre) return toast('Escribe tu hábito');
     const old = el.dataset.id ? H.get(el.dataset.id) : null;
     const { id: _o, ...rest } = old || {};
-    H.save({ ...rest, emoji: $('hfEmoji').value, nombre, min: parseInt($('hfMin').value) || 10, hora: $('hfHora').value || '08:00', dias, motivo: $('hfMot').value.trim(), act: $('hfAct').value,
-      ...(document.querySelector('#hfTipo .on')?.dataset.v === 'conteo' ? { tipo: 'conteo', meta: Math.max(1, Math.min(50, parseInt($('hfMeta').value) || 1)), unidad: $('hfUni').value.trim() || 'veces', pausa: Math.max(1, Math.min(240, parseInt($('hfPausa').value) || 15)) } : { tipo: 'reloj' }) }, el.dataset.id || null);
+    if (old) { delete rest.meta; delete rest.unidad; delete rest.pausa; }
+    H.save({ ...rest, ...f }, el.dataset.id || null);
     closeSheet(); renderAll(); toast('Hábito guardado ✓');
   },
   delHabit: el => { if (el.dataset.sure) { H.remove(el.dataset.id); closeSheet(); renderAll(); toast('Hábito eliminado'); } else { el.dataset.sure = 1; el.textContent = '¿Seguro? Toca otra vez para eliminar'; } },
@@ -459,7 +453,7 @@ else {
   const r = H.running();
   if (r) startHabit(r.hid);
   else if (shielded) G.say(`🛡️ Ayer se te pasó, pero tu escudo protegió la racha (${shielded} día${shielded > 1 ? 's' : ''}). ¡Hoy toca volver!`, 7000);
-  else { const n = H.nextUp(); G.say(n ? `Hola ${cfg.name}. Próximo: ${n.emoji} ${n.nombre} a las ${n.hora}.` : `Hola ${cfg.name}. ¡Todo listo por hoy! Camina, decora o visita tus pisos.`, 5000); }
+  else { const n = H.nextUp(); G.say(n ? `Hola ${cfg.name}. Próximo: ${n.emoji} ${n.nombre}${H.hasTime(n) ? ' a las ' + n.hora : ''}.` : `Hola ${cfg.name}. ¡Todo listo por hoy! Camina, decora o visita tus pisos.`, 5000); }
 }
 Auth.init();
 S.sync().then(renderAll);

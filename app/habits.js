@@ -28,25 +28,65 @@ const ACT_BY_WORD = [
   [/perr|mascota|dog/i, 'dog'], [/respir/i, 'breathe'], [/medit|mindful/i, 'float'], [/yoga|estir/i, 'yoga'], [/or(ar|aci)|rez|agradec|gratitud/i, 'pray'],
   [/dorm|sueñ|siesta/i, 'sleep'], [/descon|pantalla|celular/i, 'unplug'], [/corr|trot|bici|ciclis|running/i, 'run'], [/nad|piscina/i, 'swim'],
   [/camin|pase/i, 'walk'], [/gym|gimnas|ejercic|pesas|entren|flexion|sentadill/i, 'flex'], [/cocin|receta/i, 'cook'], [/agua|hidrat/i, 'water'],
-  [/com(er|ida)|almuerz|desayun|cena/i, 'eat'], [/ingl|idioma|franc|alem|portug|hablar/i, 'talk'], [/estudi|clase|curso|tarea/i, 'study'],
-  [/le(er|ctura)|libro/i, 'read'], [/diario|escrib|journal/i, 'write'], [/trabaj|program|código|codigo|proyecto|oficina/i, 'type'],
+  [/com(er|ida)|almuerz|desayun|cen(ar|a)\b/i, 'eat'], [/ingl|idioma|franc|alem|portug|hablar/i, 'talk'], [/estudi|clase|curso|tarea/i, 'study'],
+  [/le(er|ctura)|libro/i, 'read'], [/mensaje|llamar|llamada|escribirle|mandarle|saludar|hablarle/i, 'talk'], [/manzana|fruta|ensalada|verdura|desayun/i, 'eat'], [/diario|escrib|journal/i, 'write'], [/trabaj|program|código|codigo|proyecto|oficina/i, 'type'],
   [/guitar|piano|instrument|música|musica|cantar|violin/i, 'music'], [/dibuj|pint|arte|diseñ/i, 'draw'], [/orden|limpi|casa|barr/i, 'clean'],
 ];
 export const guessAct = (nombre = '', emoji = '') => ACT_BY_WORD.find(([re]) => re.test(nombre))?.[1] || ACT_BY_EMOJI[emoji] || 'jump';
-export const guessEmoji = nombre => { const a = guessAct(nombre); return a === 'jump' ? '⭐' : ACTS[a][0]; };
+const EXTRA_EMOJI = [[/levant|despert|wake/i, '⏰'], [/ducha|bañ|shower/i, '🚿'], [/diente|cepill/i, '🪥'], [/vitamina|pastilla|medic|pill/i, '💊'], [/mensaje|llamar|message|call/i, '💬'], [/manzana|fruta|apple|fruit/i, '🍎'], [/cama|tender/i, '🛏️'], [/agradec|gratitud/i, '🙏']];
+/** Hábitos de una sola acción: por defecto se marcan con un toque (si no escribes duración). */
+export const MARK_RE = /manzana|fruta|apple|fruit|mensaje|message|llamar|call|vitamina|pastilla|medic|levant|despert|wake|desayun|almuerz|cenar|ducha|bañ|shower|dientes|cepill|tender|cama|agradec|gratitud|saludar|tomar agua|beber agua/i;
+export const guessEmoji = nombre => { const a = guessAct(nombre); const x = EXTRA_EMOJI.find(([re]) => re.test(nombre)); return x ? x[1] : a === 'jump' ? '⭐' : ACTS[a][0]; };
 export const actOf = h => (h.act && ACTS[h.act] ? h.act : guessAct(h.nombre, h.emoji));
 export const PROP = Object.fromEntries(Object.entries(ACTS).map(([k, v]) => [k, v[0]]));
 export const DAYS = isEn ? ['S', 'M', 'T', 'W', 'T', 'F', 'S'] : ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
 
 /* ---------- hábitos ---------- */
 export const isCount = h => h?.tipo === 'conteo';
+/** "Solo marcar": un toque y listo (vale menos que un hábito con reloj). */
+export const isMark = h => h?.tipo === 'marca';
+/** ¿Tiene hora fija? Sin hora = flexible (se hace cuando puedas). */
+export const hasTime = h => !!(h?.hora && /^\d{1,2}:\d{2}$/.test(h.hora));
+/** Minutos que cuentan de verdad (marcar y conteo no suman minutos). */
+export const minOf = h => (isCount(h) || isMark(h)) ? 0 : (+h?.min || 0);
+export const timeLabel = h => hasTime(h) ? h.hora : (isEn ? 'any time' : 'cuando puedas');
+
+/** Entiende lo que escribe la persona: "Levantarme a las 7 de la mañana", "Leer 20 minutos", "Respirar 1 min".
+ *  Devuelve el nombre limpio y, si los detecta, la hora (HH:MM) y la duración en minutos. */
+export function parseQuick(text = '') {
+  let s = String(text).trim(); const out = { nombre: s };
+  const cut = re => { const m = s.match(re); if (m) s = (s.slice(0, m.index) + ' ' + s.slice(m.index + m[0].length)); return m; };
+  let m;
+  if ((m = cut(/\b(?:media\s+hora|half an hour)\b/i))) out.min = 30;
+  else if ((m = cut(/\b(\d+(?:[.,]\d)?)\s*(?:h|hr|hrs|hora|horas|hour|hours)\b/i))) out.min = Math.round(parseFloat(m[1].replace(',', '.')) * 60);
+  else if ((m = cut(/\b(\d{1,3})\s*(?:min|mins|minuto|minutos|minute|minutes)\b/i))) out.min = +m[1];
+  else if ((m = cut(/\bun\s+minuto\b/i))) out.min = 1;
+  const ap = (h, mi, mark, part) => {
+    h = +h; mi = +(mi || 0); const t = (mark || part || '').toLowerCase();
+    if (/^p|tarde|noche/.test(t) && h < 12) h += 12;
+    if (/^a|ma[ñn]ana|madrugada/.test(t) && h === 12) h = 0;
+    return h <= 23 && mi <= 59 ? String(h).padStart(2, '0') + ':' + String(mi).padStart(2, '0') : null;
+  };
+  const PART = '(?:\\s*(?:de\\s+la\\s+|in the\\s+)?(ma[ñn]ana|tarde|noche|madrugada|morning|afternoon|evening|night))?';
+  const R1 = new RegExp('\\b(?:a\\s+las?|a\\s+la|at)\\s+(\\d{1,2})(?:[:.h](\\d{2}))?\\s*(a\\.?m\\.?|p\\.?m\\.?)?' + PART, 'i');
+  const R2 = new RegExp('\\b(\\d{1,2})[:.](\\d{2})\\s*(a\\.?m\\.?|p\\.?m\\.?)?' + PART, 'i');
+  const R3 = new RegExp('\\b(\\d{1,2})\\s*(a\\.?m\\.?|p\\.?m\\.?)\\b' + PART, 'i');
+  let t = null;
+  if ((m = cut(R1))) t = ap(m[1], m[2], m[3], m[4]);
+  else if ((m = cut(R2))) t = ap(m[1], m[2], m[3], m[4]);
+  else if ((m = cut(R3))) t = ap(m[1], 0, m[2], m[3]);
+  if (t) out.hora = t;
+  s = s.replace(/\s+(a|de|por|en|to|for|at)\s*$/i, '').replace(/\s{2,}/g, ' ').replace(/[,;·\-–]+\s*$/g, '').trim();
+  if (s) out.nombre = s.charAt(0).toUpperCase() + s.slice(1);
+  return out;
+}
 export const list = () => S.itemsOf('habit').sort((a, b) => (a.hora || '99').localeCompare(b.hora || '99'));
 export const get = id => S.getItem(id);
-export const save = (h, id = null) => S.putItem('habit', { dias: [0, 1, 2, 3, 4, 5, 6], ...h, min: Math.max(1, Math.min(240, +h.min || 10)) }, id);
+export const save = (h, id = null) => S.putItem('habit', { dias: [0, 1, 2, 3, 4, 5, 6], ...h, min: Math.max(1, Math.min(240, +h.min || (h.tipo === 'marca' ? 1 : 10))) }, id);
 export const remove = id => S.delItem(id);
 export const scheduled = (h, iso) => (h.dias || [0, 1, 2, 3, 4, 5, 6]).includes(dateOf(iso).getDay());
 export const forDay = (iso = todayIso()) => list().filter(h => scheduled(h, iso));
-export const minutesOf = hora => { const [a, b] = (hora || '00:00').split(':').map(Number); return a * 60 + b; };
+export const minutesOf = hora => { if (!hora) return 24 * 60; const [a, b] = String(hora).split(':').map(Number); return (a || 0) * 60 + (b || 0); };
 
 /* ---------- registro diario ---------- */
 const logId = iso => `log:${iso}`;
@@ -70,7 +110,7 @@ export function start(id) {
   if (s.done) return;
   if (!s.el) {
     const h = get(id); const now = new Date(); const diff = Math.abs(now.getHours() * 60 + now.getMinutes() - minutesOf(h.hora));
-    s.onTime = diff <= 30; s.startedAt = Date.now();
+    s.onTime = hasTime(h) && diff <= 30; s.startedAt = Date.now();
   }
   l.s[id] = s; saveLog(iso, l);
   S.putItem('run', { hid: id, date: iso, since: Date.now() }, RUN);
@@ -100,11 +140,21 @@ export function count(id) {
   if (s.done) return { ok: false, done: true };
   const gap = (h.pausa ?? 15) * 60000; const now = Date.now();
   if (s.last && now - s.last < gap) return { ok: false, wait: Math.ceil((gap - (now - s.last)) / 60000) };
-  if (!s.n) { const d = new Date(); s.onTime = Math.abs(d.getHours() * 60 + d.getMinutes() - minutesOf(h.hora)) <= 30; s.startedAt = now; }
+  if (!s.n) { const d = new Date(); s.onTime = hasTime(h) && Math.abs(d.getHours() * 60 + d.getMinutes() - minutesOf(h.hora)) <= 30; s.startedAt = now; }
   s.n = (s.n || 0) + 1; s.last = now;
   if (s.n >= (h.meta || 1)) { s.done = true; s.doneAt = now; }
   l.s[id] = s; saveLog(iso, l);
   return { ok: true, n: s.n, meta: h.meta || 1, done: s.done };
+}
+/** Hábito de "solo marcar": un toque y queda cumplido (la corona se activa después). */
+export function mark(id) {
+  const h = get(id); if (!isMark(h)) return { ok: false };
+  const iso = todayIso(); const l = log(iso); const s = l.s[id] || { el: 0, done: false, claimed: false };
+  if (s.done) return { ok: false, done: true };
+  const d = new Date(); const now = Date.now();
+  s.onTime = hasTime(h) && Math.abs(d.getHours() * 60 + d.getMinutes() - minutesOf(h.hora)) <= 30;
+  s.startedAt = now; s.done = true; s.doneAt = now; l.s[id] = s; saveLog(iso, l);
+  return { ok: true, done: true };
 }
 /** Minutos para el próximo toque permitido (0 = ya). */
 export function countWait(id) { const h = get(id); const s = sess(id); if (!isCount(h) || !s.last || s.done) return 0; return Math.max(0, Math.ceil(((h.pausa ?? 15) * 60000 - (Date.now() - s.last)) / 60000)); }
@@ -136,7 +186,7 @@ export function dayStreak() {
   return n;
 }
 export function rewardOf(h, s, streak) {
-  let xp = isCount(h) ? Math.max(5, Math.min(40, 4 * (h.meta || 1))) : Math.max(5, Math.min(120, h.min)), bits = Math.max(3, Math.round(xp / 2));
+  let xp = isMark(h) ? 6 : isCount(h) ? Math.max(5, Math.min(40, 4 * (h.meta || 1))) : Math.max(5, Math.min(120, h.min)), bits = Math.max(3, Math.round(xp / 2));
   if (s.onTime) { xp = Math.round(xp * 1.25); bits = Math.round(bits * 1.25); }
   const st = Math.min(streak, 10);
   return { xp: xp + st * 2, bits: bits + st, onTime: !!s.onTime, streak };
@@ -148,7 +198,7 @@ export function claim(id) {
   if (!h || !s?.done || s.claimed) return null;
   const r = rewardOf(h, s, streakOf(id) + 1);
   const g = W.game(); const before = W.levelOf(g.xp);
-  g.xp += r.xp; g.bits += r.bits; g.stats.minutes += isCount(h) ? 0 : h.min; g.stats.sessions += 1;
+  g.xp += r.xp; g.bits += r.bits; g.stats.minutes += minOf(h); g.stats.sessions += 1;
   addWeekXp(g, r.xp); g.stats.best = Math.max(g.stats.best || 0, r.streak);
   W.saveGame(g);
   s.claimed = true; s.reward = r; l.s[id] = s; saveLog(iso, l);
@@ -157,7 +207,7 @@ export function claim(id) {
 export function today() {
   const iso = todayIso(); const hs = forDay(iso); const l = log(iso);
   const st = hs.map(h => ({ h, s: l.s[h.id] || { el: 0 } }));
-  return { hs, total: hs.length, claimed: st.filter(x => x.s.claimed).length, done: st.filter(x => x.s.done).length, minutes: st.reduce((a, x) => a + (x.s.claimed ? x.h.min : 0), 0) };
+  return { hs, total: hs.length, claimed: st.filter(x => x.s.claimed).length, done: st.filter(x => x.s.done).length, minutes: st.reduce((a, x) => a + (x.s.claimed ? minOf(x.h) : 0), 0) };
 }
 export function chestReady() { const t = today(); const g = W.game(); return t.total >= 2 && t.claimed === t.total && !g.chest[todayIso()]; }
 export function openChest() {
@@ -175,7 +225,7 @@ export function week() {
 export function nextUp() {
   const now = new Date(); const m = now.getHours() * 60 + now.getMinutes();
   const pend = forDay().filter(h => !sess(h.id).done);
-  return pend.find(h => minutesOf(h.hora) >= m - 30) || pend[0] || null;
+  return pend.find(h => hasTime(h) && minutesOf(h.hora) >= m - 30) || pend.find(h => !hasTime(h)) || pend[0] || null;
 }
 
 

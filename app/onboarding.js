@@ -3,6 +3,7 @@
  * Sin demo ni datos falsos: todo lo que ves es tuyo. */
 import { cfg, saveCfg, todayIso, putItem, getItem, sync, importCode } from './store.js';
 import * as H from './habits.js';
+import * as HF from './habform.js';
 import { avatarSVG, editorHTML, normLook, PRESETS } from './avatar.js';
 import { sceneHTML } from './scenes.js';
 import * as Auth from './auth.js';
@@ -10,7 +11,7 @@ import * as I18N from './i18n.js';
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const STEPS = ['hola', 'nombre', 'look', 'areas', 'habitos', 'rutina', 'compromiso', 'cuenta', 'listo'];
+const STEPS = ['hola', 'nombre', 'look', 'habitos', 'compromiso', 'cuenta', 'listo'];
 const ALL = [0, 1, 2, 3, 4, 5, 6], WEEK = [1, 2, 3, 4, 5], WKND = [0, 6];
 const MOMENTS = [['🌅', 'Mañana', '06:30'], ['☀️', 'Mediodía', '12:30'], ['🌇', 'Tarde', '18:00'], ['🌙', 'Noche', '21:00']];
 const MINS = [1, 5, 10, 15, 20, 30, 45, 60];
@@ -41,68 +42,21 @@ const daysLabel = dias => sameDays(dias, ALL) ? 'todos los días' : sameDays(dia
 const fmtMin = m => (m >= 60 ? `${Math.floor(m / 60)} h${m % 60 ? ' ' + (m % 60) + ' min' : ''}` : `${m} min`);
 const picked = n => d.habits.findIndex(x => x.nombre === n);
 
-function exampleCards() {
-  const cats = H.CATEGORIES.filter(([, n]) => !d.areas.length || d.areas.includes(n));
-  return cats.map(([ce, cn, list]) => `<div class="ex-cat">${ce} ${cn}</div>` + list.map(([e, n, m, h, , cf]) => {
-    const on = picked(n) >= 0;
-    return `<button class="ex-card${on ? ' on' : ''}" data-o="ex" data-n="${esc(n)}" aria-pressed="${on}">
-      <span class="ex-e">${e}</span><b>${esc(n)}</b><small>${cf?.tipo === 'conteo' ? `${cf.meta} ${cf.unidad}` : fmtMin(m)} · ${h}</small><i>${on ? '✓' : '＋'}</i></button>`;
-  }).join('')).join('');
+const named = () => d.habits.filter(h => (h.nombre || '').trim()).length;
+function slotsHTML() {
+  if (!d.habits.length) d.habits.push({ ...HF.blank() });
+  return d.habits.map((h, i) => `<div class="hslot" data-i="${i}"><div class="hslot-h"><b>Hábito ${i + 1}${i ? ' <em>opcional</em>' : ''}</b>${d.habits.length > 1 ? `<button class="hc-x" data-o="delslot" data-i="${i}" aria-label="Quitar">✕</button>` : ''}</div>${HF.formHTML(h, { examples: !(h.nombre || '').trim() })}</div>`).join('');
 }
-function timeline() {
-  if (!d.habits.length) return '';
-  const pos = t => { const m = H.minutesOf(t); return Math.max(0, Math.min(100, (m - 300) / (1440 - 300) * 100)); };
-  const total = d.habits.reduce((a, h) => a + (+h.min || 0), 0);
-  return `<div class="tl"><div class="tl-h"><b>Tu día</b><small>${d.habits.length} hábito${d.habits.length > 1 ? 's' : ''} · ${fmtMin(total)} al día</small></div>
-    <div class="tl-bar"><span class="tl-sun">🌅</span><span class="tl-moon">🌙</span>${d.habits.map((h, i) => `<button class="tl-dot" style="left:${pos(h.hora)}%" data-o="edit" data-i="${i}" title="${esc(h.nombre)} · ${h.hora}">${esc(h.emoji)}</button>`).join('')}</div>
-    <div class="tl-ax"><span>5:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div></div>`;
+function mountSlots() {
+  document.querySelectorAll('#hbSlots .hslot').forEach(el => {
+    const i = +el.dataset.i;
+    HF.mount(el, d.habits[i], v => {
+      if (!v) return; Object.assign(d.habits[i], v);
+      if ($('onbNext')) { $('onbNext').textContent = nextLabel(); $('onbNext').classList.toggle('off', !named()); }
+      if ($('addSlot')) $('addSlot').hidden = !named();
+    });
+  });
 }
-function habitCard(h, i) {
-  const open = d.open === i; const act = H.ACTS[h.act] ? h.act : H.guessAct(h.nombre, h.emoji);
-  const head = `<div class="hc-head"><button class="hc-e" data-o="edit" data-i="${i}" aria-label="Editar">${esc(h.emoji)}</button>
-      <button class="hc-t" data-o="edit" data-i="${i}"><b>${esc(h.nombre || 'Nuevo hábito')}</b><small>🕘 ${esc(h.hora)} · ${h.tipo === 'conteo' ? `🔢 ${h.meta} ${esc(h.unidad)}` : `⏱ ${fmtMin(h.min)}`} · ${daysLabel(h.dias)}</small></button>
-      <button class="hc-x" data-o="del" data-i="${i}" aria-label="Quitar">✕</button></div>`;
-  if (!open) return `<div class="hc" data-i="${i}">${head}</div>`;
-  return `<div class="hc open" data-i="${i}">${head}
-    <div class="hc-body">
-      <div class="hc-prev">${sceneHTML(act, d.look)}<span>Así lo hará tu personaje: <b>${H.ACTS[act][0]} ${H.ACTS[act][1].toLowerCase()}</b></span></div>
-      <label class="hc-l">Nombre</label>
-      <input class="inp" data-f="nombre" data-i="${i}" value="${esc(h.nombre)}" maxlength="40" placeholder="Ej: sacar al perro">
-      <div class="emo-strip">${EMOJIS.map(e => `<button class="${h.emoji === e ? 'on' : ''}" data-o="emoji" data-i="${i}" data-v="${e}">${e}</button>`).join('')}</div>
-      <label class="hc-l">¿A qué hora?</label>
-      <div class="pick">${MOMENTS.map(([e, l, t]) => `<button class="${h.hora === t ? 'on' : ''}" data-o="hora" data-i="${i}" data-v="${t}">${e} ${l}<small>${t}</small></button>`).join('')}
-        <label class="pick-own">✎<input type="time" data-f="hora" data-i="${i}" value="${esc(h.hora)}" aria-label="Otra hora"></label></div>
-      ${h.tipo === 'conteo' ? `<label class="hc-l">¿Cuántas veces al día? <em>un toque por vez, con pausa entre toques</em></label>
-      <div class="pick">${[2, 3, 5, 8, 10].map(m => `<button class="${+h.meta === m ? 'on' : ''}" data-o="meta" data-i="${i}" data-v="${m}">${m} ${esc(h.unidad || '')}</button>`).join('')}</div>
-      <label class="hc-l">Mínimo entre cada una</label>
-      <div class="pick">${[5, 15, 30, 60, 120].map(m => `<button class="${+h.pausa === m ? 'on' : ''}" data-o="pausa" data-i="${i}" data-v="${m}">${fmtMin(m)}</button>`).join('')}</div>` : `      <label class="hc-l">¿Cuánto tiempo? <em>el reloj debe llegar al final</em></label>
-      <div class="pick">${MINS.map(m => `<button class="${+h.min === m ? 'on' : ''}" data-o="min" data-i="${i}" data-v="${m}">${fmtMin(m)}</button>`).join('')}
-        <label class="pick-own">✎<input type="number" min="1" max="240" data-f="min" data-i="${i}" value="${esc(h.min)}" inputmode="numeric" aria-label="Otros minutos"></label></div>
-`}
-      <label class="hc-l">¿Qué días?</label>
-      <div class="pick">${[['Todos', ALL], ['Lun–Vie', WEEK], ['Fin de semana', WKND]].map(([l, v]) => `<button class="${sameDays(h.dias, v) ? 'on' : ''}" data-o="days" data-i="${i}" data-v="${v.join(',')}">${l}</button>`).join('')}</div>
-      <div class="hb-days">${H.DAYS.map((dd, k) => `<button class="${h.dias.includes(k) ? 'on' : ''}" data-o="day" data-i="${i}" data-k="${k}" aria-label="día ${dd}">${dd}</button>`).join('')}</div>
-      <label class="hc-l">Tu personaje</label>
-      <select class="inp" data-f="act" data-i="${i}">${Object.entries(H.ACTS).map(([k, [e, l]]) => `<option value="${k}"${k === act ? ' selected' : ''}>${e} ${l}</option>`).join('')}</select>
-      <label class="hc-l">¿Por qué? <em>opcional · te lo recordamos si quieres pausar</em></label>
-      <input class="inp" data-f="motivo" data-i="${i}" value="${esc(h.motivo || '')}" maxlength="120" placeholder="Quiero…">
-      <button class="hc-ok" data-o="done">Listo ✓</button>
-    </div></div>`;
-}
-function habitsStep() {
-  return `<div class="onb-eyebrow">PASO 2 · TU RUTINA</div>
-    <h1 class="onb-h">¿Qué quieres hacer cada día?</h1>
-    <p class="onb-p">Toca los hábitos que quieras. Ya traen hora y minutos: si quieres, los ajustas con un toque.</p>
-    <form class="own" data-o="own"><input class="inp" id="ownIn" maxlength="40" placeholder="＋ Escribe el tuyo: “sacar al perro”…" autocomplete="off"><button class="btn-acc" type="submit">Agregar</button></form>
-    <div class="cat-tabs" role="tablist">${H.CATEGORIES.map(([e, n], k) => `<button role="tab" class="${k === cat ? 'on' : ''}" data-o="cat" data-k="${k}">${e} ${n}</button>`).join('')}</div>
-    <div class="ex-grid" id="exGrid">${exampleCards()}</div>
-    <div id="onbRoutine">${routine()}</div>`;
-}
-function routine() {
-  if (!d.habits.length) return '<p class="hint center">Elige al menos uno para empezar. Puedes cambiar todo después.</p>';
-  return `${timeline()}<div class="sec-t">TU RUTINA · toca uno para ajustarlo</div><div class="hc-list">${d.habits.map(habitCard).join('')}</div>`;
-}
-
 function body() {
   const n = esc(d.name || 'jugador');
   switch (STEPS[step]) {
@@ -116,14 +70,10 @@ function body() {
       <div class="presets">${PRESETS.map((p, i) => `<button class="pre${JSON.stringify(p) === JSON.stringify(d.look) ? ' on' : ''}" data-o="preset" data-k="${i}" aria-label="Apariencia ${i + 1}" data-mood="happy">${avatarSVG(p, 'av', '14 0 92 110')}</button>`).join('')}</div>
       <button class="onb-add" data-o="custom">${custom ? '▲ Ocultar opciones' : '✏️ Personalizar piel, pelo, ojos y ropa'}</button>
       ${custom ? `<div class="av-stage" data-mood="happy" id="onbPrev">${avatarSVG(d.look, 'av')}</div><div id="onbEditor">${editorHTML(d.look, avTab)}</div>` : ''}`;
-    case 'areas': return `${mascot('¿Qué quieres mejorar? Elige una o varias.')}
-      <div class="areas">${AREAS.map(([a, e, t]) => `<button class="area${d.areas.includes(a) ? ' on' : ''}" data-o="area" data-v="${a}" aria-pressed="${d.areas.includes(a)}"><span>${e}</span><b>${a}</b><small>${t}</small><i>${d.areas.includes(a) ? '✓' : ''}</i></button>`).join('')}</div>`;
-    case 'habitos': return `${mascot('Estos van con lo que elegiste. Empieza con <b>2 o 3</b>: lo pequeño que se cumple gana.')}
-      <form class="own" data-o="own"><input class="inp" id="ownIn" maxlength="40" placeholder="＋ Escribe el tuyo: “sacar al perro”…" autocomplete="off"><button class="btn-acc" type="submit">Agregar</button></form>
-      <div class="ex-grid" id="exGrid">${exampleCards()}</div>
-      <div id="onbRoutine" hidden></div>`;
-    case 'rutina': return `${mascot('¿Cuándo los harás? Toca cada uno para cambiar la hora, los minutos o los días.')}
-      <div id="onbRoutine">${routine()}</div><div id="exGrid" hidden></div>`;
+    case 'habitos': return `${mascot('Escribe los hábitos de tu día, <b>desde que despiertas hasta que duermes</b>. Si les pones hora, te avisamos.')}
+      <div id="hbSlots">${slotsHTML()}</div>
+      <button class="onb-add" data-o="addslot" id="addSlot"${named() ? '' : ' hidden'}>＋ Otro hábito</button>
+      <p class="hint center">Entre más hábitos tengas, más rápido subes de nivel. Puedes empezar con uno y agregar más después.</p>`;
     case 'compromiso': return `${mascot('¿Cuál es tu meta de racha? Días seguidos cumpliendo al menos un hábito.')}
       <div class="goals">${GOALS.map(([g, t, s2]) => `<button class="goal${d.goal === g ? ' on' : ''}" data-o="goal" data-v="${g}"><b>${g} días</b><span>${t}</span><small>${s2}</small><i>🔥</i></button>`).join('')}</div>`;
     case 'cuenta': return accountStep();
@@ -154,7 +104,7 @@ function accountStep() {
 }
 function draw() {
   const k = STEPS[step]; const last = k === 'listo';
-  const blocked = (k === 'areas' && !d.areas.length) || ((k === 'habitos' || k === 'rutina') && !d.habits.length) || (k === 'nombre' && !d.name.trim()) || (k === 'cuenta' && Auth.configured() && !Auth.signedIn());
+  const blocked = (k === 'habitos' && !named()) || (k === 'nombre' && !d.name.trim()) || (k === 'cuenta' && Auth.configured() && !Auth.signedIn());
   $('onb').innerHTML = `
     <div class="onb-top">${k === 'hola' ? `<button class="onb-lang" data-o="lang" translate="no">🌐 ${I18N.isEn ? 'Español' : 'English'}</button>` : ''}${step > 0 && !(k === 'cuenta' && d.returning) ? '<button class="onb-back" data-o="back" aria-label="Atrás">←</button>' : d.returning ? '<button class="onb-back" data-o="home" aria-label="Atrás">←</button>' : ''}
       <div class="onb-prog" aria-hidden="true"><i style="width:${Math.round(step / (STEPS.length - 1) * 100)}%"></i></div>
@@ -166,41 +116,17 @@ function draw() {
   $('onbBody').scrollTop = 0;
   if (k === 'hola') binaryRain();
   if (k === 'nombre') { const i = $('onbName'); i.focus(); i.oninput = () => { d.name = i.value; $('onbNext').classList.toggle('off', !i.value.trim()); }; i.onkeydown = e => { if (e.key === 'Enter' && i.value.trim()) { e.preventDefault(); next(); } }; }
-  if (k === 'rutina') wireInputs();
+  if (k === 'habitos') mountSlots();
   if (k === 'cuenta') { const e = $('obEmail'); if (e) e.onkeydown = ev => { if (ev.key === 'Enter') { ev.preventDefault(); $('onb').querySelector('[data-o="sendcode"]').click(); } }; }
 }
-const nextLabel = () => { const k = STEPS[step]; return k === 'habitos' ? (d.habits.length ? `CONTINUAR · ${d.habits.length} hábito${d.habits.length > 1 ? 's' : ''}` : 'ELIGE AL MENOS UNO') : k === 'areas' && !d.areas.length ? 'ELIGE AL MENOS UNA' : k === 'compromiso' ? `ME COMPROMETO · ${d.goal} DÍAS 🔥` : k === 'listo' ? '▶ PRESS START' : 'CONTINUAR'; };
+const nextLabel = () => { const k = STEPS[step]; return k === 'habitos' ? (named() ? `CONTINUAR · ${named()} hábito${named() > 1 ? 's' : ''}` : 'ESCRIBE TU PRIMER HÁBITO') : k === 'compromiso' ? `ME COMPROMETO · ${d.goal} DÍAS 🔥` : k === 'listo' ? '▶ PRESS START' : 'CONTINUAR'; };
 function next() {
   const k = STEPS[step];
   if (k === 'nombre' && !d.name.trim()) return;
-  if (k === 'areas' && !d.areas.length) return;
-  if ((k === 'habitos' || k === 'rutina') && !d.habits.length) return;
+  if (k === 'habitos') { if (!named()) return; d.habits = d.habits.filter(h => (h.nombre || '').trim()); }
   if (k === 'cuenta' && Auth.configured() && !Auth.signedIn()) return;
   if (k === 'listo') return finish();
-  if (k === 'areas' && !d.habits.length) seedSuggestions();
   step++; d.open = -1; draw();
-}
-/** Primer hábito de cada área elegida, ya marcado: el jugador solo ajusta. */
-function seedSuggestions() {
-  H.CATEGORIES.filter(([, n]) => d.areas.includes(n)).forEach(([, , list]) => { const ex = list[0]; if (picked(ex[1]) < 0 && d.habits.length < 3) addHabit({ emoji: ex[0], nombre: ex[1], min: ex[2], hora: ex[3], act: ex[4], ...(ex[5] || {}) }); });
-}
-/** Redibuja solo la rutina (sin perder el scroll). */
-function redrawRoutine(scrollTo = -1) {
-  if ($('onbRoutine')) $('onbRoutine').innerHTML = routine(); if ($('exGrid')) $('exGrid').innerHTML = exampleCards(); if ($('onbNext')) { $('onbNext').textContent = nextLabel(); $('onbNext').classList.toggle('off', !d.habits.length); }
-  wireInputs();
-  if (scrollTo >= 0) document.querySelector(`.hc[data-i="${scrollTo}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-function wireInputs() {
-  document.querySelectorAll('#onb [data-f]').forEach(inp => {
-    inp.oninput = () => {
-      const h = d.habits[+inp.dataset.i]; const f = inp.dataset.f;
-      if (f === 'min') h.min = Math.max(1, Math.min(240, parseInt(inp.value) || 1));
-      else if (f === 'nombre') { h.nombre = inp.value; if (!h._emoji) { const e = H.guessEmoji(h.nombre); if (e !== '⭐') h.emoji = e; } if (!h._act) h.act = H.guessAct(h.nombre, h.emoji); }
-      else if (f === 'act') { h.act = inp.value; h._act = true; }
-      else h[f] = inp.value;
-    };
-    inp.onchange = () => { if (['hora', 'min', 'act', 'nombre'].includes(inp.dataset.f)) redrawRoutine(); };
-  });
 }
 function readName() { if ($('onbName')) d.name = $('onbName').value.trim(); }
 function addHabit(h, openIt = false) {
@@ -212,7 +138,7 @@ function finish() {
   saveCfg({ name: (d.name || 'Jugador').trim().slice(0, 20), avatar: d.look, onboarded: true, since: cfg.since || todayIso(), goalDays: d.goal, rankOn: cfg.rankOn !== false });
   const keep = new Set();
   d.habits.filter(h => h.nombre.trim()).forEach(h => {
-    const it = H.save({ nombre: h.nombre.trim(), emoji: h.emoji || '⭐', min: h.min, hora: h.hora || '08:00', dias: h.dias?.length ? h.dias : [...ALL], motivo: h.motivo || '', act: h.act || H.guessAct(h.nombre, h.emoji), ...(h.tipo === 'conteo' ? { tipo: 'conteo', meta: h.meta || 1, unidad: h.unidad || 'veces', pausa: h.pausa ?? 15 } : {}) }, h.id || null);
+    const it = H.save({ nombre: h.nombre.trim(), emoji: h.emoji || '⭐', min: h.min, hora: h.hora || '', tipo: h.tipo || 'reloj', dias: h.dias?.length ? h.dias : [...ALL], motivo: h.motivo || '', act: h.act || H.guessAct(h.nombre, h.emoji), ...(h.tipo === 'conteo' ? { meta: h.meta || 1, unidad: h.unidad || 'veces', pausa: h.pausa ?? 15 } : {}) }, h.id || null);
     keep.add(it.id);
   });
   H.list().forEach(h => { if (!keep.has(h.id)) H.remove(h.id); });
@@ -247,14 +173,6 @@ function binaryRain() {
   tick();
 }
 
-document.addEventListener('submit', e => {
-  if ($('onb').hidden || !e.target.matches('.own')) return;
-  e.preventDefault();
-  const n = $('ownIn').value.trim(); if (!n) return $('ownIn').focus();
-  addHabit({ emoji: H.guessEmoji(n), nombre: n, min: 15, hora: '08:00', act: H.guessAct(n) }, true);
-  $('ownIn').value = ''; redrawRoutine(d.open);
-  if ($('exGrid') && !$('exGrid').hidden) $('exGrid').insertAdjacentHTML('afterbegin', `<div class="ex-cat">✨ Agregado: ${esc(n)} · lo ajustas en el siguiente paso</div>`);
-});
 document.addEventListener('click', async e => {
   if ($('onb').hidden) return;
   const tab = e.target.closest('[data-avtab]');
@@ -283,25 +201,11 @@ document.addEventListener('click', async e => {
   if (o === 'close') { close(); return onDone?.({ first: false }); }
   if (o === 'preset') { d.look = normLook(PRESETS[+el.dataset.k]); document.querySelectorAll('.pre').forEach(p => p.classList.toggle('on', p === el)); if (custom) { $('onbPrev').innerHTML = avatarSVG(d.look, 'av'); $('onbEditor').innerHTML = editorHTML(d.look, avTab); } return; }
   if (o === 'custom') { custom = !custom; return draw(); }
-  if (o === 'area') { const v = el.dataset.v; d.areas = d.areas.includes(v) ? d.areas.filter(x => x !== v) : [...d.areas, v]; return draw(); }
   if (o === 'goal') { d.goal = +el.dataset.v; return draw(); }
   if (o === 'google') { try { localStorage.setItem(K_DRAFT, JSON.stringify({ d, step })); Auth.google(); } catch (x) { err(x.message); } return; }
   if (o === 'sendcode') { const em = ($('obEmail')?.value || '').trim(); if (!/^\S+@\S+\.\S+$/.test(em)) return err('Escribe un correo válido.'); el.disabled = true; try { await Auth.sendCode(em); mail = { sent: true, email: em }; draw(); $('obCode')?.focus(); } catch (x) { err(x.message); el.disabled = false; } return; }
   if (o === 'resend') { mail = { sent: false, email: mail.email }; return draw(); }
   if (o === 'verify') { el.disabled = true; try { await Auth.verifyCode(mail.email, $('obCode').value); mail = { sent: false, email: '' }; await onLogin(); } catch (x) { err(x.message); el.disabled = false; } return; }
-  if (o === 'ex') {
-    const ex = H.EXAMPLES.find(x => x[1] === el.dataset.n); const k = picked(ex[1]);
-    if (k >= 0) { d.habits.splice(k, 1); d.open = -1; } else addHabit({ emoji: ex[0], nombre: ex[1], min: ex[2], hora: ex[3], act: ex[4], ...(ex[5] || {}) });
-    return redrawRoutine();
-  }
-  if (o === 'edit') { d.open = d.open === i ? -1 : i; return redrawRoutine(i); }
-  if (o === 'done') { d.open = -1; return redrawRoutine(); }
-  if (o === 'del') { d.habits.splice(i, 1); d.open = -1; return redrawRoutine(); }
-  if (o === 'emoji') { h.emoji = el.dataset.v; h._emoji = true; if (!h._act) h.act = H.guessAct(h.nombre, h.emoji); return redrawRoutine(i); }
-  if (o === 'hora') { h.hora = el.dataset.v; return redrawRoutine(i); }
-  if (o === 'min') { h.min = +el.dataset.v; return redrawRoutine(i); }
-  if (o === 'meta') { h.meta = +el.dataset.v; return redrawRoutine(i); }
-  if (o === 'pausa') { h.pausa = +el.dataset.v; return redrawRoutine(i); }
-  if (o === 'days') { h.dias = el.dataset.v.split(',').map(Number); return redrawRoutine(i); }
-  if (o === 'day') { const k = +el.dataset.k; h.dias = h.dias.includes(k) ? h.dias.filter(x => x !== k) : [...h.dias, k].sort(); if (!h.dias.length) h.dias = [k]; return redrawRoutine(i); }
+  if (o === 'addslot') { d.habits.push({ ...HF.blank() }); draw(); return setTimeout(() => { const l = document.querySelector('.hslot:last-child'); l?.scrollIntoView({ behavior: 'smooth', block: 'start' }); l?.querySelector('[data-hf-in]')?.focus({ preventScroll: true }); }, 80); }
+  if (o === 'delslot') { d.habits.splice(i, 1); if (!d.habits.length) d.habits.push({ ...HF.blank() }); return draw(); }
 });

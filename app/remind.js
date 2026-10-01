@@ -35,7 +35,7 @@ export function tick() {
   const now = new Date(); const m = now.getHours() * 60 + now.getMinutes(); const lead = +(cfg.remindLead ?? 5);
   const v = seen();
   for (const h of H.forDay()) {
-    const s = H.sess(h.id); if (s.done || s.el > 0 || v.ids[h.id]) continue;
+    const s = H.sess(h.id); if (!H.hasTime(h) || s.done || s.el > 0 || v.ids[h.id]) continue;
     const at = H.minutesOf(h.hora) - lead;
     if (m >= at && m <= at + 10) {
       v.ids[h.id] = 1; mark(v);
@@ -43,6 +43,17 @@ export function tick() {
       notify(`${h.emoji} ${h.nombre} · ${lead ? `en ${lead} min` : 'es la hora'}`, `${cfg.name || 'Tu personaje'} ${LINES[act] || 'te está esperando'}. ${h.min} min · empieza a tiempo y ganas +25%.`, 'io-' + h.id, `./?start=${encodeURIComponent(h.id)}`);
     }
   }
+}
+/** Avisa cuando termina el cronómetro (si dejas la app en segundo plano o apagas la pantalla). */
+let endT = 0;
+export function timerEnd(id) {
+  clearTimeout(endT);
+  const h = H.get(id); if (!h || !enabled() || H.isCount(h) || H.isMark(h)) return;
+  const ms = Math.max(0, h.min * 60 - H.elapsed(id)) * 1000 + 800;
+  endT = setTimeout(() => {
+    const r = H.running(); if (!r || r.hid !== id) return;
+    notify(`${h.emoji} ¡Listo! Terminaste ${h.nombre}`, 'Abre IO y activa tu corona 👑', 'io-end-' + id, `./?start=${encodeURIComponent(id)}`);
+  }, ms);
 }
 export function start() { tick(); setInterval(tick, 30000); }
 
@@ -61,10 +72,10 @@ const stamp = (d, hhmm) => { const [a, b] = hhmm.split(':'); return `${d.getFull
 const esc = s => String(s).replace(/[\\;,]/g, m => '\\' + m).replace(/\n/g, '\\n');
 function nextDate(h) { const d = new Date(); for (let i = 0; i < 7; i++) { if ((h.dias || [0, 1, 2, 3, 4, 5, 6]).includes(d.getDay())) return d; d.setDate(d.getDate() + 1); } return new Date(); }
 const rrule = h => `FREQ=WEEKLY;BYDAY=${(h.dias || [0, 1, 2, 3, 4, 5, 6]).map(k => BYDAY[k]).join(',')}`;
-export function ics(habits = H.list()) {
+export function ics(habits = H.list().filter(H.hasTime)) {
   const now = new Date(); const dt = `${now.getUTCFullYear()}${pad(now.getUTCMonth() + 1)}${pad(now.getUTCDate())}T${pad(now.getUTCHours())}${pad(now.getUTCMinutes())}00Z`;
   const url = location.origin + location.pathname;
-  const ev = habits.map(h => ['BEGIN:VEVENT', `UID:${h.id.replace(/[^\w-]/g, '')}@io.habitos`, `DTSTAMP:${dt}`, `DTSTART:${stamp(nextDate(h), h.hora || '08:00')}`, `DURATION:PT${h.min}M`, `RRULE:${rrule(h)}`,
+  const ev = habits.map(h => ['BEGIN:VEVENT', `UID:${h.id.replace(/[^\w-]/g, '')}@io.habitos`, `DTSTAMP:${dt}`, `DTSTART:${stamp(nextDate(h), h.hora || '08:00')}`, `DURATION:PT${H.isMark(h) || H.isCount(h) ? 5 : h.min}M`, `RRULE:${rrule(h)}`,
     `SUMMARY:${esc(`${h.emoji} ${h.nombre} · IO`)}`, `DESCRIPTION:${esc(tr(`${h.min} min con reloj en IO. ${h.motivo ? 'Tu porqué: ' + h.motivo + '. ' : ''}Ábrelo aquí: ${url}?start=${h.id}`))}`, `URL:${url}?start=${h.id}`,
     'BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${esc(`${h.emoji} ${h.nombre}`)}`, `TRIGGER:-PT${+(cfg.remindLead ?? 5)}M`, 'END:VALARM', 'END:VEVENT'].join('\r\n'));
   return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//IO//Habitos//ES', 'CALSCALE:GREGORIAN', 'X-WR-CALNAME:' + tr('IO · mis hábitos'), ...ev, 'END:VCALENDAR'].join('\r\n');
