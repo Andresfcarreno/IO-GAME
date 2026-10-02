@@ -17,6 +17,7 @@ import * as Rem from './remind.js';
 import * as Pet from './pet.js';
 import * as Wx from './weather.js';
 import * as Auth from './auth.js';
+import * as So from './social.js';
 import * as I18N from './i18n.js';
 import EN from './i18n-en.js';
 if (I18N.isEn) I18N.addDict(EN);
@@ -81,6 +82,30 @@ function renderTop() {
   G.setMood(H.running() ? 'neutral' : t.claimed ? 'happy' : 'neutral');
   $('led').classList.toggle('on', !!H.running());
 }
+/* ---------- lobby: jugadores reales que están ahí ahora ---------- */
+let lobbyT = null, lobbyShuffle = null, lobbyWas = false;
+async function lobbyTick(arrived = false) {
+  const box = $('folk'); if (!box) return;
+  if (W.game().floor !== 0) {
+    box.innerHTML = ''; clearInterval(lobbyT); clearInterval(lobbyShuffle); lobbyT = lobbyShuffle = null;
+    if (lobbyWas) { lobbyWas = false; So.lobbyLeave(); }
+    return;
+  }
+  lobbyWas = true; So.lobbyPing();
+  const folk = await So.lobbyFolk();
+  if (W.game().floor !== 0) return;
+  box.innerHTML = folk.map((f, i) => `<div class="lobby-folk" style="left:${30 + (i * 37) % 60}%" title="${esc(f.name)}"><b>${esc(f.name)}</b>${avatarSVG(f.look, 'av')}</div>`).join('');
+  if (arrived) G.say(!Auth.configured() ? '🏛️ El lobby se llena cuando el servidor de IO está conectado.' : folk.length ? `👥 ${folk.length === 1 ? 'Hay 1 jugador' : `Hay ${folk.length} jugadores`} en el lobby ahora.` : '🏛️ Estás solo en el lobby por ahora. Invita a alguien a jugar.', 3800);
+}
+function lobbyWatch(arrived = false) {
+  if (W.game().floor === 0) {
+    lobbyTick(arrived);
+    if (!lobbyT) lobbyT = setInterval(lobbyTick, 20000);
+    if (!lobbyShuffle) lobbyShuffle = setInterval(() => document.querySelectorAll('#folk .lobby-folk').forEach(el => { el.style.left = (28 + Math.random() * 64).toFixed(1) + '%'; }), 6000);
+  } else lobbyTick();
+}
+addEventListener('pagehide', () => { if (lobbyWas) So.lobbyLeave(); });
+
 function renderAll() { renderTop(); renderHabits(); L.render(); G.render(); renderMini(); R.publish(); Rem.badge(); }
 
 /* ================= mini reproductor: tu próximo hábito siempre a un toque ================= */
@@ -436,7 +461,7 @@ G.init({
   onMenu: k => k.startsWith('stats') ? statsSheet(k.split(':')[1]) : ({ mochila: bagSheet, tienda: () => L.show('tienda', { scroll: true }), ranking: () => L.show('ranking', { scroll: true }), progreso: () => L.show('progreso', { scroll: true }), mapa: mapSheet, personaje: charSheet, logros: achievementsTab, ajustes: settingsSheet })[k]?.(),
   onDecoMenu: u => decoSheet(u),
   onRadio: () => { const st = Radio.toggle(W.level()); $('scene').classList.toggle('radio-on', !!st); L.render(); return st ? `${st.e} ${st.n}` : ''; },
-  onFloor: () => { renderTop(); L.render(); },
+  onFloor: () => { renderTop(); L.render(); lobbyWatch(true); },
 });
 L.init({ renderAll, buy, place, celebrate, start: id => startHabit(id) });
 document.body.dataset.gb = cfg.gb || 'clasico';
@@ -456,6 +481,7 @@ else {
   else { const n = H.nextUp(); G.say(n ? `Hola ${cfg.name}. Próximo: ${n.emoji} ${n.nombre}${H.hasTime(n) ? ' a las ' + n.hora : ''}.` : `Hola ${cfg.name}. ¡Todo listo por hoy! Camina, decora o visita tus pisos.`, 5000); }
 }
 Auth.init();
+setTimeout(() => lobbyWatch(), 1500); // si la partida quedó en el lobby
 S.sync().then(renderAll);
 Auth.handleRedirect().then(u => { if (u) { if (!cfg.onboarded) window.dispatchEvent(new CustomEvent('io:login', { detail: u })); else afterLogin(u); } }).catch(e => toast('⚠️ ' + e.message, 5000));
 Rem.start();

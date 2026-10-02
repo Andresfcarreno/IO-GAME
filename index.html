@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>IO · Tu vida es el juego</title>
+<title>IO · Game Life</title>
 <meta name="description" content="IO es un videojuego retro gratis donde subes de nivel haciendo tus hábitos reales. El reloj cuenta de verdad: si lees 20 minutos, tu personaje lee contigo.">
-<meta name="theme-color" content="#09090f">
+<meta name="theme-color" content="#0a0820">
 <link rel="alternate" hreflang="es" href="?lang=es">
 <link rel="alternate" hreflang="en" href="?lang=en">
 <link rel="alternate" hreflang="x-default" href="./">
@@ -18,324 +18,337 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://iogamelife.com/">
 <meta property="og:image" content="https://iogamelife.com/img/tarjeta.webp">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://iogamelife.com/img/tarjeta.webp">
 <meta name="twitter:title" content="IO · Tu vida es el juego">
 <meta name="twitter:description" content="Un videojuego retro donde tus hábitos reales te suben de nivel. Gratis, sin anuncios.">
-<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="app/icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="app/icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Pixelify+Sans:wght@500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
+/* Concepto: una consola de bolsillo encendida sobre un mundo 3D de islas flotantes al atardecer.
+   El texto vive en pantallas LCD y placas de vidrio; el mundo hace el resto. Un solo look oscuro. */
 :root{
   color-scheme:dark;
-  --bg:#09090f;--s1:#111120;--s2:#181830;--s3:#1f1f3c;--s4:#2a2a52;
-  --acc:#7c5cff;--acc2:#a78bfa;--acc3:#c4b5fd;--cyan:#22d3ee;--green:#4ade80;--amber:#fbbf24;--red:#f87171;--pink:#f472b6;
-  --text:#eeecfc;--muted:#a3a1cc;--dim:#6b69a0;--border:rgba(124,92,255,.18);--bh:rgba(124,92,255,.4);
-  --glass:rgba(12,11,24,.72);
-  --font:'Space Grotesk',system-ui,sans-serif;--mono:'Space Mono',ui-monospace,monospace;--pixel:'Press Start 2P',ui-monospace,monospace;
-  --gb:#9bbc0f;--gb2:#8bac0f;--gb3:#306230;--gb4:#0f380f;
+  --night:#0a0820;      /* cielo de noche */
+  --lcd:#a7d62a;        /* verde de pantalla de bolsillo */
+  --lcd-ink:#1d3311;    /* tinta del LCD */
+  --gold:#ffc83d;       /* la corona */
+  --neon:#ff4fb8;       /* neón del rascacielos */
+  --sky:#71e6ff;        /* cristal de la torre */
+  --ink:#f3efff;        /* texto */
+  --mute:#b5acd9;       /* texto secundario */
+  --line:rgba(167,139,255,.22);
+  --glass:rgba(16,12,40,.62);
+  --display:'Pixelify Sans','Chakra Petch',ui-monospace,monospace;
+  --body:'Chakra Petch',system-ui,sans-serif;
+  --pixel:'Press Start 2P',ui-monospace,monospace;
+  --gut:clamp(16px,4vw,40px);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
-body{font-family:var(--font);background:var(--bg);color:var(--text);overflow-x:hidden;line-height:1.55}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{font-family:var(--body);background:var(--night);color:var(--ink);overflow-x:hidden;line-height:1.5}
 a{color:inherit}
-button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
-input,select{font:inherit;color:var(--text)}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input,select{font:inherit;color:var(--ink)}
 img,video{display:block;max-width:100%}
 [hidden]{display:none!important}
-:focus-visible{outline:2px solid var(--cyan);outline-offset:3px;border-radius:6px}
-.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
-@media (max-width:520px){.wrap{padding:0 16px}}
+:focus-visible{outline:2px solid var(--lcd);outline-offset:3px;border-radius:6px}
+h1,h2,h3{text-wrap:balance}
 
-/* ============ mundo 3D de fondo ============ */
-#world{position:fixed;inset:0;width:100%;height:100%;z-index:0;display:block;transition:opacity .6s}
-body.deep #world{opacity:.5}
-@media (max-width:700px){body.deep #world{opacity:.3}}
-.hero .h1,.hero .lead{text-shadow:0 2px 24px rgba(9,9,15,.9),0 0 2px rgba(9,9,15,.8)}
-.hero .h1 .glow{text-shadow:none}
-.bg-fallback{position:fixed;inset:0;z-index:0;background:
-  radial-gradient(ellipse 70% 50% at 50% 100%,rgba(124,92,255,.35),transparent 70%),
-  radial-gradient(ellipse 60% 40% at 80% 10%,rgba(34,211,238,.14),transparent 70%),var(--bg)}
-.vignette{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse 120% 90% at 50% 40%,transparent 55%,rgba(5,5,10,.75))}
-.scan{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:.07;background:repeating-linear-gradient(0deg,#000 0 1px,transparent 1px 3px)}
-main,header,footer{position:relative;z-index:3}
+/* ============ mundo 3D ============ */
+#world{position:fixed;inset:0;width:100%;height:100%;z-index:0;display:block;transition:opacity .8s}
+.sky-fallback{position:fixed;inset:0;z-index:0;transition:opacity 1s;background:
+  radial-gradient(ellipse 60% 40% at 30% 72%,rgba(255,122,89,.55),transparent 70%),
+  radial-gradient(ellipse 90% 60% at 50% 100%,rgba(255,79,184,.35),transparent 70%),
+  linear-gradient(180deg,#070616 0%,#1d1048 55%,#5b2a6e 80%,#ff8a66 100%)}
+.grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.05;background:repeating-linear-gradient(0deg,#000 0 1px,transparent 1px 3px)}
+.vig{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse 130% 95% at 50% 45%,transparent 55%,rgba(4,3,14,.8))}
+body.deep #world{opacity:.42}
+@media (max-width:760px){body.deep #world{opacity:.3}}
+header,main,footer{position:relative;z-index:3}
 
-/* ============ intro tipo consola ============ */
-.boot{position:fixed;inset:0;z-index:100;display:grid;place-items:center;background:#05050a;transition:opacity .7s ease,visibility .7s}
+/* ============ intro: la consola se prende ============ */
+.boot{position:fixed;inset:0;z-index:100;display:grid;place-items:center;background:#05040d;transition:opacity .6s,visibility .6s}
 .boot.out{opacity:0;visibility:hidden}
-.gbx{position:relative;width:min(300px,78vw);aspect-ratio:10/16.4;background:linear-gradient(160deg,#dcd8ec,#b9b4d2);border-radius:14px 14px 56px 14px;padding:clamp(16px,6vw,22px) clamp(16px,6vw,22px) 0;box-shadow:inset -6px -8px 0 rgba(0,0,0,.12),0 30px 80px rgba(124,92,255,.35);transition:transform .9s cubic-bezier(.6,0,.2,1)}
-.boot.go .gbx{transform:scale(7) translateY(9%)}
-.gbx-bez{background:#3d3b5c;border-radius:8px 8px 30px 8px;padding:9% 9% 11%;position:relative}
-.gbx-led{position:absolute;left:4%;top:34%;width:7px;height:7px;border-radius:50%;background:#3a1a1a}
-.boot.on .gbx-led{background:#ff3b3b;box-shadow:0 0 8px #ff3b3b}
-.gbx-scr{aspect-ratio:10/9;background:var(--gb4);border-radius:3px;overflow:hidden;position:relative;display:grid;place-items:center;transition:background .4s}
-.boot.on .gbx-scr{background:var(--gb)}
-.gbx-logo{font-family:var(--pixel);font-size:clamp(26px,9vw,40px);color:var(--gb4);transform:translateY(-230%);letter-spacing:2px}
-.boot.on .gbx-logo{animation:bootDrop 1.5s cubic-bezier(.3,.7,.3,1) .3s forwards}
-@keyframes bootDrop{to{transform:translateY(-35%)}}
-.gbx-sub{position:absolute;bottom:30%;font-family:var(--pixel);font-size:7px;color:var(--gb3);opacity:0;letter-spacing:.5px}
-.gbx-ps{position:absolute;bottom:12%;font-family:var(--pixel);font-size:9px;color:var(--gb4);opacity:0}
-.boot.on .gbx-sub{animation:fadeIn .4s 1.8s forwards}
-.boot.on .gbx-ps{animation:fadeIn .1s 2.2s forwards,blink 1s 2.3s steps(1) infinite}
-@keyframes fadeIn{to{opacity:1}}
+.dev{position:relative;width:min(280px,72vw);aspect-ratio:10/16.4;border-radius:16px 16px 60px 16px;padding:20px 20px 0;
+  background:linear-gradient(155deg,#e8e4f4,#bdb7d6);box-shadow:inset -6px -8px 0 rgba(0,0,0,.13),0 40px 120px rgba(124,92,255,.35);
+  transition:transform 1s cubic-bezier(.7,0,.2,1)}
+.boot.go .dev{transform:scale(8.5) translateY(13%)}
+.bez{position:relative;background:#3c3a5a;border-radius:8px 8px 32px 8px;padding:12% 10% 14%}
+.led{position:absolute;left:4%;top:38%;width:7px;height:7px;border-radius:50%;background:#3d1b1b}
+.boot.on .led{background:#ff3b3b;box-shadow:0 0 10px #ff3b3b}
+.lcd{aspect-ratio:10/9;border-radius:3px;background:#22321a;display:grid;place-items:center;overflow:hidden;position:relative;transition:background .5s}
+.boot.on .lcd{background:var(--lcd)}
+.lcd-logo{transform:translateY(-260%);text-align:center;color:var(--lcd-ink)}
+.lcd-logo b{display:block;font-family:var(--display);font-weight:700;font-size:clamp(30px,10vw,42px);line-height:1}
+.lcd-logo i{display:block;font-family:var(--display);font-style:italic;font-weight:700;font-size:clamp(14px,4.4vw,19px);letter-spacing:1px;margin-top:4px}
+.boot.on .lcd-logo{animation:drop 1.4s cubic-bezier(.3,.7,.3,1) .25s forwards}
+@keyframes drop{to{transform:translateY(-12%)}}
+.lcd-ps{position:absolute;bottom:13%;font-family:var(--pixel);font-size:8px;color:var(--lcd-ink);opacity:0}
+.boot.on .lcd-ps{animation:fadein .1s 1.9s forwards,blink 1s 2s steps(1) infinite}
+@keyframes fadein{to{opacity:1}}
 @keyframes blink{50%{opacity:0}}
-.gbx-name{font-family:var(--pixel);font-size:8px;color:#3d3b5c;margin:6% 0 0 2%;letter-spacing:1px}
-.gbx-name .gl{font-family:var(--font);font-style:italic;font-weight:700;font-size:14px;letter-spacing:-.3px;display:inline-block;transform:skewX(-6deg);margin-left:4px}
-.gbx-name .gl b{color:#3d3b5c;margin-right:4px}.gbx-name .gl i{color:var(--acc);font-style:italic}
-.gbx-pad{position:absolute;left:10%;bottom:21%;width:26%;aspect-ratio:1}
-.gbx-pad::before,.gbx-pad::after{content:"";position:absolute;background:#2a2940;border-radius:3px}
-.gbx-pad::before{left:34%;top:0;width:32%;height:100%}.gbx-pad::after{top:34%;left:0;height:32%;width:100%}
-.gbx-ab{position:absolute;right:9%;bottom:24%;display:flex;gap:10px;transform:rotate(-25deg)}
-.gbx-ab span{width:clamp(22px,8vw,30px);aspect-ratio:1;border-radius:50%;background:#9c2a5c;box-shadow:inset -2px -3px 0 rgba(0,0,0,.25)}
-.boot-hint{position:absolute;bottom:max(24px,env(safe-area-inset-bottom));left:0;right:0;text-align:center;font-family:var(--pixel);font-size:9px;color:var(--dim);letter-spacing:1px}
-.boot-skip{position:absolute;top:max(16px,env(safe-area-inset-top));right:16px;font-size:13px;color:var(--muted);padding:8px 12px;border:1px solid var(--border);border-radius:10px}
+.dev-name{margin:7% 0 0 3%;font-family:var(--display);font-style:italic;font-weight:700;font-size:15px;color:#3c3a5a;letter-spacing:.2px}
+.dev-name em{font-style:italic;color:#7b4dff}
+.dpad{position:absolute;left:11%;bottom:20%;width:25%;aspect-ratio:1}
+.dpad::before,.dpad::after{content:"";position:absolute;background:#2b2944;border-radius:3px}
+.dpad::before{left:34%;width:32%;height:100%}.dpad::after{top:34%;height:32%;width:100%}
+.abtn{position:absolute;right:9%;bottom:23%;display:flex;gap:10px;transform:rotate(-24deg)}
+.abtn span{width:clamp(22px,7.6vw,30px);aspect-ratio:1;border-radius:50%;background:#a12a62;box-shadow:inset -2px -3px 0 rgba(0,0,0,.25)}
+.boot-hint{position:absolute;bottom:max(26px,env(safe-area-inset-bottom));left:0;right:0;text-align:center;font-family:var(--pixel);font-size:8px;color:#6c6596;letter-spacing:1px}
+.boot-skip{position:absolute;top:max(16px,env(safe-area-inset-top));right:16px;font-size:13px;color:var(--mute);padding:8px 12px;border:1px solid var(--line);border-radius:10px}
 
 /* ============ encabezado ============ */
-header{position:fixed;top:0;left:0;right:0;z-index:50;transition:background .3s,border-color .3s;border-bottom:1px solid transparent}
-header.solid{background:rgba(9,9,15,.8);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-color:var(--border)}
-.nav{display:flex;align-items:center;justify-content:space-between;height:64px;gap:14px}
-.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:700}
-.brand b{font-size:28px;letter-spacing:-1px;background:linear-gradient(90deg,var(--acc2),var(--cyan),var(--green),var(--amber),var(--pink),var(--acc2));background-size:300% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:rainbow 8s linear infinite}
-@keyframes rainbow{to{background-position:300% 0}}
-.brand small{font-family:var(--mono);font-size:11px;color:var(--dim)}
-.links{display:flex;gap:22px;font-size:14px;color:var(--muted)}
-.links a{text-decoration:none}.links a:hover{color:var(--text)}
+header{position:fixed;top:0;left:0;right:0;z-index:50;padding-top:env(safe-area-inset-top,0px);transition:background .3s,border-color .3s;border-bottom:1px solid transparent}
+header.solid{background:rgba(10,8,32,.74);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-color:var(--line)}
+.nav{max-width:1180px;margin:0 auto;padding:0 var(--gut);height:64px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:baseline;gap:9px;text-decoration:none}
+.brand b{font-family:var(--display);font-weight:700;font-size:30px;line-height:1;background:linear-gradient(90deg,#b49bff,var(--sky),var(--lcd),var(--gold),var(--neon),#b49bff);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:hue 8s linear infinite}
+@keyframes hue{to{background-position:300% 0}}
+.brand i{font-family:var(--display);font-style:italic;font-weight:700;font-size:15px;color:var(--mute)}
+.brand i em{color:var(--lcd);font-style:italic}
 .navr{display:flex;align-items:center;gap:10px}
-.lang{display:flex;border:1px solid var(--bh);border-radius:10px;overflow:hidden}
-.lang button{font-family:var(--pixel);font-size:9px;padding:9px 9px;color:var(--muted)}
-.lang button.on{background:var(--acc);color:#fff}
-@media (max-width:860px){.links{display:none}.brand small{display:none}}
+.lang{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.lang button{font-family:var(--pixel);font-size:8px;padding:10px 9px;color:var(--mute)}
+.lang button.on{background:var(--lcd);color:var(--lcd-ink)}
+@media (max-width:420px){.brand i{display:none}}
 
 /* ============ botones ============ */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:14px 22px;border-radius:14px;font-weight:700;text-decoration:none;font-size:16px;transition:transform .15s,box-shadow .2s;white-space:nowrap}
-.btn:active{transform:translateY(2px)}
-.btn-start{font-family:var(--pixel);font-size:13px;letter-spacing:1px;color:#1a1033;background:linear-gradient(180deg,#ffe27a,var(--amber));box-shadow:0 5px 0 #b7791f,0 0 30px rgba(251,191,36,.45)}
-.btn-start:hover{box-shadow:0 5px 0 #b7791f,0 0 50px rgba(251,191,36,.7)}
-.btn-start:active{box-shadow:0 1px 0 #b7791f}
-.btn-ghost{border:1px solid var(--bh);background:rgba(124,92,255,.12);color:var(--text)}
-.btn-ghost:hover{background:rgba(124,92,255,.22)}
-.btn-sm{padding:10px 14px;font-size:10px}
-
-/* ============ portada ============ */
-.hero{min-height:100svh;display:flex;flex-direction:column;justify-content:center;padding:96px 0 60px;position:relative}
-.hero .wrap{width:100%}
-.tag{display:inline-flex;align-items:center;gap:8px;font-family:var(--pixel);font-size:9px;letter-spacing:1px;color:var(--green);background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.3);padding:8px 12px;border-radius:30px}
-.tag i{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:blink 1.4s steps(1) infinite}
-.h1{font-size:clamp(48px,10vw,120px);line-height:.92;letter-spacing:-3px;font-weight:700;margin:22px 0 18px;max-width:11ch}
-.h1 .glow{background:linear-gradient(90deg,var(--acc2),var(--cyan) 40%,var(--green) 70%,var(--amber));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 30px rgba(124,92,255,.5))}
-.lead{font-size:clamp(17px,2.2vw,21px);color:var(--muted);max-width:40ch}
-.lead b{color:var(--text)}
-.cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px;align-items:center}
-.hero-stats{display:flex;flex-wrap:wrap;gap:26px;margin-top:40px;font-family:var(--mono);font-size:13px;color:var(--muted)}
-.hero-stats b{display:block;font-family:var(--pixel);font-size:15px;color:var(--text);margin-bottom:6px}
-.scrolldown{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);font-family:var(--pixel);font-size:8px;color:var(--dim);text-align:center;letter-spacing:1px;text-decoration:none}
-.scrolldown span{display:block;font-size:14px;animation:bob 1.4s ease-in-out infinite;margin-top:6px}
-@keyframes bob{50%{transform:translateY(6px)}}
-
-/* HUD del piso mientras bajas */
-.hud{position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:20;display:flex;flex-direction:column;align-items:center;gap:8px;font-family:var(--pixel);font-size:8px;color:var(--muted);pointer-events:none;transition:opacity .4s}
-.hud .rail{width:6px;height:160px;border-radius:4px;background:rgba(255,255,255,.08);position:relative;overflow:hidden}
-.hud .rail i{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(0deg,var(--amber),var(--cyan),var(--acc),var(--pink),var(--green));height:0}
-.hud .fl{color:var(--text);font-size:10px}
-.hud .wn{writing-mode:vertical-rl;transform:rotate(180deg);letter-spacing:1px;max-height:200px;white-space:nowrap}
-@media (max-width:700px){.hud{right:8px}.hud .wn{display:none}.hud .rail{height:110px}}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:15px 24px;border-radius:14px;font-weight:700;text-decoration:none;white-space:nowrap;transition:transform .15s,box-shadow .2s,background .2s}
+.btn-start{font-family:var(--pixel);font-size:12px;letter-spacing:1px;color:#2a1600;background:linear-gradient(180deg,#ffe48a,var(--gold));box-shadow:0 5px 0 #b37a12,0 0 34px rgba(255,200,61,.45)}
+.btn-start:hover{box-shadow:0 5px 0 #b37a12,0 0 60px rgba(255,200,61,.75)}
+.btn-start:active{transform:translateY(4px);box-shadow:0 1px 0 #b37a12}
+.btn-ghost{border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--ink);font-size:15px}
+.btn-ghost:hover{background:rgba(255,255,255,.1)}
+.btn-sm{padding:11px 14px;font-size:9px}
 
 /* ============ secciones ============ */
-section{padding:110px 0;position:relative}
-@media (max-width:700px){section{padding:76px 0}}
-.panel{background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--border);border-radius:28px}
-.eyebrow{font-family:var(--pixel);font-size:10px;letter-spacing:1.5px;color:var(--cyan);margin-bottom:16px}
-.h2{font-size:clamp(32px,5vw,56px);line-height:1.02;letter-spacing:-1.5px;font-weight:700;margin-bottom:18px;max-width:18ch}
-.h3{font-size:20px;font-weight:700;margin-bottom:6px}
-.reveal{opacity:0;transform:translateY(30px);transition:opacity .8s ease,transform .8s cubic-bezier(.2,.7,.2,1)}
-.reveal.in{opacity:1;transform:none}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:var(--gut)}
+section{padding-block:clamp(80px,13vh,150px);position:relative}
+.kicker{font-family:var(--pixel);font-size:9px;letter-spacing:2px;color:var(--lcd);margin-bottom:18px;display:flex;align-items:center;gap:10px}
+.kicker::before{content:"";width:8px;height:8px;background:var(--lcd);box-shadow:0 0 12px var(--lcd)}
+.h2{font-family:var(--display);font-weight:700;font-size:clamp(34px,6vw,68px);line-height:.98;letter-spacing:-.5px}
+.lede{color:var(--mute);font-size:clamp(16px,1.9vw,19px);max-width:42ch;margin-top:14px}
+.reveal{opacity:.001;transform:translateY(28px);filter:blur(6px);transition:opacity .9s ease,transform .9s cubic-bezier(.2,.7,.2,1),filter .9s}
+.reveal.in{opacity:1;transform:none;filter:none}
+.d1{transition-delay:.08s}.d2{transition-delay:.16s}.d3{transition-delay:.24s}.d4{transition-delay:.32s}.d5{transition-delay:.4s}
 
-/* qué es */
-.what{display:grid;grid-template-columns:1.05fr .95fr;gap:50px;align-items:center}
-@media (max-width:900px){.what{grid-template-columns:1fr}}
-.pillars{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:28px}
-@media (max-width:520px){.pillars{grid-template-columns:1fr}}
-.pill{padding:18px;border-radius:18px;background:rgba(255,255,255,.03);border:1px solid var(--border)}
-.pill .ic{font-size:26px;margin-bottom:8px}
-.pill p{color:var(--muted);font-size:15px}
-.stage{position:relative;display:grid;place-items:center;min-height:620px}
-.phone{position:relative;width:300px;aspect-ratio:390/780;border-radius:44px;padding:10px;background:linear-gradient(145deg,#2c2a4a,#121122);box-shadow:0 0 0 2px #3a3860,0 40px 90px rgba(0,0,0,.6),0 0 90px rgba(124,92,255,.3);transform:perspective(1200px) rotateY(-12deg) rotateX(4deg);transition:transform .6s}
-.phone:hover{transform:perspective(1200px) rotateY(0) rotateX(0)}
-.phone .sc{position:relative;width:100%;height:100%;border-radius:34px;overflow:hidden;background:#09090f}
-.phone iframe,.phone video,.phone img{position:absolute;inset:0;width:100%;height:100%;border:0;object-fit:cover}
-.phone iframe{width:390px;height:780px;transform-origin:0 0}
-.phone .notch{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:90px;height:24px;border-radius:0 0 14px 14px;background:#121122;z-index:3}
-.stage-note{position:absolute;bottom:-4px;font-size:13px;color:var(--dim);text-align:center;width:100%}
-.float{position:absolute;padding:10px 14px;border-radius:14px;font-size:13px;font-weight:600;background:rgba(17,17,32,.92);border:1px solid var(--bh);box-shadow:0 14px 30px rgba(0,0,0,.4);animation:floaty 5s ease-in-out infinite;white-space:nowrap;z-index:4}
-.float b{font-family:var(--pixel);font-size:9px;color:var(--amber)}
-@keyframes floaty{50%{transform:translateY(-10px)}}
-@media (max-width:520px){.float{display:none}.stage{min-height:560px}.phone{width:260px}}
+/* portada */
+.hero{min-height:100svh;display:flex;align-items:center;padding-block:110px 90px}
+.chip{display:inline-flex;align-items:center;gap:9px;font-family:var(--pixel);font-size:8px;letter-spacing:1px;color:var(--lcd);padding:9px 12px;border-radius:30px;background:rgba(167,214,42,.08);border:1px solid rgba(167,214,42,.35)}
+.chip i{width:7px;height:7px;border-radius:50%;background:var(--lcd);box-shadow:0 0 10px var(--lcd);animation:blink 1.3s steps(1) infinite}
+.h1{font-family:var(--display);font-weight:700;font-size:clamp(54px,11.5vw,148px);line-height:.86;letter-spacing:-1px;margin:22px 0 22px;text-shadow:0 6px 40px rgba(10,8,32,.7)}
+.h1 > span{display:block}
+.h1 .l2{background:linear-gradient(90deg,var(--gold),#ff9f43 45%,var(--neon));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 26px rgba(255,159,67,.35));text-shadow:none}
+.hero .lede{color:#e6e0ff;text-shadow:0 2px 18px rgba(10,8,32,.9)}
+.cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px;align-items:center}
+.perks{display:flex;flex-wrap:wrap;gap:8px;margin-top:26px}
+.perks span{font-family:var(--pixel);font-size:8px;letter-spacing:.5px;padding:8px 10px;border-radius:8px;background:rgba(10,8,32,.55);border:1px solid var(--line);color:var(--mute)}
+.scroll-hint{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);font-family:var(--pixel);font-size:8px;color:var(--mute);text-align:center;letter-spacing:1px;text-decoration:none}
+.scroll-hint span{display:block;margin-top:8px;font-size:13px;animation:bob 1.3s ease-in-out infinite;color:var(--lcd)}
+@keyframes bob{50%{transform:translateY(-6px)}}
 
-/* tráiler */
-.trailer{display:grid;grid-template-columns:auto 1fr;gap:48px;align-items:center;padding:36px}
-@media (max-width:820px){.trailer{grid-template-columns:1fr;padding:24px;text-align:center}.trailer .lead{margin-inline:auto}.trailer .cta{justify-content:center}}
-.tv{position:relative;width:280px;margin:0 auto;border-radius:30px;padding:9px;background:#15142a;box-shadow:0 0 0 2px #34325a,0 30px 70px rgba(0,0,0,.55)}
-.tv video{width:100%;border-radius:22px;aspect-ratio:360/780;object-fit:cover;background:#09090f}
-.tv .rec{position:absolute;top:22px;left:22px;font-family:var(--pixel);font-size:8px;color:#fff;background:rgba(0,0,0,.55);padding:5px 8px;border-radius:8px;display:flex;gap:6px;align-items:center}
-.tv .rec i{width:7px;height:7px;border-radius:50%;background:var(--red);animation:blink 1s steps(1) infinite}
-.scenes{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
-.scenes span{font-size:13px;padding:7px 11px;border-radius:30px;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--muted)}
+/* HUD lateral: el piso que muestra la cámara */
+.hud{position:fixed;right:16px;top:50%;transform:translateY(-50%);z-index:20;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;font-family:var(--pixel);font-size:8px;color:var(--mute)}
+.hud .fl{color:var(--lcd);font-size:9px}
+.hud .rail{width:8px;height:170px;border-radius:4px;background:rgba(255,255,255,.08);border:1px solid var(--line);position:relative;overflow:hidden}
+.hud .rail i{position:absolute;left:0;right:0;bottom:0;height:0;background:linear-gradient(0deg,var(--lcd),var(--sky),#b49bff,var(--neon),var(--gold));transition:height .3s}
+.hud .wn{writing-mode:vertical-rl;transform:rotate(180deg);letter-spacing:1px;white-space:nowrap;max-height:220px}
+@media (max-width:760px){.hud{right:6px}.hud .wn{display:none}.hud .rail{height:110px}}
 
-/* cómo se juega */
-.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:40px;counter-reset:s}
-@media (max-width:980px){.steps{grid-template-columns:1fr 1fr}}
-@media (max-width:560px){.steps{grid-template-columns:1fr}}
-.step{padding:24px;border-radius:22px;background:var(--glass);border:1px solid var(--border);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);position:relative;overflow:hidden;transition:transform .3s,border-color .3s}
-.step:hover{transform:translateY(-6px);border-color:var(--bh)}
-.step::before{counter-increment:s;content:"0" counter(s);position:absolute;right:16px;top:14px;font-family:var(--pixel);font-size:24px;color:rgba(124,92,255,.22)}
-.step .ic{width:54px;height:54px;border-radius:16px;display:grid;place-items:center;font-size:28px;margin-bottom:16px;background:linear-gradient(145deg,rgba(124,92,255,.3),rgba(34,211,238,.12));border:1px solid var(--bh)}
-.step p{color:var(--muted);font-size:15px}
-.controls{margin-top:22px;display:grid;grid-template-columns:auto 1fr;gap:34px;align-items:center;padding:28px}
-@media (max-width:760px){.controls{grid-template-columns:1fr;gap:20px}}
-.pad{position:relative;width:220px;height:120px;margin:0 auto}
-.dpad{position:absolute;left:0;top:14px;width:92px;height:92px}
-.dpad i{position:absolute;background:#26254a;border-radius:6px;box-shadow:inset 0 -3px 0 rgba(0,0,0,.35)}
-.dpad i:nth-child(1){left:31px;top:0;width:30px;height:92px}.dpad i:nth-child(2){top:31px;left:0;height:30px;width:92px}
-.dpad em{position:absolute;font-style:normal;font-size:10px;color:var(--muted)}
-.ab{position:absolute;right:0;top:20px;display:flex;gap:12px;transform:rotate(-20deg)}
-.ab b{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-family:var(--pixel);font-size:11px;color:#fff;box-shadow:inset -3px -4px 0 rgba(0,0,0,.25),0 0 22px rgba(244,114,182,.35)}
-.ab b:nth-child(1){background:#8b5cf6;margin-top:18px}.ab b:nth-child(2){background:#ec4899}
-.keys{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
-.key{display:flex;gap:12px;align-items:flex-start;font-size:15px;color:var(--muted)}
-.key kbd{flex:none;min-width:64px;text-align:center;font-family:var(--pixel);font-size:9px;color:var(--text);padding:8px;border-radius:9px;background:var(--s3);border:1px solid var(--bh);box-shadow:0 3px 0 var(--s1)}
-.key b{color:var(--text)}
+/* bucle del juego */
+.loop{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:46px}
+@media (max-width:820px){.loop{grid-template-columns:1fr}}
+.tile{position:relative;padding:26px 24px 24px;border-radius:22px;background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:border-color .4s,box-shadow .4s,opacity .9s ease,transform .9s cubic-bezier(.2,.7,.2,1),filter .9s;min-width:0}
+.tile.on{border-color:rgba(167,214,42,.7);box-shadow:0 18px 50px rgba(167,214,42,.16)}
+.tile .ic{width:72px;height:72px;border-radius:18px;display:grid;place-items:center;background:#120d30;border:1px solid var(--line);margin-bottom:18px}
+.tile h3{font-family:var(--display);font-weight:700;font-size:30px;line-height:1;margin-bottom:8px}
+.tile p{color:var(--mute);font-size:15px}
+.tile .key{position:absolute;top:22px;right:22px;font-family:var(--pixel);font-size:8px;color:var(--mute);padding:6px 8px;border:1px solid var(--line);border-radius:7px;transition:all .3s}
+.tile.on .key{color:var(--lcd-ink);background:var(--lcd);border-color:var(--lcd)}
+.i-clock{width:40px;height:40px;border-radius:50%;border:4px solid var(--lcd);position:relative}
+.i-clock::before,.i-clock::after{content:"";position:absolute;left:50%;bottom:50%;width:3px;background:var(--lcd);transform-origin:50% 100%;border-radius:2px;margin-left:-1.5px}
+.i-clock::before{height:13px;animation:spin 2.4s linear infinite}
+.i-clock::after{height:9px;animation:spin 14s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.i-crown{font-size:40px;line-height:1;animation:crown 1.8s ease-in-out infinite;filter:drop-shadow(0 0 14px rgba(255,200,61,.6))}
+@keyframes crown{50%{transform:translateY(-5px) rotate(-6deg) scale(1.06)}}
+.i-elev{width:34px;height:46px;border:3px solid var(--sky);border-radius:5px;position:relative;overflow:hidden}
+.i-elev::before{content:"";position:absolute;left:4px;right:4px;height:14px;background:var(--gold);border-radius:3px;box-shadow:0 0 12px var(--gold);animation:lift 2.2s ease-in-out infinite}
+@keyframes lift{0%,15%{bottom:3px}50%,65%{bottom:25px}100%{bottom:3px}}
 
-/* mundos */
-.worlds{display:flex;gap:16px;overflow-x:auto;padding:30px 20px 20px;margin:0 -20px;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;scrollbar-width:thin}
-@media (max-width:520px){.worlds{margin:0 -16px;padding:30px 16px 20px}}
-.wcard{flex:0 0 250px;scroll-snap-align:center;border-radius:24px;padding:22px;min-height:300px;display:flex;flex-direction:column;justify-content:flex-end;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.1);transition:transform .35s}
-.wcard:hover{transform:translateY(-8px) rotate(-1deg)}
-.wcard .fl{font-family:var(--pixel);font-size:9px;opacity:.85;margin-bottom:10px}
-.wcard h3{font-size:22px;line-height:1.1;margin-bottom:8px}
-.wcard p{font-size:14px;opacity:.85}
-.wcard .art{position:absolute;inset:0;z-index:-1}
-.wcard .bld{position:absolute;bottom:0;left:50%;transform:translateX(-50%);display:flex;align-items:flex-end;gap:6px;opacity:.55}
-.wcard .bld i{display:block;width:26px;background:repeating-linear-gradient(0deg,rgba(255,255,255,.35) 0 4px,transparent 4px 12px),rgba(0,0,0,.35);border-radius:3px 3px 0 0}
-.w1{background:linear-gradient(170deg,#3b2410,#1a1020)}.w2{background:linear-gradient(170deg,#0d3140,#0a1222)}.w3{background:linear-gradient(170deg,#2b1a66,#0f0c24)}.w4{background:linear-gradient(170deg,#5a1f4a,#1a1030)}.w5{background:linear-gradient(170deg,#0f3a2a,#06101a)}.w6{background:linear-gradient(170deg,#333,#0b0b14)}
+/* dentro del juego */
+.inside{display:grid;grid-template-columns:auto 1fr;gap:clamp(30px,6vw,80px);align-items:center}
+.inside > div{min-width:0}
+.demo-col{display:grid;justify-items:center}
+@media (max-width:860px){.inside{grid-template-columns:1fr;justify-items:center;text-align:center}.inside .lede{margin-inline:auto}.feats{justify-content:center}.inside .kicker{justify-content:center}}
+.phone{position:relative;width:min(290px,78vw,calc(74vh * 390 / 780));aspect-ratio:390/780;border-radius:44px;padding:10px;background:linear-gradient(145deg,#2c2a4a,#121122);box-shadow:0 0 0 2px #3a3860,0 40px 90px rgba(0,0,0,.6),0 0 90px rgba(124,92,255,.35);transform:perspective(1200px) rotateY(-12deg) rotateX(4deg);transition:transform .6s cubic-bezier(.2,.7,.2,1),opacity .9s ease,filter .9s;animation:hover 6s ease-in-out infinite}
+.phone.in{transform:perspective(1200px) rotateY(-12deg) rotateX(4deg)}
+.phone.in:hover,.phone.in.live{transform:perspective(1200px) rotateY(0) rotateX(0)}
+@keyframes hover{50%{translate:0 -10px}}
+.ph-sc{position:relative;width:100%;height:100%;border-radius:34px;overflow:hidden;background:#09090f}
+.ph-sc iframe{position:absolute;left:0;top:0;width:390px;height:780px;border:0;transform-origin:0 0;opacity:0;transition:opacity .5s}
+.ph-sc iframe.on{opacity:1}
+.ph-sc img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top;transition:opacity .4s}
+.phone .notch{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:90px;height:22px;border-radius:0 0 14px 14px;background:#121122;z-index:3;pointer-events:none}
+.scr-play{position:absolute;inset:0;z-index:3;display:grid;place-content:center;gap:10px;background:rgba(10,8,32,.55);color:#fff;font-family:var(--pixel);font-size:10px;letter-spacing:1px;text-align:center}
+.scr-play b{font-size:30px;color:var(--gold);text-shadow:0 0 20px rgba(255,200,61,.8);animation:crown 1.4s ease-in-out infinite}
+.scr-play span{animation:blink 1s steps(1) infinite}
+.rec{position:absolute;top:-30px;left:50%;transform:translateX(-50%);white-space:nowrap;z-index:4;font-family:var(--pixel);font-size:7px;color:#fff;background:rgba(0,0,0,.6);padding:5px 8px;border-radius:7px;display:flex;gap:6px;align-items:center}
+.rec i{width:7px;height:7px;border-radius:50%;background:#ff4d4d;animation:blink 1s steps(1) infinite}
+.phone.live .rec i{background:var(--lcd)}
+.demo-hint{margin-top:22px;font-family:var(--pixel);font-size:8px;color:var(--mute);letter-spacing:1px;line-height:1.8;text-align:center}
+.demo-hint a{color:var(--lcd)}
+.feats{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px;max-width:560px}
+.feat{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:14px;background:var(--glass);border:1px solid var(--line);font-weight:600;font-size:15px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.feat b{font-size:20px;line-height:1}
 
-/* diferente */
-.cmp{width:100%;border-collapse:separate;border-spacing:0;margin-top:36px;font-size:15px;overflow:hidden;border-radius:22px}
-.cmp th,.cmp td{padding:16px 18px;text-align:left;border-bottom:1px solid var(--border)}
-.cmp thead th{font-family:var(--pixel);font-size:9px;letter-spacing:1px;color:var(--muted);background:rgba(17,17,32,.9)}
-.cmp thead th.io{color:var(--amber)}
-.cmp td{background:rgba(12,11,24,.78)}
-.cmp td.io{background:rgba(124,92,255,.16);color:var(--text);font-weight:600}
-.cmp td:not(.io):not(:first-child){color:var(--dim)}
-.cmp tr:last-child td{border-bottom:0}
-.cmp-wrap{overflow-x:auto;margin:0 -4px;padding:0 4px}
-.cmp{min-width:640px}
+/* por qué */
+.why{text-align:center}
+.big{font-family:var(--display);font-weight:700;font-size:clamp(38px,7.5vw,96px);line-height:.98;letter-spacing:-.5px}
+.big .a{display:block;color:var(--mute)}
+.big .b{display:block;color:var(--lcd);text-shadow:0 0 40px rgba(167,214,42,.35)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:860px;margin:54px auto 0}
+@media (max-width:640px){.stats{grid-template-columns:1fr}}
+.stat{padding:24px 18px;border-radius:20px;background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.stat b{display:block;font-family:var(--pixel);font-size:clamp(26px,4vw,38px);color:var(--gold);margin-bottom:12px;font-variant-numeric:tabular-nums}
+.stat span{color:var(--mute);font-size:15px}
 
-/* metas */
-.goals{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:36px}
-@media (max-width:860px){.goals{grid-template-columns:1fr}}
-.goal{padding:26px;border-radius:22px;background:var(--glass);border:1px solid var(--border);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
-.goal .n{font-family:var(--pixel);font-size:26px;margin-bottom:14px;background:linear-gradient(90deg,var(--amber),var(--pink));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.goal p{color:var(--muted)}
-.road{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:22px}
-@media (max-width:860px){.road{grid-template-columns:1fr 1fr}}
-.rd{padding:18px;border-radius:18px;border:1px dashed var(--bh);font-size:14px;color:var(--muted);background:rgba(9,9,15,.6)}
-.rd b{display:block;color:var(--text);font-size:15px;margin-bottom:4px}
-.rd.now{border-style:solid;border-color:rgba(74,222,128,.5);background:rgba(74,222,128,.07)}
-.rd .when{font-family:var(--pixel);font-size:8px;color:var(--cyan);display:block;margin-bottom:10px}
-.rd.now .when{color:var(--green)}
+/* mundos: cartuchos */
+.carts{display:flex;gap:16px;margin-top:30px;overflow-x:auto;padding:22px 4px 26px;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain}
+.carts::-webkit-scrollbar{display:none}
+.cart{flex:0 0 190px;scroll-snap-align:center;position:relative;text-align:left;border-radius:14px 14px 6px 6px;padding:14px 14px 18px;background:linear-gradient(180deg,#d9d4ea,#a9a3c4);color:#2b2944;box-shadow:inset -4px -5px 0 rgba(0,0,0,.14),0 18px 40px rgba(0,0,0,.45);transition:transform .35s cubic-bezier(.2,.7,.2,1),box-shadow .35s,opacity .9s ease,filter .9s}
+.cart::before{content:"";position:absolute;top:0;left:22px;right:22px;height:8px;background:repeating-linear-gradient(90deg,#8d87aa 0 4px,transparent 4px 8px);border-radius:0 0 3px 3px}
+.cart.in:hover,.cart.sel{transform:translateY(-12px) rotate(-1.5deg);box-shadow:inset -4px -5px 0 rgba(0,0,0,.14),0 26px 60px rgba(0,0,0,.55),0 0 0 3px var(--c)}
+.cart .label{margin-top:14px;border-radius:8px;aspect-ratio:1.05;padding:12px;display:flex;flex-direction:column;justify-content:flex-end;color:#fff;position:relative;overflow:hidden;background:var(--bg)}
+.cart .label::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 70% 25%,rgba(255,255,255,.35),transparent 45%)}
+.cart .label em{position:absolute;top:10px;left:12px;font-style:normal;font-size:34px;filter:drop-shadow(0 4px 8px rgba(0,0,0,.35))}
+.cart .label b{font-family:var(--display);font-size:21px;line-height:1.02;position:relative;z-index:1;text-shadow:0 2px 10px rgba(0,0,0,.4)}
+.cart .fl{display:block;margin-top:10px;font-family:var(--pixel);font-size:7px;letter-spacing:.5px}
+.cart .go{position:absolute;right:12px;bottom:14px;font-family:var(--pixel);font-size:7px;opacity:.7}
+.carts-hint{font-family:var(--pixel);font-size:8px;color:var(--mute);letter-spacing:1px;margin-top:14px}
 
-/* ranking */
-.rank{display:grid;grid-template-columns:.9fr 1.1fr;gap:40px;align-items:center;padding:36px}
-@media (max-width:860px){.rank{grid-template-columns:1fr;padding:22px}}
-.board{border-radius:20px;background:rgba(9,9,15,.8);border:1px solid var(--border);overflow:hidden}
-.board-h{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;font-family:var(--pixel);font-size:9px;color:var(--muted);border-bottom:1px solid var(--border)}
-.board-h .live{color:var(--green);display:flex;gap:6px;align-items:center}
-.board-h .live i{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 1.2s steps(1) infinite}
-.row{display:grid;grid-template-columns:34px 44px 1fr auto;gap:12px;align-items:center;padding:10px 18px;border-bottom:1px solid rgba(124,92,255,.08)}
-.row:last-child{border-bottom:0}
-.row .pos{font-family:var(--pixel);font-size:11px;color:var(--dim)}
-.row:nth-child(1) .pos{color:var(--amber)}.row:nth-child(2) .pos{color:#cbd5e1}.row:nth-child(3) .pos{color:#d97706}
-.row .av{width:44px;height:52px;border-radius:10px;background:var(--s2);overflow:hidden;display:grid;place-items:center}
-.row .av svg{width:44px;height:62px;margin-top:8px}
-.row .nm{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.row .nm small{display:block;font-weight:400;color:var(--dim);font-size:12px;font-family:var(--mono)}
-.row .xp{font-family:var(--pixel);font-size:10px;color:var(--acc3);text-align:right}
-.empty{padding:34px 20px;text-align:center;color:var(--muted)}
-.empty .crown{font-size:44px;margin-bottom:10px;animation:bob 2s ease-in-out infinite}
-.empty b{display:block;color:var(--text);font-size:18px;margin-bottom:6px}
+/* high scores */
+.arcade{max-width:720px;margin:0 auto;text-align:center}
+.arcade .kicker{justify-content:center}
+.board{margin-top:34px;border-radius:22px;background:rgba(6,5,18,.84);border:2px solid #2b2560;box-shadow:0 0 0 6px rgba(43,37,96,.35),0 30px 80px rgba(0,0,0,.5);padding:26px clamp(14px,4vw,30px);font-family:var(--pixel);text-align:left;position:relative;overflow:hidden}
+.board::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0 1px,transparent 1px 3px)}
+.board-h{display:flex;justify-content:space-between;font-size:8px;color:var(--mute);padding-bottom:14px;border-bottom:2px dashed #2b2560;margin-bottom:10px}
+.board-h .live{color:var(--lcd);display:flex;gap:6px;align-items:center}
+.board-h .live i{width:6px;height:6px;background:var(--lcd);border-radius:50%;animation:blink 1.1s steps(1) infinite}
+.row{display:grid;grid-template-columns:40px 40px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 0;font-size:10px}
+.row .pos{color:var(--mute)}
+.row:nth-child(1) .pos{color:var(--gold)}.row:nth-child(2) .pos{color:#d6dbe6}.row:nth-child(3) .pos{color:#e48b3b}
+.row .av{width:40px;height:44px;border-radius:9px;background:#151033;overflow:hidden;display:grid;place-items:center}
+.row .av svg{width:40px;height:56px;margin-top:8px}
+.row .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.6}
+.row .nm small{display:block;font-size:7px;color:var(--mute)}
+.row .xp{color:var(--lcd)}
+.empty{padding:30px 6px 12px;text-align:center;font-size:10px;line-height:2}
+.empty b{display:block;color:var(--gold);font-size:14px;margin-bottom:6px;animation:blink 1.6s steps(1) infinite}
+.empty span{color:var(--mute);font-family:var(--body);font-size:14px}
 
-/* entrar e instalar */
-.enter{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:36px}
-@media (max-width:860px){.enter{grid-template-columns:1fr}}
-.en{padding:24px;border-radius:22px;background:var(--glass);border:1px solid var(--border);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
-.en .n{font-family:var(--pixel);font-size:10px;color:var(--amber);margin-bottom:12px}
-.en p{color:var(--muted);font-size:15px}
-.acc{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.acc span{font-size:13px;padding:7px 11px;border-radius:10px;background:var(--s2);border:1px solid var(--border)}
-.install{display:grid;grid-template-columns:1.2fr .8fr;gap:22px;margin-top:22px}
-@media (max-width:860px){.install{grid-template-columns:1fr}}
-.inst{padding:28px}
-.tabs{display:flex;gap:8px;margin:4px 0 18px;flex-wrap:wrap}
-.tabs button{padding:10px 14px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.03);font-weight:600;font-size:14px}
-.tabs button[aria-selected="true"]{background:var(--acc);border-color:var(--acc)}
-.howto{padding-left:22px;display:grid;gap:10px;color:var(--muted)}
-.howto b{color:var(--text)}
-.free{padding:28px;text-align:center;display:flex;flex-direction:column;justify-content:center}
-.free .big{font-family:var(--pixel);font-size:48px;color:var(--green);text-shadow:0 0 30px rgba(74,222,128,.45)}
-.free ul{list-style:none;text-align:left;display:grid;gap:8px;margin-top:18px;font-size:14px;color:var(--muted)}
-.free li::before{content:"✓ ";color:var(--green);font-weight:700}
-
-/* lista y apoyo */
-.wait{display:grid;grid-template-columns:1fr 1fr;gap:40px;padding:36px;align-items:start}
-@media (max-width:860px){.wait{grid-template-columns:1fr;padding:22px}}
-.form{display:grid;gap:12px}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media (max-width:520px){.two{grid-template-columns:1fr}}
-.field label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
-.field input,.field select{width:100%;padding:13px 14px;border-radius:12px;border:1px solid var(--border);background:rgba(9,9,15,.8);font-size:16px}
-.field input:focus,.field select:focus{outline:none;border-color:var(--acc)}
+/* apoyo + lista */
+.join{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:stretch}
+@media (max-width:860px){.join{grid-template-columns:1fr}}
+.card{border-radius:24px;padding:clamp(22px,3.5vw,34px);background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);min-width:0}
+.card h3{font-family:var(--display);font-weight:700;font-size:clamp(26px,3.4vw,36px);line-height:1;margin-bottom:10px}
+.card p{color:var(--mute)}
+.meter{margin-top:22px}
+.meter-top{display:flex;justify-content:space-between;font-family:var(--pixel);font-size:8px;color:var(--mute);margin-bottom:10px}
+.bar{height:18px;border-radius:6px;background:#120d30;border:2px solid #2b2560;overflow:hidden;position:relative}
+.bar i{position:absolute;inset:0;background:repeating-linear-gradient(90deg,var(--lcd) 0 10px,#8bb81f 10px 12px);width:3%;box-shadow:0 0 14px var(--lcd)}
+.form{display:grid;gap:10px;margin-top:20px}
+.inline{display:flex;gap:8px}
+@media (max-width:420px){.inline{flex-direction:column}}
+.inp{width:100%;min-width:0;padding:15px 16px;border-radius:14px;border:1px solid var(--line);background:rgba(6,5,18,.7);font-size:16px}
+.inp:focus{outline:none;border-color:var(--lcd)}
 .hp{position:absolute;left:-9999px}
-.small{font-size:12.5px;color:var(--dim)}
-.err{color:var(--red);font-size:14px}
-.done{text-align:center;padding:20px 0}
-.done .crown{font-size:52px}
-.share{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px}
-.share a,.share button{padding:10px 14px;border-radius:12px;border:1px solid var(--bh);background:rgba(124,92,255,.12);font-weight:600;text-decoration:none;font-size:14px}
-.tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}
-@media (max-width:520px){.tiers{grid-template-columns:1fr}}
-.tier{padding:14px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,.03);font-size:13px;color:var(--muted)}
-.tier b{display:block;font-family:var(--pixel);font-size:12px;color:var(--text);margin-bottom:6px}
+.err{color:#ff8a8a;font-size:14px}
+.done{margin-top:20px;text-align:center}
+.done b{font-family:var(--display);font-size:26px;display:block;margin:6px 0}
+.share{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.share a,.share button{padding:10px 14px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.05);font-weight:600;font-size:14px;text-decoration:none}
 
-/* preguntas */
-.faq{display:grid;gap:10px;margin-top:30px;max-width:820px}
-.faq details{border-radius:16px;background:var(--glass);border:1px solid var(--border);padding:0 20px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
-.faq summary{cursor:pointer;padding:18px 0;font-weight:700;list-style:none;display:flex;justify-content:space-between;gap:12px}
-.faq summary::after{content:"+";font-family:var(--pixel);color:var(--acc2)}
-.faq details[open] summary::after{content:"−"}
-.faq summary::-webkit-details-marker{display:none}
-.faq p{padding-bottom:18px;color:var(--muted)}
 
-/* cierre */
-.final{text-align:center;padding:140px 0 120px}
-.final .h2{margin:0 auto 18px;max-width:14ch;font-size:clamp(40px,7vw,84px)}
-.final .lead{margin:0 auto}
+/* comunidad en vivo */
+.live-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:40px}
+@media (max-width:760px){.live-grid{grid-template-columns:repeat(2,1fr)}}
+.lv{position:relative;padding:22px 18px 18px;border-radius:20px;background:rgba(6,5,18,.72);border:2px solid #2b2560;overflow:hidden;min-width:0;transition:border-color .3s,transform .3s,opacity .9s ease,filter .9s}
+.lv:hover{border-color:var(--lcd);transform:translateY(-4px)}
+.lv::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px)}
+.lv em{position:absolute;top:16px;right:16px;font-style:normal;font-size:22px}
+.lv b{display:block;font-family:var(--pixel);font-size:clamp(20px,3.4vw,32px);color:var(--lcd);text-shadow:0 0 18px rgba(167,214,42,.4);margin-bottom:10px;font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lv span{color:var(--mute);font-size:14px}
+.lv.tick b{animation:tick .5s}
+@keyframes tick{40%{color:var(--gold);transform:scale(1.08)}}
+.on-dot{width:12px;height:12px;border-radius:50%;background:var(--lcd);box-shadow:0 0 12px var(--lcd);animation:blink 1.2s steps(1) infinite}
+.goal{margin-top:26px;padding:22px clamp(16px,3vw,26px);border-radius:20px;background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.bar.big{height:26px;overflow:visible}
+.bar.big i{transition:width 1.6s cubic-bezier(.2,.7,.2,1);width:0;border-radius:4px}
+.bar .flag{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:13px;line-height:1}
+.goal-n{margin-top:14px;color:var(--mute);font-size:15px}
+.linkbtn{color:var(--lcd);font-weight:700;text-decoration:underline;text-underline-offset:3px}
+/* niveles de apoyo */
+.tiers{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
+@media (max-width:340px){.tiers{grid-template-columns:1fr}}
+.tier{position:relative;display:grid;align-content:start;gap:4px;padding:14px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.04);min-width:0;transition:transform .25s,border-color .25s,box-shadow .25s}
+.tier:hover{transform:translateY(-3px) rotate(-.6deg);border-color:var(--gold);box-shadow:0 12px 30px rgba(255,200,61,.15)}
+.tier em{font-style:normal;font-size:24px;line-height:1}
+.tier b{font-family:var(--pixel);font-size:13px;color:var(--gold)}
+.tier strong{font-size:15px}
+.tier span{color:var(--mute);font-size:13px;line-height:1.35}
+.tier.hot{border-color:rgba(255,200,61,.6);background:linear-gradient(160deg,rgba(255,200,61,.14),rgba(255,255,255,.03))}
+.tier.hot::before{content:"★";position:absolute;top:10px;right:12px;color:var(--gold);animation:crown 1.8s ease-in-out infinite}
+.joined{margin-top:10px;font-family:var(--pixel);font-size:9px;color:var(--lcd);line-height:1.8}
+
+/* final */
+.final{text-align:center;padding-block:clamp(110px,18vh,190px) clamp(90px,14vh,140px)}
+.final .kicker{justify-content:center}
+.final .h2{font-size:clamp(48px,10vw,128px)}
 .final .cta{justify-content:center}
-footer{padding:30px 0 40px;border-top:1px solid var(--border);background:rgba(9,9,15,.85);font-size:13px;color:var(--dim)}
+.dock{display:flex;justify-content:center;gap:10px;margin-top:26px;flex-wrap:wrap}
+.dock button{display:flex;align-items:center;gap:8px;padding:11px 14px;border-radius:12px;border:1px solid var(--line);background:rgba(10,8,32,.6);font-weight:600;font-size:14px;color:var(--mute);transition:color .2s,border-color .2s}
+.dock button:hover{color:var(--ink);border-color:rgba(167,214,42,.55)}
+footer{padding:26px 0 calc(34px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:rgba(8,6,24,.9);font-size:13px;color:var(--mute)}
 footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
-footer a{color:var(--muted)}
-.bin{font-family:var(--mono)}
+footer a{color:var(--mute)}
+.bin{font-family:var(--pixel);font-size:8px;letter-spacing:1px}
+
+/* ventanas (instalar, preguntas) */
+dialog{margin:auto;border:0;padding:0;background:transparent;color:var(--ink);max-width:min(520px,calc(100vw - 32px));width:100%}
+dialog::backdrop{background:rgba(5,4,14,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.sheet{border-radius:24px;padding:26px clamp(20px,4vw,30px);background:#140f34;border:1px solid var(--line);box-shadow:0 40px 120px rgba(0,0,0,.6);position:relative}
+.sheet h3{font-family:var(--display);font-weight:700;font-size:28px;margin-bottom:14px;padding-right:40px}
+.x{position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:10px;border:1px solid var(--line);font-size:16px}
+.tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.tabs button{padding:9px 12px;border-radius:10px;border:1px solid var(--line);font-weight:600;font-size:14px}
+.tabs button[aria-selected="true"]{background:var(--lcd);color:var(--lcd-ink);border-color:var(--lcd)}
+.steps{display:grid;gap:10px;counter-reset:s}
+.steps li{list-style:none;display:flex;gap:12px;align-items:flex-start;color:var(--mute)}
+.steps li::before{counter-increment:s;content:counter(s);flex:none;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-family:var(--pixel);font-size:9px;background:#221a52;color:var(--lcd)}
+.steps b{color:var(--ink)}
+.qa{display:grid;gap:8px}
+.qa details{border-radius:14px;border:1px solid var(--line);padding:0 16px;background:rgba(255,255,255,.03)}
+.qa summary{cursor:pointer;padding:14px 0;font-weight:700;list-style:none;display:flex;justify-content:space-between;gap:10px}
+.qa summary::after{content:"+";font-family:var(--pixel);color:var(--lcd)}
+.qa details[open] summary::after{content:"−"}
+.qa summary::-webkit-details-marker{display:none}
+.qa p{padding-bottom:14px;color:var(--mute);font-size:15px}
 
 /* botón fijo en celular */
-.sticky-play{position:fixed;left:16px;right:16px;bottom:max(14px,env(safe-area-inset-bottom));z-index:40;display:none}
-.sticky-play .btn{width:100%}
-@media (max-width:700px){.sticky-play.show{display:block}}
+.sticky{position:fixed;left:16px;right:16px;bottom:max(14px,env(safe-area-inset-bottom));z-index:40;display:none}
+.sticky .btn{width:100%}
+@media (max-width:760px){.sticky.show{display:block}}
 
 @media (prefers-reduced-motion:reduce){
-  .reveal{opacity:1;transform:none;transition:none}
-  .float,.empty .crown,.scrolldown span,.brand b{animation:none}
   html{scroll-behavior:auto}
+  .reveal{opacity:1;transform:none;filter:none;transition:none}
+  .brand b,.i-clock::before,.i-clock::after,.i-crown,.i-elev::before,.scroll-hint span,.chip i{animation:none}
+  .phone,.phone.in{transform:none;animation:none}
 }
 </style>
 </head>
@@ -344,20 +357,20 @@ footer a{color:var(--muted)}
 <!-- intro: la consola se prende -->
 <div class="boot" id="boot" role="dialog" aria-label="Intro de IO" hidden>
   <button class="boot-skip" id="bootSkip">Saltar intro ›</button>
-  <div class="gbx" id="gbx">
-    <div class="gbx-bez"><span class="gbx-led"></span>
-      <div class="gbx-scr"><div class="gbx-logo">IO</div><div class="gbx-sub">TU VIDA ES EL JUEGO</div><div class="gbx-ps">PRESS START</div></div>
+  <div class="dev" aria-hidden="true">
+    <div class="bez"><span class="led"></span>
+      <div class="lcd"><div class="lcd-logo" translate="no"><b>IO</b><i>GAME LIFE</i></div><div class="lcd-ps">PRESS START</div></div>
     </div>
-    <div class="gbx-name" translate="no">IO <span class="gl"><b>GAME</b><i>LIFE</i></span></div>
-    <div class="gbx-pad"></div><div class="gbx-ab"><span></span><span></span></div>
+    <div class="dev-name" translate="no">IO <em>GAME LIFE</em></div>
+    <div class="dpad"></div><div class="abtn"><span></span><span></span></div>
   </div>
   <div class="boot-hint">TOCA LA PANTALLA O PRESIONA ENTER</div>
 </div>
 
-<div class="bg-fallback" aria-hidden="true"></div>
+<div class="sky-fallback" aria-hidden="true"></div>
 <canvas id="world" aria-hidden="true"></canvas>
-<div class="vignette" aria-hidden="true"></div>
-<div class="scan" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+<div class="vig" aria-hidden="true"></div>
 
 <div class="hud" id="hud" aria-hidden="true">
   <span class="fl" id="hudFl">P1</span>
@@ -366,13 +379,12 @@ footer a{color:var(--muted)}
 </div>
 
 <header id="hdr">
-  <div class="wrap nav">
-    <a class="brand" href="#top"><b>IO</b><small>el código de tu vida</small></a>
-    <nav class="links" aria-label="Secciones">
-      <a href="#que-es">Qué es</a><a href="#como">Cómo se juega</a><a href="#diferente">Por qué IO</a><a href="#ranking">Ranking</a><a href="#entrar">Entrar</a>
-    </nav>
-    <div class="navr"><div class="lang" translate="no" role="group" aria-label="Idioma / Language"><button data-lang="es">ES</button><button data-lang="en">EN</button></div>
-    <a class="btn btn-start btn-sm" href="app/">▶ JUGAR</a></div>
+  <div class="nav">
+    <a class="brand" href="#top" translate="no"><b>IO</b><i>GAME <em>LIFE</em></i></a>
+    <div class="navr">
+      <div class="lang" translate="no" role="group" aria-label="Idioma / Language"><button data-lang="es">ES</button><button data-lang="en">EN</button></div>
+      <a class="btn btn-start btn-sm" href="app/">▶ JUGAR</a>
+    </div>
   </div>
 </header>
 
@@ -380,284 +392,215 @@ footer a{color:var(--muted)}
 
 <section class="hero">
   <div class="wrap">
-    <span class="tag"><i></i>PRIMERA TEMPORADA · GRATIS</span>
-    <h1 class="h1">Tu vida es <span class="glow">el juego.</span></h1>
-    <p class="lead">IO es un videojuego retro donde <b>subes de nivel haciendo tus hábitos reales</b>. Leer, orar, entrenar, sacar al perro, estudiar: el reloj cuenta de verdad y tu personaje lo hace contigo.</p>
+    <span class="chip"><i></i>TEMPORADA 1 · GRATIS</span>
+    <h1 class="h1"><span data-scr>Tu vida es</span><span class="l2" data-scr>el juego.</span></h1>
+    <p class="lede">Haz tus hábitos de verdad. Tu personaje los hace contigo. Sube de piso.</p>
     <div class="cta">
-      <a class="btn btn-start" href="app/">▶ PRESS START</a>
-      <a class="btn btn-ghost" href="#como">Cómo se juega</a>
+      <a class="btn btn-start" href="app/" data-sfx>▶ PRESS START</a>
+      <a class="btn btn-ghost" href="#dentro" id="toDemo">🎮 Probar la demo</a>
     </div>
-    <div class="hero-stats">
-      <div><b>$0</b>gratis y sin anuncios</div>
-      <div><b>23</b>actividades animadas</div>
-      <div><b>100+</b>pisos por subir</div>
-      <div id="heroPlayersBox" hidden><b id="heroPlayers"></b><span id="heroPlayersL"></span></div>
-    </div>
+    <div class="perks"><span>SIN ANUNCIOS</span><span>NADA SE COMPRA</span><span translate="no">ES · EN</span></div>
   </div>
-  <a class="scrolldown" href="#que-es">SUBE LA TORRE<span>▼</span></a>
-</section>
-
-<section id="que-es">
-  <div class="wrap what">
-    <div class="reveal">
-      <div class="eyebrow">¿QUÉ ES IO?</div>
-      <h2 class="h2">Un Game Life para tus hábitos.</h2>
-      <p class="lead">Eliges los hábitos que quieres construir. Cada vez que haces uno, enciendes el reloj y tu personaje aparece haciéndolo en su cuarto. Cuando terminas, ganas <b>XP</b> para subir de piso y <b>bits</b> para decorar tu cuarto.</p>
-      <div class="pillars">
-        <div class="pill"><div class="ic">⏱️</div><b>Puntos que valen</b><p>Nada de marcar casillas. Si dices 20 minutos, el reloj cuenta 20 minutos.</p></div>
-        <div class="pill"><div class="ic">🏢</div><b>Un edificio que es tuyo</b><p>Cada nivel es un piso. Subes en ascensor por cinco mundos.</p></div>
-        <div class="pill"><div class="ic">🎨</div><b>Tu personaje, tu cuarto</b><p>Diseña tu avatar, gana objetos y decora repisas, mesas y paredes.</p></div>
-        <div class="pill"><div class="ic">🔥</div><b>Rachas que dan ganas</b><p>Misiones del día, cofres, mascota que evoluciona y ranking con personas reales.</p></div>
-      </div>
-    </div>
-    <div class="stage reveal">
-      <div class="phone"><div class="notch"></div><div class="sc" id="phoneSc">
-        <img src="img/hero-home.webp" alt="Pantalla de inicio de IO: el cuarto del personaje dentro de una consola" id="phoneImg" loading="lazy">
-      </div></div>
-      <div class="float" style="top:12%;left:0"><b>+30 XP</b> Leer · 20 min</div>
-      <div class="float" style="top:44%;right:0;animation-delay:-1.6s">🔥 Racha de 7 días</div>
-      <div class="float" style="bottom:14%;left:4%;animation-delay:-3s">🐕 Nivel 7 · Piso 7</div>
-      <p class="stage-note" id="stageNote">Es el juego de verdad. Tócalo y pruébalo.</p>
-    </div>
-  </div>
-</section>
-
-<section id="trailer" style="padding-top:20px">
-  <div class="wrap">
-    <div class="panel trailer reveal">
-      <div class="tv"><span class="rec"><i></i>REC · JUEGO REAL</span>
-        <video id="trailerV" src="img/trailer.webm" poster="img/trailer-poster.webp" muted loop playsinline preload="none" aria-label="Video del juego: el personaje saca al perro, ora, entrena y lee mientras corre el reloj"></video>
-      </div>
-      <div>
-        <div class="eyebrow">MODO ENFOQUE</div>
-        <h2 class="h2">Mientras tú lo haces, tu personaje también.</h2>
-        <p class="lead">Enciendes el reloj y la pantalla se convierte en tu escena: camina con el perro por el parque, ora con rayos de luz, levanta pesas, pasa las páginas del libro. Un coach te acompaña y la radio pone música retro.</p>
-        <div class="scenes"><span>🐕 Sacar al perro</span><span>🙏 Orar</span><span>🏋️ Gym</span><span>📖 Leer</span><span>🧘 Respirar</span><span>💧 Tomar agua</span><span>🏃 Correr</span><span>✍️ Escribir</span><span>🎨 Pintar</span><span>📚 Estudiar</span><span>+13 más</span></div>
-      </div>
-    </div>
-  </div>
+  <a class="scroll-hint" href="#como">SUBE LA TORRE<span>▼</span></a>
 </section>
 
 <section id="como">
   <div class="wrap">
-    <div class="reveal">
-      <div class="eyebrow">CÓMO SE JUEGA</div>
-      <h2 class="h2">Cuatro pasos. Todos los días.</h2>
-      <p class="lead">Una partida dura lo que dura tu hábito. Así se ve un día en IO.</p>
+    <div class="kicker reveal">CÓMO SE JUEGA</div>
+    <h2 class="h2 reveal d1" data-scr>Tres botones. Una vida.</h2>
+    <div class="loop" id="loop">
+      <div class="tile reveal d1"><span class="key">START</span><div class="ic"><div class="i-clock"></div></div><h3>Empieza</h3><p>Enciende el reloj y haz tu hábito.</p></div>
+      <div class="tile reveal d2"><span class="key">A</span><div class="ic"><div class="i-crown">👑</div></div><h3>Corona</h3><p>Termínalo y gana XP y bits.</p></div>
+      <div class="tile reveal d3"><span class="key">▲</span><div class="ic"><div class="i-elev"></div></div><h3>Sube</h3><p>Cada nivel abre un piso nuevo.</p></div>
     </div>
-    <div class="steps">
-      <div class="step reveal"><div class="ic">🎮</div><h3 class="h3">Crea tu jugador</h3><p>Entra con Google o tu correo, elige tu personaje y hasta tres hábitos. Toma un minuto.</p></div>
-      <div class="step reveal"><div class="ic">▶️</div><h3 class="h3">Dale START</h3><p>Cuando vayas a hacer un hábito, abre IO y enciende el reloj. Puedes pausar; el tiempo sigue aunque bloquees el celular.</p></div>
-      <div class="step reveal"><div class="ic">👑</div><h3 class="h3">Reclama la corona</h3><p>Al terminar aparece la corona: tócala y ganas XP, bits y racha. A tiempo, ganas más.</p></div>
-      <div class="step reveal"><div class="ic">🛗</div><h3 class="h3">Sube de piso</h3><p>Cada nivel desbloquea un piso nuevo. Compra objetos, decora tu cuarto y visita a otros jugadores.</p></div>
+  </div>
+</section>
+
+<section id="dentro">
+  <div class="wrap inside">
+    <div class="demo-col">
+    <div class="phone reveal" id="gbDemo" aria-label="Demo jugable del juego">
+      <span class="rec"><i></i>DEMO JUGABLE</span>
+      <div class="ph-sc" id="demoScr">
+        <img id="demoImg" src="img/hero-home.webp" alt="Pantalla real del juego">
+        <button class="scr-play" id="demoPlay" type="button"><b>▶</b><span>TOCA PARA JUGAR</span></button>
+      </div>
+      <i class="notch"></i>
     </div>
-    <div class="panel controls reveal">
-      <div class="pad" aria-hidden="true"><div class="dpad"><i></i><i></i></div><div class="ab"><b>B</b><b>A</b></div></div>
-      <div>
-        <h3 class="h3" style="margin-bottom:14px">Los controles de la consola</h3>
-        <div class="keys">
-          <div class="key"><kbd>◀ ▶</kbd><span><b>Camina</b> por tu cuarto. En el computador, con las flechas.</span></div>
-          <div class="key"><kbd>A</kbd><span><b>Usa</b> lo que tienes enfrente: la puerta del ascensor, un objeto, la mascota. Tecla Z.</span></div>
-          <div class="key"><kbd>B</kbd><span><b>Vuelve</b> o cierra. Tecla X.</span></div>
-          <div class="key"><kbd>SELECT</kbd><span><b>Decora:</b> mueve objetos entre piso, mesa y repisas.</span></div>
-          <div class="key"><kbd>START</kbd><span><b>Menú</b> y el próximo hábito. Tecla Enter.</span></div>
-          <div class="key"><kbd>HUD</kbd><span>Toca <b>XP, bits o racha</b> arriba y el juego te explica cuánto llevas y cuánto falta.</span></div>
-        </div>
+    <p class="demo-hint reveal d2">ES EL JUEGO DE VERDAD · TÓCALO<br><a href="app/?demo=1" target="_blank" rel="noopener">ABRIR DEMO EN GRANDE ↗</a></p>
+    </div>
+    <div>
+      <div class="kicker reveal">DENTRO DEL JUEGO</div>
+      <h2 class="h2 reveal d1" data-scr>Tú lo haces. Él también.</h2>
+      <p class="lede reveal d2">Es el juego de verdad: pruébalo aquí. Mientras corre el reloj, tu personaje lee, ora, entrena o saca al perro contigo.</p>
+      <div class="feats">
+        <span class="feat reveal d1"><b>🎬</b>23 escenas animadas</span>
+        <span class="feat reveal d2"><b>🥚</b>Mascota que evoluciona</span>
+        <span class="feat reveal d3"><b>🛋️</b>Decora tu cuarto</span>
+        <span class="feat reveal d1"><b>📻</b>Radio retro</span>
+        <span class="feat reveal d2"><b>🏆</b>Ranking real</span>
+        <span class="feat reveal d3"><b>👥</b>Enfócate con amigos</span>
       </div>
     </div>
   </div>
 </section>
 
-<section id="mundos" style="padding-top:20px">
+<section class="why" id="porque">
   <div class="wrap">
-    <div class="reveal">
-      <div class="eyebrow">LOS MUNDOS</div>
-      <h2 class="h2">De tu barrio a una estación orbital.</h2>
-      <p class="lead">El fondo que ves mientras bajas es tu torre. Cada mundo trae un ascensor nuevo, otra vista por la ventana y objetos que no hay abajo.</p>
-    </div>
-    <div class="worlds" id="worldsRow">
-      <div class="wcard w1 reveal"><div class="bld"><i style="height:90px"></i><i style="height:60px"></i><i style="height:120px"></i></div><div class="fl">PISOS 1–10 · ASCENSOR DE MADERA</div><h3>Edificio Barrio</h3><p>Tu primer cuarto. Aprendes el ritmo del reloj y la racha.</p></div>
-      <div class="wcard w2 reveal"><div class="bld"><i style="height:140px"></i><i style="height:100px"></i><i style="height:170px"></i></div><div class="fl">PISOS 11–25 · ACERO</div><h3>Torre Centro</h3><p>Llega la ciudad por la ventana, la tienda crece y aparecen las ligas.</p></div>
-      <div class="wcard w3 reveal"><div class="bld"><i style="height:200px"></i><i style="height:150px"></i><i style="height:230px"></i></div><div class="fl">PISOS 26–50 · CRISTAL</div><h3>Rascacielos IO</h3><p>Objetos raros y legendarios. Tu mascota ya es grande.</p></div>
-      <div class="wcard w4 reveal"><div class="bld"><i style="height:110px"></i><i style="height:80px"></i><i style="height:130px"></i></div><div class="fl">PISOS 51–75 · ORO</div><h3>Ciudad en las nubes</h3><p>Por encima de todo. Pocos llegan hasta aquí.</p></div>
-      <div class="wcard w5 reveal"><div class="bld"><i style="height:60px"></i><i style="height:140px"></i><i style="height:60px"></i></div><div class="fl">PISOS 76–100 · NEÓN</div><h3>Estación orbital</h3><p>El mundo final… por ahora.</p></div>
-      <div class="wcard w6 reveal"><div class="fl">PISO 101+</div><h3>Sectores secretos</h3><p>Sector Nova, Anillo Ámbar, Nébula Índigo y más. Nadie los ha visto todavía.</p></div>
+    <div class="kicker reveal" style="justify-content:center">POR QUÉ IO</div>
+    <h2 class="big reveal d1"><span class="a" data-scr>Los juegos te quitan horas.</span><span class="b" data-scr>IO te las devuelve.</span></h2>
+    <div class="stats">
+      <div class="stat reveal d1"><b data-count="0" data-pre="$">$0</b><span>Nada se compra con dinero</span></div>
+      <div class="stat reveal d2"><b data-count="1" data-suf=" MIN">1 MIN</b><span>Basta para empezar</span></div>
+      <div class="stat reveal d3"><b data-count="100" data-suf="+">100+</b><span>Pisos por subir</span></div>
     </div>
   </div>
 </section>
 
-<section id="diferente">
+<section id="mundos">
   <div class="wrap">
-    <div class="reveal">
-      <div class="eyebrow">¿POR QUÉ ES DIFERENTE?</div>
-      <h2 class="h2">No es otra lista de pendientes.</h2>
-      <p class="lead">Las apps de hábitos te piden marcar casillas. Los videojuegos te piden horas de tu vida. IO usa lo mejor de los juegos para que esas horas vuelvan a ti.</p>
-    </div>
-    <div class="cmp-wrap reveal">
-      <table class="cmp">
-        <thead><tr><th></th><th>App de hábitos</th><th>Videojuego normal</th><th class="io">IO</th></tr></thead>
-        <tbody>
-          <tr><td>Cómo ganas puntos</td><td>Marcas una casilla</td><td>Jugando más horas</td><td class="io">Haciendo el hábito con el reloj</td></tr>
-          <tr><td>Lo que ves mientras tanto</td><td>Una lista</td><td>Una pantalla que te atrapa</td><td class="io">Tu personaje haciendo lo mismo que tú</td></tr>
-          <tr><td>Lo que te hace volver</td><td>Notificaciones</td><td>Recompensas infinitas</td><td class="io">Racha, misiones, tu cuarto y tu torre</td></tr>
-          <tr><td>Se compra con dinero</td><td>Plan premium</td><td>Monedas y cofres</td><td class="io">Nada. Los bits solo se ganan haciendo</td></tr>
-          <tr><td>Con otras personas</td><td>Casi nunca</td><td>Competir por competir</td><td class="io">Ranking real, likes y salas para enfocarse juntos</td></tr>
-          <tr><td>Lo que te llevas</td><td>Un porcentaje</td><td>Horas jugadas</td><td class="io">Horas de lectura, oración, gym, estudio</td></tr>
-        </tbody>
-      </table>
+    <div class="kicker reveal">LOS MUNDOS</div>
+    <h2 class="h2 reveal d1" data-scr>Elige tu mundo.</h2>
+    <p class="carts-hint reveal d2">TOCA UN CARTUCHO PARA VOLAR AHÍ</p>
+    <div class="carts" id="carts">
+      <button class="cart reveal d1" data-w="0" style="--c:#7ddf64;--bg:linear-gradient(160deg,#ffb36b,#5bbf5a 60%,#2f7a3d)"><span class="label"><em>🏡</em><b>Edificio Barrio</b></span><span class="fl">PISOS 1–10</span><span class="go">▶</span></button>
+      <button class="cart reveal d2" data-w="1" style="--c:#71e6ff;--bg:linear-gradient(160deg,#9ff3ff,#3aa8d8 55%,#1d4f7a)"><span class="label"><em>🏙️</em><b>Torre Centro</b></span><span class="fl">PISOS 11–25</span><span class="go">▶</span></button>
+      <button class="cart reveal d3" data-w="2" style="--c:#ff4fb8;--bg:linear-gradient(160deg,#ff7ad1,#6a2bd0 55%,#22114f)"><span class="label"><em>🌃</em><b>Rascacielos IO</b></span><span class="fl">PISOS 26–50</span><span class="go">▶</span></button>
+      <button class="cart reveal d4" data-w="3" style="--c:#ffd36b;--bg:linear-gradient(160deg,#fff2c4,#f6a6d8 55%,#9b5cf6)"><span class="label"><em>☁️</em><b>Ciudad en las nubes</b></span><span class="fl">PISOS 51–75</span><span class="go">▶</span></button>
+      <button class="cart reveal d5" data-w="4" style="--c:#6dff9e;--bg:linear-gradient(160deg,#6dff9e,#1f7a6a 50%,#0b1a33)"><span class="label"><em>🛰️</em><b>Estación orbital</b></span><span class="fl">PISOS 76–100</span><span class="go">▶</span></button>
+      <button class="cart reveal d5" data-w="5" style="--c:#ffc83d;--bg:linear-gradient(160deg,#ffe48a,#ffb020 45%,#7a3d00)"><span class="label"><em>👑</em><b>???</b></span><span class="fl">PISO 101+</span><span class="go">▶</span></button>
     </div>
   </div>
 </section>
 
-<section id="metas" style="padding-top:20px">
+<section id="comunidad">
   <div class="wrap">
-    <div class="reveal">
-      <div class="eyebrow">PARA QUÉ SIRVE · NUESTRAS METAS</div>
-      <h2 class="h2">Que tu mejor versión sea divertida.</h2>
+    <div class="kicker reveal">EN VIVO · LA COMUNIDAD</div>
+    <h2 class="h2 reveal d1" data-scr>Esto lo subimos juntos.</h2>
+    <p class="lede reveal d2">Cada número sale del juego en este momento. Sin inflar, sin bots.</p>
+    <div class="live-grid">
+      <div class="lv reveal d1"><em>👾</em><b id="stP">—</b><span>Jugadores</span></div>
+      <div class="lv reveal d2"><em class="on-dot"></em><b id="stO">—</b><span>Jugando ahora</span></div>
+      <div class="lv reveal d3"><em>⏱️</em><b id="stM">—</b><span>Minutos de hábitos</span></div>
+      <div class="lv reveal d1"><em>👑</em><b id="stH">—</b><span>Hábitos cumplidos</span></div>
+      <div class="lv reveal d2"><em>⚡</em><b id="stX">—</b><span>XP ganada</span></div>
+      <div class="lv reveal d3"><em>📬</em><b id="stW">—</b><span>En la lista de espera</span></div>
     </div>
-    <div class="goals">
-      <div class="goal reveal"><div class="n">01</div><h3 class="h3">Constancia, no perfección</h3><p>Hábitos pequeños que se sostienen: una racha de 7 días primero, luego 30. Con escudos para cuando la vida pasa.</p></div>
-      <div class="goal reveal"><div class="n">02</div><h3 class="h3">Tiempo que vuelve a ti</h3><p>Cada minuto dentro de IO es un minuto haciendo algo real. La meta es que cierres la app y hayas leído, orado o entrenado.</p></div>
-      <div class="goal reveal"><div class="n">03</div><h3 class="h3">Una comunidad que suma</h3><p>Un ranking con personas reales, sin bots ni datos inventados, donde subir significa haber hecho más.</p></div>
-    </div>
-    <div class="road reveal">
-      <div class="rd now"><span class="when">AHORA</span><b>Temporada 1 en la web</b>Juega gratis desde el navegador e instálalo como app.</div>
-      <div class="rd"><span class="when">SIGUIENTE</span><b>Google Play</b>La misma partida, desde la tienda de Android.</div>
-      <div class="rd"><span class="when">DESPUÉS</span><b>App Store</b>Llegamos al iPhone con widgets y recordatorios.</div>
-      <div class="rd"><span class="when">EN CAMINO</span><b>Clanes y eventos</b>Retos por equipos, temporadas con premios y mundos nuevos.</div>
+    <div class="goal reveal d2">
+      <div class="meter-top"><span>META · LOS PRIMEROS 1.000 JUGADORES</span><span id="stG">PRONTO</span></div>
+      <div class="bar big"><i id="stGb"></i><span class="flag">🏁</span></div>
+      <p class="goal-n">Cada persona que invitas sube la barra. <button type="button" class="linkbtn" id="shareTop">Invitar a alguien ↗</button></p>
     </div>
   </div>
 </section>
 
 <section id="ranking">
-  <div class="wrap">
-    <div class="panel rank reveal">
-      <div>
-        <div class="eyebrow">RANKING EN VIVO</div>
-        <h2 class="h2">Solo jugadores reales.</h2>
-        <p class="lead">Aquí aparece el nombre que eliges al crear tu cuenta. Sin bots, sin números inventados: si estás arriba es porque lo hiciste.</p>
-        <div class="cta"><a class="btn btn-start" href="app/">▶ ENTRAR AL RANKING</a></div>
-      </div>
-      <div class="board">
-        <div class="board-h"><span>TOP 10 · XP TOTAL</span><span class="live" id="rkLive"><i></i>EN VIVO</span></div>
-        <div id="rkRows"><div class="empty"><b>Cargando…</b></div></div>
-      </div>
+  <div class="wrap arcade">
+    <div class="kicker reveal">RANKING EN VIVO</div>
+    <h2 class="h2 reveal d1" data-scr>High scores.</h2>
+    <p class="lede reveal d2" style="margin-inline:auto">Solo jugadores reales. Sin bots.</p>
+    <div class="board reveal d2">
+      <div class="board-h"><span>TOP 10 · XP</span><span class="live" id="rkLive"><i></i>EN VIVO</span></div>
+      <div id="rkRows"><div class="empty"><b>CARGANDO…</b></div></div>
     </div>
   </div>
 </section>
 
-<section id="entrar">
-  <div class="wrap">
-    <div class="reveal">
-      <div class="eyebrow">CÓMO ENTRAR A JUGAR</div>
-      <h2 class="h2">Listo en un minuto. Sin tienda.</h2>
-      <p class="lead">IO se juega desde el navegador y se instala como una app normal. Tu cuenta guarda la partida en la nube: si cambias de celular, sigues donde ibas.</p>
+<section id="unete">
+  <div class="wrap join">
+    <div class="card reveal">
+      <div class="kicker">APOYA EL PROYECTO</div>
+      <h3>Llevemos IO a las tiendas.</h3>
+      <p>IO es gratis y lo seguirá siendo. La campaña es para llegar a Google Play y App Store. Apoyar nunca da ventajas en el juego.</p>
+      <div class="meter">
+        <div class="meter-top"><span>META · USD 5.000</span><span>USD 0 · ABRE PRONTO</span></div>
+        <div class="bar"><i style="width:0"></i></div>
+      </div>
+      <div class="tiers">
+        <div class="tier"><em>🎖️</em><b>$10</b><strong>Insignia de apoyo</strong><span>Una insignia en tu perfil del juego.</span></div>
+        <div class="tier hot"><em>🏛️</em><b>$50</b><strong>Muro de fundadores</strong><span>Tu nombre en el muro del lobby de la torre.</span></div>
+        <div class="tier"><em>🛠️</em><b>$150</b><strong>Diseña un objeto</strong><span>Creamos contigo un objeto del juego.</span></div>
+        <div class="tier"><em>👑</em><b>$500</b><strong>Diseña un piso</strong><span>Un piso entero de la torre con tu idea.</span></div>
+      </div>
     </div>
-    <div class="enter">
-      <div class="en reveal"><div class="n">PASO 1</div><h3 class="h3">Abre IO</h3><p>Toca <b>PRESS START</b> o entra a <b class="host">esta página</b><b>/app</b> desde tu celular.</p><div class="cta" style="margin-top:14px"><a class="btn btn-start btn-sm" href="app/">▶ ABRIR IO</a></div></div>
-      <div class="en reveal"><div class="n">PASO 2</div><h3 class="h3">Crea tu cuenta</h3><p>Durante la bienvenida eliges tu personaje, tus hábitos y entras con:</p><div class="acc"><span>🟢 Google</span><span>✉️ Correo con código</span></div></div>
-      <div class="en reveal"><div class="n">PASO 3</div><h3 class="h3">Instálalo</h3><p>Agrégalo a tu pantalla de inicio (abajo te decimos cómo). Se abre como app y funciona sin internet.</p></div>
-    </div>
-    <div class="install">
-      <div class="panel inst reveal">
-        <h3 class="h3">Instalar en tu celular o computador</h3>
-        <div class="tabs" role="tablist" aria-label="Tu dispositivo">
-          <button role="tab" aria-selected="true" data-os="android">🤖 Android</button>
-          <button role="tab" aria-selected="false" data-os="iphone">🍎 iPhone</button>
-          <button role="tab" aria-selected="false" data-os="pc">💻 Computador</button>
+    <div class="card reveal d1">
+      <div class="kicker">AVÍSAME</div>
+      <h3>Únete desde el día uno.</h3>
+      <p>Te avisamos cuando llegue a las tiendas y cuando abra la campaña. Nada más.</p>
+      <p class="joined" id="joined" hidden></p>
+      <form class="form" name="lista-espera" id="waitForm" method="POST" data-netlify="true" netlify-honeypot="bot-field" novalidate>
+        <input type="hidden" name="form-name" value="lista-espera">
+        <p class="hp"><label>No llenes esto: <input name="bot-field" id="bot-field" tabindex="-1" autocomplete="off"></label></p>
+        <div class="inline">
+          <label class="hp" for="f-email">Correo</label>
+          <input class="inp" id="f-email" name="email" type="email" autocomplete="email" required placeholder="tu@correo.com">
+          <button class="btn btn-start" type="submit" id="f-go" data-sfx>AVÍSAME</button>
         </div>
-        <ol class="howto" data-os="android"><li>Abre <b><span class="host">esta página</span>/app</b> en <b>Chrome</b>.</li><li>Toca el menú <b>⋮</b> arriba a la derecha.</li><li>Elige <b>Instalar app</b> o <b>Agregar a la pantalla de inicio</b>.</li><li>Ábrelo desde el ícono <b>IO</b>. Mantén presionado el ícono para ver atajos como “▶ Próximo hábito”.</li></ol>
-        <ol class="howto" data-os="iphone" hidden><li>Abre <b><span class="host">esta página</span>/app</b> en <b>Safari</b>.</li><li>Toca <b>Compartir</b> (el cuadrado con la flecha hacia arriba).</li><li>Baja y elige <b>Agregar a inicio</b>.</li><li>Ábrelo desde el ícono <b>IO</b>. Así funcionan los recordatorios (iOS 16.4 o más reciente).</li></ol>
-        <ol class="howto" data-os="pc" hidden><li>Abre <b><span class="host">esta página</span>/app</b> en <b>Chrome</b> o <b>Edge</b>.</li><li>Haz clic en el ícono de <b>instalar</b> al final de la barra de direcciones.</li><li>Con el teclado: flechas para caminar, <b>Z</b> es A, <b>X</b> es B, <b>Enter</b> es START.</li></ol>
+        <select class="inp" id="f-apoyo" name="apoyo" aria-label="¿Quieres apoyar?"><option>Solo avísame</option><option>Insignia $10</option><option>Fundador $50</option><option>Diseñador $150</option><option>Leyenda $500</option></select>
+        <input type="hidden" name="ref" id="f-ref">
+        <p class="err" id="f-err" hidden></p>
+      </form>
+      <div class="done" id="waitDone" hidden>
+        <div style="font-size:40px">👑</div>
+        <b>¡Listo, te avisamos!</b>
+        <p>Mientras tanto, empieza tu racha.</p>
+        <div class="share"><a id="shWa" target="_blank" rel="noopener">WhatsApp</a><a id="shX" target="_blank" rel="noopener">X</a><button type="button" id="shCopy">Copiar enlace</button></div>
       </div>
-      <div class="panel free reveal">
-        <div class="big">$0</div>
-        <p style="margin-top:8px;font-size:18px;font-weight:700">Gratis hoy, gratis siempre.</p>
-        <ul>
-          <li>Sin anuncios.</li>
-          <li>Nada se compra con dinero: XP, bits y objetos solo se ganan haciendo.</li>
-          <li>El ranking muestra solo tu nombre, nivel, XP, racha y personaje. Tus hábitos son privados.</li>
-          <li>Borras tu cuenta y tus datos cuando quieras, desde Ajustes.</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section id="lista" style="padding-top:20px">
-  <div class="wrap">
-    <div class="panel wait reveal">
-      <div>
-        <div class="eyebrow">TIENDAS · APOYO</div>
-        <h2 class="h2">Avísame cuando llegue a las tiendas.</h2>
-        <p class="lead">Ya puedes jugar gratis en la web. Déjanos tu correo y te avisamos cuando IO llegue a Google Play y App Store, y cuando abra la campaña para apoyar el proyecto.</p>
-        <div class="tiers">
-          <div class="tier"><b>$5</b>Tu nombre en el Muro de Fundadores del lobby.</div>
-          <div class="tier"><b>$15</b>Insignia “Fundador” junto a tu nombre en el ranking.</div>
-          <div class="tier"><b>$40</b>Diseñas con nosotros el siguiente mundo.</div>
-        </div>
-        <p class="small" style="margin-top:12px">Regla de oro: apoyar nunca da XP, bits ni ventajas. Solo reconocimiento. La campaña aún no abre.</p>
-      </div>
-      <div>
-        <form class="form" name="lista-espera" id="waitForm" method="POST" data-netlify="true" netlify-honeypot="bot-field" novalidate>
-          <input type="hidden" name="form-name" value="lista-espera">
-          <p class="hp"><label>No llenes esto: <input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
-          <div class="two">
-            <div class="field"><label for="f-nombre">Tu nombre</label><input id="f-nombre" name="nombre" autocomplete="given-name" maxlength="40" placeholder="Tu nombre"></div>
-            <div class="field"><label for="f-email">Correo</label><input id="f-email" name="email" type="email" autocomplete="email" required placeholder="tu@correo.com"></div>
-          </div>
-          <div class="two">
-            <div class="field"><label for="f-disp">Tu celular</label><select id="f-disp" name="dispositivo"><option>Android</option><option>iPhone</option><option>Los dos</option></select></div>
-            <div class="field"><label for="f-apoyo">¿Quieres apoyar?</label><select id="f-apoyo" name="apoyo"><option>Solo avísame</option><option>Apoyo $5</option><option>Fundador $15</option><option>Constructor $40</option></select></div>
-          </div>
-          <input type="hidden" name="ref" id="f-ref">
-          <button class="btn btn-start" type="submit" id="f-go">AVÍSAME</button>
-          <p class="small">Solo usamos tu correo para estos avisos. Puedes pedir que lo borremos cuando quieras.</p>
-          <p class="err" id="f-err" hidden></p>
-        </form>
-        <div class="done" id="waitDone" hidden>
-          <div class="crown">👑</div>
-          <h3 class="h3">¡Listo, te avisamos!</h3>
-          <p style="color:var(--muted)">Mientras tanto, empieza tu racha. Y si invitas a tus amigos, compiten contigo en el ranking.</p>
-          <div class="share"><a id="shWa" target="_blank" rel="noopener">WhatsApp</a><a id="shX" target="_blank" rel="noopener">X</a><button type="button" id="shCopy">Copiar enlace</button></div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section id="preguntas">
-  <div class="wrap">
-    <div class="eyebrow">PREGUNTAS</div>
-    <h2 class="h2">Lo que más nos preguntan.</h2>
-    <div class="faq">
-      <details><summary>¿De verdad es gratis?</summary><p>Sí. IO es gratis y sin anuncios. Si algún día existe IO+, será opcional y para extras como temas o estadísticas. Nunca venderemos XP, bits ni objetos.</p></details>
-      <details><summary>¿Necesito crear una cuenta?</summary><p>Sí, con Google o con tu correo (te llega un código de 6 números, sin contraseñas). Así tu partida queda guardada en la nube, puedes cambiar de celular y apareces en el ranking con el nombre que elijas.</p></details>
-      <details><summary>¿Por qué el reloj es obligatorio?</summary><p>Porque es lo que hace que los puntos valgan. Si lees 20 minutos, el reloj cuenta 20 minutos. Puedes pausar y seguir después, pero la corona solo aparece cuando el reloj llega al final. El tiempo sigue contando aunque bloquees la pantalla.</p></details>
-      <details><summary>¿Quién ve mis datos?</summary><p>Tu partida solo la ves tú. En el ranking aparecen tu nombre público, tu nivel, tu XP, tu racha y tu personaje. Los nombres de tus hábitos nunca se publican. Puedes borrar tu cuenta y todos tus datos desde ⚙️ Ajustes.</p></details>
-      <details><summary>¿Funciona sin internet?</summary><p>Sí. Una vez instalado, el reloj, el juego, la tienda y la radio funcionan sin conexión. Cuando vuelve el internet, tu partida se sincroniza sola. El ranking y las salas con amigos necesitan conexión.</p></details>
-      <details><summary>¿Cuándo llega a Google Play y App Store?</summary><p>Primero Google Play y después App Store. Deja tu correo arriba y te avisamos el primer día. Tu cuenta y tu partida serán las mismas.</p></details>
-      <details><summary>¿Qué hábitos puedo poner?</summary><p>Los que quieras. Hay 23 actividades con animación propia (leer, orar, gym, correr, sacar al perro, estudiar, escribir, pintar, respirar, tomar agua y más) y también hábitos de conteo, como vasos de agua.</p></details>
     </div>
   </div>
 </section>
 
 <section class="final">
-  <div class="wrap reveal">
-    <div class="eyebrow">PLAYER 1, ¿LISTO?</div>
-    <h2 class="h2">Tu primer piso te está esperando.</h2>
-    <p class="lead">Un minuto para crear tu personaje. Veinte para tu primer hábito. Toda una torre para subir.</p>
-    <div class="cta"><a class="btn btn-start" href="app/">▶ PRESS START</a></div>
+  <div class="wrap">
+    <div class="kicker reveal">PLAYER 1</div>
+    <h2 class="h2 reveal d1" data-scr>¿Listo?</h2>
+    <p class="lede reveal d2" style="margin-inline:auto">Un minuto para crear tu personaje. Toda una torre por subir.</p>
+    <div class="cta reveal d3"><a class="btn btn-start" href="app/" data-sfx>▶ PRESS START</a></div>
+    <div class="dock reveal d4">
+      <button data-open="install" data-os="android">🤖 Android</button>
+      <button data-open="install" data-os="iphone">🍎 iPhone</button>
+      <button data-open="install" data-os="pc">💻 Computador</button>
+      <button data-open="faq">❔ Preguntas</button>
+    </div>
   </div>
 </section>
 
 </main>
 
-<div class="sticky-play" id="stickyPlay"><a class="btn btn-start" href="app/">▶ PRESS START · GRATIS</a></div>
+<div class="sticky" id="sticky"><a class="btn btn-start" href="app/">▶ PRESS START · GRATIS</a></div>
 
 <footer>
-  <div class="wrap"><span>IO · tu vida es el juego · gratis · nada se compra con dinero</span><span><a href="privacidad/">Privacidad</a> · <a href="terminos/">Términos</a></span><span class="bin">01001001 01001111</span></div>
+  <div class="wrap"><span>IO · tu vida es el juego · gratis · nada se compra con dinero</span><span><a href="privacidad/">Privacidad</a> · <a href="terminos/">Términos</a></span><span class="bin" translate="no">01001001 01001111</span></div>
 </footer>
+
+<dialog id="dlg-install" aria-labelledby="inst-t">
+  <div class="sheet">
+    <button class="x" data-close aria-label="Cerrar">✕</button>
+    <h3 id="inst-t">Instálalo gratis</h3>
+    <div class="tabs" role="tablist" aria-label="Tu dispositivo">
+      <button role="tab" aria-selected="true" data-os="android">🤖 Android</button>
+      <button role="tab" aria-selected="false" data-os="iphone">🍎 iPhone</button>
+      <button role="tab" aria-selected="false" data-os="pc">💻 Computador</button>
+    </div>
+    <ol class="steps" data-os="android"><li><span>Abre <b class="host" translate="no">iogamelife.com/app</b> en <b>Chrome</b>.</span></li><li><span>Toca <b>⋮</b> y luego <b>Instalar app</b>.</span></li><li><span>Abre el ícono <b>IO</b> y a jugar.</span></li></ol>
+    <ol class="steps" data-os="iphone" hidden><li><span>Abre <b class="host" translate="no">iogamelife.com/app</b> en <b>Safari</b>.</span></li><li><span>Toca <b>Compartir</b> y luego <b>Agregar a inicio</b>.</span></li><li><span>Abre el ícono <b>IO</b> y a jugar.</span></li></ol>
+    <ol class="steps" data-os="pc" hidden><li><span>Abre <b class="host" translate="no">iogamelife.com/app</b> en <b>Chrome</b> o <b>Edge</b>.</span></li><li><span>Haz clic en <b>instalar</b>, al final de la barra de direcciones.</span></li><li><span>Juega con el teclado: flechas, <b>Z</b>, <b>X</b> y <b>Enter</b>.</span></li></ol>
+  </div>
+</dialog>
+
+<dialog id="dlg-faq" aria-labelledby="faq-t">
+  <div class="sheet">
+    <button class="x" data-close aria-label="Cerrar">✕</button>
+    <h3 id="faq-t">Preguntas</h3>
+    <div class="qa">
+      <details><summary>¿Es gratis?</summary><p>Sí, y sin anuncios. Nada se compra con dinero: XP, bits y objetos solo se ganan haciendo.</p></details>
+      <details><summary>¿Necesito cuenta?</summary><p>Sí, con Google o con tu correo (te llega un código). Así tu partida se guarda en la nube.</p></details>
+      <details><summary>¿Por qué el reloj?</summary><p>Porque hace que los puntos valgan: si dices 20 minutos, cuenta 20 minutos. Puedes pausar.</p></details>
+      <details><summary>¿Quién ve mis datos?</summary><p>Tus hábitos son privados. En el ranking solo salen tu nombre, nivel, XP, racha y personaje.</p></details>
+      <details><summary>¿Funciona sin internet?</summary><p>Sí. Al volver la conexión, tu partida se sincroniza sola.</p></details>
+    </div>
+  </div>
+</dialog>
 
 <!-- Idiomas: español o inglés (automático por el idioma del celular, o con los botones ES / EN) -->
 <script type="module">
@@ -667,149 +610,265 @@ if (I.isEn) I.addDict(EN);
 I.start(); window.IOt = I.t;
 document.documentElement.classList.remove('i18n-wait');
 document.querySelectorAll('.lang button').forEach(b => { b.classList.toggle('on', b.dataset.lang === I.lang); b.onclick = () => b.dataset.lang !== I.lang && I.setLang(b.dataset.lang); });
+window.dispatchEvent(new Event('io:lang'));
 </script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js" defer></script>
+
 <script>
 (() => {
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const store = { get(k) { try { return sessionStorage.getItem(k); } catch { return null; } }, set(k, v) { try { sessionStorage.setItem(k, v); } catch {} } };
+  const ss = { get(k) { try { return sessionStorage.getItem(k); } catch { return null; } }, set(k, v) { try { sessionStorage.setItem(k, v); } catch {} } };
+  const T = s => (window.IOt || String)(s);
 
-  // La versión anterior del juego vivía en /io/; si quedó su service worker, lo quitamos para que esta página cargue fresca.
+  // La primera versión del juego vivía en /io/; si quedó su service worker, lo quitamos.
   if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => {
-    try { const s = new URL(r.scope); if (s.pathname === location.pathname.replace(/[^/]*$/, '')) r.unregister(); } catch {}
+    try { if (/\/io\/$/.test(new URL(r.scope).pathname)) r.unregister(); } catch {}
   })).catch(() => {});
 
-  // Dirección real para las instrucciones de instalación.
-  const base = (location.host ? location.host + location.pathname.replace(/[^/]*$/, '').replace(/\/$/, '') : '');
-  if (base && /^https?:/.test(location.protocol)) document.querySelectorAll('.host').forEach(e => e.textContent = base);
+  // Dirección real en las instrucciones de instalación.
+  if (/^https?:/.test(location.protocol) && location.host && !/localhost|127\./.test(location.host)) {
+    const base = location.host + location.pathname.replace(/[^/]*$/, '').replace(/\/$/, '') + '/app';
+    document.querySelectorAll('.host').forEach(e => e.textContent = base);
+  }
 
-  /* ---------- intro de consola ---------- */
-  const boot = document.getElementById('boot');
-  let audio;
-  function chime() {
+  /* ---------- sonidos 8-bit (solo después de que la persona toca algo) ---------- */
+  let ac = null;
+  function blip(f1 = 880, f2 = 1320, d = .09, vol = .05) {
     try {
-      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
-      const t = audio.currentTime;
-      [[988, 0], [1319, .09]].forEach(([f, d]) => {
-        const o = audio.createOscillator(), g = audio.createGain(); o.type = 'square'; o.frequency.value = f;
-        g.gain.setValueAtTime(0, t + d); g.gain.linearRampToValueAtTime(.08, t + d + .01); g.gain.exponentialRampToValueAtTime(.001, t + d + .5);
-        o.connect(g).connect(audio.destination); o.start(t + d); o.stop(t + d + .55);
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+      const t = ac.currentTime;
+      [[f1, 0], [f2, d]].forEach(([f, o]) => {
+        const os = ac.createOscillator(), g = ac.createGain(); os.type = 'square'; os.frequency.value = f;
+        g.gain.setValueAtTime(0, t + o); g.gain.linearRampToValueAtTime(vol, t + o + .01); g.gain.exponentialRampToValueAtTime(.0001, t + o + .35);
+        os.connect(g).connect(ac.destination); os.start(t + o); os.stop(t + o + .4);
       });
     } catch {}
   }
+  document.querySelectorAll('[data-sfx]').forEach(b => b.addEventListener('click', () => blip(988, 1319)));
+
+  /* ---------- intro: la consola se prende ---------- */
+  const boot = document.getElementById('boot');
   let booted = false;
-  function endBoot(withSound) {
-    if (booted) return; booted = true; store.set('io.boot', '1');
-    if (withSound) chime();
+  function endBoot(sound) {
+    if (booted) return; booted = true; ss.set('io.boot', '1');
+    if (sound) blip(988, 1319, .1, .06);
     boot.classList.add('go');
-    setTimeout(() => boot.classList.add('out'), reduce ? 50 : 650);
-    setTimeout(() => { boot.hidden = true; }, 1400);
+    setTimeout(() => boot.classList.add('out'), reduce ? 40 : 700);
+    setTimeout(() => { boot.hidden = true; }, 1500);
     window.dispatchEvent(new Event('io:booted'));
   }
-  if (!store.get('io.boot') && !reduce) {
+  if (!ss.get('io.boot') && !reduce) {
     boot.hidden = false;
     requestAnimationFrame(() => requestAnimationFrame(() => boot.classList.add('on')));
     boot.addEventListener('click', () => endBoot(true));
     document.getElementById('bootSkip').addEventListener('click', e => { e.stopPropagation(); endBoot(false); });
-    addEventListener('keydown', e => { if (!booted && (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape')) { e.preventDefault(); endBoot(e.key !== 'Escape'); } });
-    setTimeout(() => endBoot(false), 5200);
-  } else { booted = true; }
+    addEventListener('keydown', e => { if (!booted && ['Enter', ' ', 'Escape'].includes(e.key)) { e.preventDefault(); endBoot(e.key !== 'Escape'); } });
+    setTimeout(() => endBoot(false), 4600);
+  } else booted = true;
 
-  /* ---------- encabezado, HUD, botón fijo ---------- */
-  const hdr = document.getElementById('hdr'), sticky = document.getElementById('stickyPlay');
-  const hudFl = document.getElementById('hudFl'), hudBar = document.getElementById('hudBar'), hudWn = document.getElementById('hudWn');
-  const WORLDS = [[1, 'Edificio Barrio'], [11, 'Torre Centro'], [26, 'Rascacielos IO'], [51, 'Ciudad en las nubes'], [76, 'Estación orbital']];
+  /* ---------- encabezado, botón fijo ---------- */
+  const hdr = document.getElementById('hdr'), sticky = document.getElementById('sticky');
   window.IOscroll = 0;
   function onScroll() {
     const max = Math.max(1, document.documentElement.scrollHeight - innerHeight);
     const p = Math.min(1, Math.max(0, scrollY / max)); window.IOscroll = p;
-    hdr.classList.toggle('solid', scrollY > 40); document.body.classList.toggle('deep', scrollY > innerHeight * .6);
-    sticky.classList.toggle('show', scrollY > innerHeight * .8 && p < .97);
-    const fl = 1 + Math.round(p * 99); hudFl.textContent = 'P' + fl; hudBar.style.height = (p * 100) + '%';
-    hudWn.textContent = WORLDS.filter(w => fl >= w[0]).pop()[1];
+    hdr.classList.toggle('solid', scrollY > 40);
+    document.body.classList.toggle('deep', scrollY > innerHeight * .55);
+    sticky.classList.toggle('show', scrollY > innerHeight * .8 && p < .96);
   }
   addEventListener('scroll', onScroll, { passive: true }); onScroll();
+  // HUD: lo actualiza el mundo 3D según el piso que muestra la cámara.
+  const hudFl = document.getElementById('hudFl'), hudBar = document.getElementById('hudBar'), hudWn = document.getElementById('hudWn');
+  const WN = ['Edificio Barrio', 'Torre Centro', 'Rascacielos IO', 'Ciudad en las nubes', 'Estación orbital', '???'];
+  window.IOhud = (f, w) => { hudFl.textContent = 'P' + f; hudBar.style.height = Math.min(100, f) + '%'; if (hudWn.dataset.w !== String(w)) { hudWn.dataset.w = w; hudWn.textContent = T(WN[w]); } };
+
+  /* ---------- texto que se "decodifica" en unos y ceros ---------- */
+  function scramble(el) {
+    if (reduce || el.dataset.done) return; el.dataset.done = 1;
+    const final = el.textContent; const n = final.length; const t0 = performance.now(), dur = 700;
+    const tick = now => {
+      const k = Math.min(1, (now - t0) / dur), m = Math.floor(n * k);
+      let s = final.slice(0, m);
+      for (let i = m; i < n; i++) s += /\s/.test(final[i]) ? final[i] : (Math.random() < .5 ? '1' : '0');
+      el.textContent = k >= 1 ? final : s;
+      if (k < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+  // La portada se decodifica cuando la página ya está en su idioma (y después de la intro).
+  let heroDone = false;
+  const heroGo = () => { if (heroDone) return; heroDone = true; document.querySelectorAll('.h1 [data-scr]').forEach((el, i) => setTimeout(() => scramble(el), i * 180)); };
+  addEventListener('io:booted', () => setTimeout(heroGo, 650));
+  addEventListener('io:lang', () => { if (booted) setTimeout(heroGo, 60); });
+  setTimeout(() => { if (booted) heroGo(); }, 400);
 
   /* ---------- aparecer al bajar ---------- */
-  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { rootMargin: '0px 0px -8% 0px' });
+  const io = new IntersectionObserver(es => es.forEach(e => {
+    if (!e.isIntersecting) return;
+    const el = e.target; el.classList.add('in');
+    if (el.matches('[data-scr]')) scramble(el);
+    el.querySelectorAll('[data-scr]').forEach(scramble);
+    el.querySelectorAll('[data-count]').forEach(count);
+    io.unobserve(el);
+  }), { rootMargin: '0px 0px -6% 0px' });
   document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
-  /* ---------- celular con el juego de verdad (demo aislada) ---------- */
-  const sc = document.getElementById('phoneSc');
-  const canEmbed = /^https?:/.test(location.protocol) && !window.IO_NO_IFRAME;
-  if (canEmbed) {
-    const lo = new IntersectionObserver(es => { if (!es[0].isIntersecting) return; lo.disconnect();
-      const f = document.createElement('iframe'); f.src = 'app/?demo=1'; f.title = 'IO en modo demo'; f.loading = 'lazy';
-      f.setAttribute('allow', 'autoplay');
-      const fit = () => { const w = sc.clientWidth; f.style.transform = `scale(${w / 390})`; f.style.height = (sc.clientHeight * 390 / w) + 'px'; };
-      f.addEventListener('load', () => { fit(); document.getElementById('phoneImg').remove(); });
-      sc.appendChild(f); fit(); addEventListener('resize', fit);
-    }, { rootMargin: '200px' });
-    lo.observe(sc);
-  } else {
-    // sin servidor: galería de pantallas reales del juego
-    const shots = ['hero-home', 'hero-perro', 'hero-orar', 'hero-gym', 'hero-tienda'].map(n => (window.IO_IMG || 'img/') + n + '.webp');
-    const img = document.getElementById('phoneImg'); let i = 0;
-    document.getElementById('stageNote').textContent = 'Pantallas reales del juego.';
-    if (!reduce) setInterval(() => { i = (i + 1) % shots.length; img.style.opacity = 0; setTimeout(() => { img.src = shots[i]; img.style.opacity = 1; }, 250); }, 2600);
-    img.style.transition = 'opacity .25s';
+  /* ---------- contadores ---------- */
+  function count(el) {
+    if (el.dataset.done) return; el.dataset.done = 1;
+    const to = +el.dataset.count, pre = el.dataset.pre || '', suf = el.dataset.suf || '';
+    if (reduce || !to) { el.textContent = pre + to + suf; return; }
+    const t0 = performance.now(), dur = 1200;
+    const step = now => { const k = Math.min(1, (now - t0) / dur); el.textContent = pre + Math.round(to * (1 - Math.pow(1 - k, 3))) + suf; if (k < 1) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
   }
 
-  /* ---------- tráiler: solo corre cuando se ve ---------- */
-  const tv = document.getElementById('trailerV');
-  const vo = new IntersectionObserver(es => es.forEach(e => {
-    if (e.isIntersecting) { if (tv.preload === 'none') tv.preload = 'auto'; if (!reduce) tv.play().catch(() => {}); } else tv.pause();
-  }), { threshold: .35 });
-  vo.observe(tv);
-  if (reduce) tv.controls = true;
+  /* ---------- bucle del juego: se ilumina cada paso ---------- */
+  const tiles = [...document.querySelectorAll('#loop .tile')]; let ti = 0;
+  const lit = () => { tiles.forEach((t, i) => t.classList.toggle('on', i === ti)); ti = (ti + 1) % tiles.length; };
+  lit(); if (!reduce) setInterval(lit, 1600);
 
-  /* ---------- pestañas de instalación ---------- */
-  const tabs = document.querySelectorAll('.tabs button');
-  const pick = os => { tabs.forEach(b => b.setAttribute('aria-selected', b.dataset.os === os)); document.querySelectorAll('.howto').forEach(o => o.hidden = o.dataset.os !== os); };
-  tabs.forEach(b => b.addEventListener('click', () => pick(b.dataset.os)));
-  const ua = navigator.userAgent; pick(/iPhone|iPad|iPod/.test(ua) ? 'iphone' : /Android/.test(ua) ? 'android' : 'pc');
+  /* ---------- demo jugable: el juego de verdad dentro de la consola ---------- */
+  const gb = document.getElementById('gbDemo'), scr = document.getElementById('demoScr'), dImg = document.getElementById('demoImg'), dPlay = document.getElementById('demoPlay');
+  const demoSrc = window.IO_DEMO_SRC || 'app/?demo=1';
+  const canEmbed = /^https?:/.test(location.protocol) && !window.IO_NO_IFRAME;
+  let frame = null;
+  const fit = () => { if (!frame) return; const sc = scr.clientWidth / 390; frame.style.transform = `scale(${sc})`; frame.style.height = (scr.clientHeight / sc) + 'px'; };
+  function loadDemo() {
+    if (frame || !canEmbed) return;
+    frame = document.createElement('iframe'); frame.src = demoSrc; frame.title = T('IO en modo demo'); frame.setAttribute('allow', 'autoplay');
+    frame.addEventListener('load', () => { fit(); frame.classList.add('on'); dImg.style.opacity = 0; });
+    scr.insertBefore(frame, dPlay); fit(); addEventListener('resize', fit);
+  }
+  if (canEmbed) new IntersectionObserver((es, o) => { if (es[0].isIntersecting) { o.disconnect(); loadDemo(); } }, { rootMargin: '400px' }).observe(scr);
+  else { // sin servidor: pantallas reales del juego
+    const shots = ['hero-home', 'hero-perro', 'hero-orar', 'hero-gym', 'hero-tienda'].map(n => 'img/' + n + '.webp'); let si = 0;
+    if (!reduce) setInterval(() => { si = (si + 1) % shots.length; dImg.style.opacity = 0; setTimeout(() => { dImg.src = shots[si]; dImg.style.opacity = 1; }, 300); }, 2600);
+  }
+  dPlay.addEventListener('click', () => {
+    if (!canEmbed) { window.open(demoSrc, '_blank'); return; }
+    loadDemo(); gb.classList.add('live'); dPlay.hidden = true;
+    blip(523, 784, .08, .05); setTimeout(() => blip(784, 1047, .08, .05), 160);
+    try { frame.contentWindow.focus(); } catch {}
+  });
+  document.getElementById('toDemo').addEventListener('click', () => setTimeout(loadDemo, 300));
 
-  /* ---------- lista de espera (Netlify Forms) ---------- */
+  /* ---------- sonidos al pasar por encima (solo en computador, después del primer toque) ---------- */
+  if (matchMedia('(hover:hover)').matches) document.querySelectorAll('.cart,.tier,.feat,.tile,.lv').forEach((el, i) => el.addEventListener('pointerenter', () => { if (ac) blip(1200 + (i % 5) * 90, 1500 + (i % 5) * 90, .03, .018); }));
+
+  /* ---------- cartuchos: la cámara vuela a cada mundo ---------- */
+  const carts = [...document.querySelectorAll('.cart')];
+  carts.forEach(c => c.addEventListener('click', () => {
+    carts.forEach(x => x.classList.toggle('sel', x === c));
+    blip(660 + 110 * +c.dataset.w, 990 + 110 * +c.dataset.w, .07, .045);
+    window.IOworld?.focus(+c.dataset.w);
+  }));
+
+  /* ---------- ventanas: instalar y preguntas ---------- */
+  const dlgI = document.getElementById('dlg-install'), dlgF = document.getElementById('dlg-faq');
+  const pick = os => { dlgI.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.os === os)); dlgI.querySelectorAll('.steps').forEach(o => o.hidden = o.dataset.os !== os); };
+  dlgI.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => pick(b.dataset.os)));
+  const show = d => { try { d.showModal(); } catch { d.setAttribute('open', ''); } };
+  document.querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', () => {
+    if (b.dataset.open === 'install') { pick(b.dataset.os); show(dlgI); } else show(dlgF);
+  }));
+  document.querySelectorAll('dialog').forEach(d => {
+    d.querySelector('[data-close]').addEventListener('click', () => d.close ? d.close() : d.removeAttribute('open'));
+    d.addEventListener('click', e => { if (e.target === d) d.close(); });
+  });
+
+  /* ---------- lista de espera ---------- */
   const form = document.getElementById('waitForm'), err = document.getElementById('f-err');
   try { const r = new URLSearchParams(location.search).get('ref'); if (r) document.getElementById('f-ref').value = r.slice(0, 40); } catch {}
   form.addEventListener('submit', async e => {
     e.preventDefault(); err.hidden = true;
     const email = form.email.value.trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { err.textContent = 'Revisa tu correo: parece que le falta algo.'; err.hidden = false; form.email.focus(); return; }
-    const btn = document.getElementById('f-go'); btn.disabled = true; btn.textContent = 'ENVIANDO…';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { err.textContent = T('Revisa tu correo: parece que le falta algo.'); err.hidden = false; form.email.focus(); return; }
+    const btn = document.getElementById('f-go'); btn.disabled = true; btn.textContent = T('ENVIANDO…');
     try {
       const cfg = await import('./app/config.js').then(m => m.RANKING).catch(() => null);
       if (cfg?.url && cfg?.key) {
-        // Lista de espera en Supabase (tabla io_waitlist: se puede anotar, nadie la puede leer desde la web).
+        // Supabase, tabla io_waitlist: cualquiera se anota, nadie la puede leer desde la web.
         const f = new FormData(form); const row = { email: email.toLowerCase().slice(0, 120) };
-        for (const k of ['nombre', 'dispositivo', 'apoyo', 'ref']) { const v = String(f.get(k) || '').trim(); if (v) row[k] = v.slice(0, 80); }
+        for (const k of ['apoyo', 'ref']) { const v = String(f.get(k) || '').trim(); if (v) row[k] = v.slice(0, 80); }
         const r = await fetch(`${cfg.url}/rest/v1/io_waitlist`, { method: 'POST', headers: { apikey: cfg.key, Authorization: `Bearer ${cfg.key}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify(row) });
         if (!r.ok && r.status !== 409) throw new Error(r.status); // 409 = ese correo ya estaba anotado
       } else {
-        // Sin Supabase: Netlify Forms.
         const r = await fetch(location.pathname, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(new FormData(form)).toString() });
         if (!r.ok) throw new Error(r.status);
       }
-      form.hidden = true; document.getElementById('waitDone').hidden = false;
+      form.hidden = true; document.getElementById('waitDone').hidden = false; blip(1047, 1568, .1, .05);
       const link = location.origin + location.pathname;
-      const msg = (window.IOt || String)(`Estoy jugando IO: un videojuego donde subes de nivel haciendo tus hábitos reales. Es gratis 👉 ${link}`);
+      const msg = T(`Estoy jugando IO: un videojuego donde subes de nivel haciendo tus hábitos reales. Es gratis 👉 ${link}`);
       document.getElementById('shWa').href = 'https://wa.me/?text=' + encodeURIComponent(msg);
       document.getElementById('shX').href = 'https://x.com/intent/post?text=' + encodeURIComponent(msg);
-      document.getElementById('shCopy').onclick = () => navigator.clipboard?.writeText(link).then(() => document.getElementById('shCopy').textContent = '¡Copiado!');
+      document.getElementById('shCopy').onclick = e2 => navigator.clipboard?.writeText(link).then(() => e2.target.textContent = T('¡Copiado!')).catch(() => {});
     } catch {
-      err.textContent = 'No pudimos guardar tu correo en este momento. Intenta de nuevo en un rato.'; err.hidden = false;
-      btn.disabled = false; btn.textContent = 'AVÍSAME';
+      err.textContent = T('No pudimos guardar tu correo en este momento. Intenta de nuevo en un rato.'); err.hidden = false;
+      btn.disabled = false; btn.textContent = T('AVÍSAME');
     }
   });
 })();
 </script>
 
-<!-- Ranking real: lee la misma base de datos del juego. Si no está configurada, no inventa nada. -->
+<!-- Comunidad en vivo: totales reales del juego (función io_public_stats en Supabase). Si no hay conexión, no inventa nada. -->
+<script type="module">
+const $ = id => document.getElementById(id);
+const T = s => (window.IOt || String)(s);
+const loc = () => document.documentElement.lang === 'en' ? 'en-US' : 'es-CO';
+const short = n => n >= 1e6 ? (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M' : n >= 1e4 ? Math.round(n / 1e3) + 'K' : n.toLocaleString(loc());
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const GOAL = 1000, shown = {};
+function roll(id, to) {
+  const el = $(id); if (!el) return; const from = shown[id] ?? 0; if (shown[id] === to) return; shown[id] = to;
+  if (from !== 0) { el.parentElement.classList.remove('tick'); void el.offsetWidth; el.parentElement.classList.add('tick'); }
+  if (reduce) { el.textContent = short(to); return; }
+  const t0 = performance.now(), dur = 1400;
+  const step = now => { const k = Math.min(1, (now - t0) / dur); el.textContent = short(Math.round(from + (to - from) * (1 - Math.pow(1 - k, 3)))); if (k < 1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+let started = false;
+async function load() {
+  try {
+    const { RANKING } = await import('./app/config.js');
+    if (!RANKING?.url || !RANKING?.key) throw new Error('off');
+    const r = await fetch(`${RANKING.url}/rest/v1/rpc/io_public_stats`, { method: 'POST', headers: { apikey: RANKING.key, Authorization: `Bearer ${RANKING.key}`, 'Content-Type': 'application/json' }, body: '{}' });
+    if (!r.ok) throw new Error('http');
+    const d = await r.json();
+    roll('stP', +d.players || 0); roll('stO', +d.online || 0); roll('stM', +d.minutes || 0);
+    roll('stH', +d.habits || 0); roll('stX', +d.xp || 0); roll('stW', +d.waitlist || 0);
+    const people = (+d.players || 0) + (+d.waitlist || 0);
+    $('stG').textContent = `${people.toLocaleString(loc())} / ${GOAL.toLocaleString(loc())}`;
+    $('stGb').style.width = Math.max(1.5, Math.min(100, people / GOAL * 100)) + '%';
+    if (+d.waitlist > 0) { const j = $('joined'); j.textContent = T(`YA SOMOS ${(+d.waitlist).toLocaleString(loc())} EN LA LISTA`); j.hidden = false; }
+    started = true;
+  } catch (e) { if (!started) $('stG').textContent = T('PRONTO'); }
+}
+// Carga cuando la sección se acerca y se actualiza cada 30 segundos mientras la página está abierta.
+new IntersectionObserver((es, o) => { if (es[0].isIntersecting) { o.disconnect(); load(); setInterval(() => { if (!document.hidden) load(); }, 30000); } }, { rootMargin: '300px' }).observe($('comunidad'));
+// Invitar: compartir el enlace (o copiarlo si el navegador no comparte).
+$('shareTop').addEventListener('click', async e => {
+  const link = location.origin + location.pathname + '?ref=invita';
+  const text = T('Estoy jugando IO: un videojuego donde subes de nivel haciendo tus hábitos reales. Es gratis 👉 {}').replace('{}', link);
+  try { if (navigator.share) { await navigator.share({ text }); return; } } catch { return; }
+  try { await navigator.clipboard.writeText(link); e.target.textContent = T('¡Copiado!'); } catch { e.target.textContent = link; }
+});
+</script>
+
+<!-- Ranking real: la misma base de datos del juego. Si no está configurada, no inventa nada. -->
 <script type="module">
 const rows = document.getElementById('rkRows'), live = document.getElementById('rkLive');
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const fmt = n => (+n || 0).toLocaleString('es');
-const emptyHTML = (t, s) => `<div class="empty"><div class="crown">👑</div><b>${t}</b>${s}</div>`;
+const fmt = n => (+n || 0).toLocaleString(document.documentElement.lang === 'en' ? 'en-US' : 'es-CO');
+const ORD = ['1ST', '2ND', '3RD'];
+const emptyHTML = (t, s) => `<div class="empty"><b>${t}</b><span>${s}</span></div>`;
 try {
   const [{ RANKING }, A] = await Promise.all([import('./app/config.js'), import('./app/avatar.js')]);
   if (!RANKING?.url || !RANKING?.key) throw new Error('off');
@@ -817,171 +876,333 @@ try {
   const r = await fetch(`${RANKING.url}/rest/v1/io_ranking?select=name,level,xp,streak,look&order=xp.desc&limit=10`, { headers: { ...h, Prefer: 'count=exact' } });
   if (!r.ok) throw new Error('http');
   const list = await r.json(); const total = +(r.headers.get('content-range') || '').split('/')[1] || list.length;
-  if (total) { document.getElementById('heroPlayers').textContent = fmt(total); document.getElementById('heroPlayersL').textContent = total === 1 ? 'jugador ya empezó' : 'jugadores ya empezaron'; document.getElementById('heroPlayersBox').hidden = false; }
-  if (!list.length) { rows.innerHTML = emptyHTML('La cima está libre.', 'El primero en terminar un hábito se queda con el puesto #1.'); }
+  if (!list.length) rows.innerHTML = emptyHTML('¿SERÁS EL #1?', 'La cima está libre. El primero en terminar un hábito se la queda.');
   else rows.innerHTML = list.map((p, i) => {
     let av = ''; try { av = A.avatarSVG(A.normLook(p.look?.a || p.look), 'av', '0 0 120 200'); } catch {}
-    return `<div class="row"><span class="pos">#${i + 1}</span><span class="av">${av}</span><span class="nm">${esc(String(p.name || 'Jugador').slice(0, 20))}<small>Nivel ${fmt(p.level)} · 🔥 ${fmt(p.streak)}</small></span><span class="xp">${fmt(p.xp)} XP</span></div>`;
-  }).join('') + (total > list.length ? `<div class="empty" style="padding:14px">y ${fmt(total - list.length)} jugadores más</div>` : '');
+    return `<div class="row"><span class="pos">${ORD[i] || (i + 1) + 'TH'}</span><span class="av">${av}</span><span class="nm" translate="no">${esc(String(p.name || 'Jugador').slice(0, 20).toUpperCase())}<small>LV ${fmt(p.level)} · 🔥${fmt(p.streak)}</small></span><span class="xp">${fmt(p.xp)} XP</span></div>`;
+  }).join('') + (total > list.length ? `<div class="empty" style="padding:14px 0 0"><span>+${fmt(total - list.length)}</span></div>` : '');
 } catch (e) {
   live.innerHTML = 'PRONTO';
-  rows.innerHTML = emptyHTML('El ranking abre con el lanzamiento.', 'Cuando haya jugadores reales, aparecen aquí. Nada de bots ni números inventados.');
+  rows.innerHTML = emptyHTML('¿SERÁS EL #1?', 'El ranking abre con el lanzamiento. Solo personas reales.');
 }
 </script>
 
-<!-- Mundo 3D: la torre de IO -->
+<!-- El mundo 3D: islas flotantes sobre un mar de nubes, una por cada mundo del juego -->
 <script>
 (() => {
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const cv = document.getElementById('world');
+  const ISL = [0, 18, 36, 55, 74]; const CROWN = 92;   // altura de cada mundo y de la corona
+  const WFLOOR = [1, 11, 26, 51, 76, 101];
+  let started = false;
+
   function start() {
+    if (started) return; started = true;
     if (!window.THREE) return fallback();
-    const T = THREE; let r;
-    try { r = new T.WebGLRenderer({ canvas: cv, antialias: true, alpha: true, powerPreference: 'high-performance' }); } catch { return fallback(true); }
-    const mobile = innerWidth < 700;
-    r.setPixelRatio(Math.min(devicePixelRatio || 1, mobile ? 1.5 : 1.75));
-    const scene = new T.Scene(); scene.fog = new T.FogExp2(0x09090f, .024);
-    const cam = new T.PerspectiveCamera(mobile ? 62 : 50, 1, .1, 500);
+    const T = THREE;
+    const mobile = innerWidth < 760 || matchMedia('(pointer:coarse)').matches;
+    let r;
+    try { r = new T.WebGLRenderer({ canvas: cv, antialias: !mobile, powerPreference: 'high-performance' }); } catch { return fallback(true); }
+    let DPR = Math.min(devicePixelRatio || 1, mobile ? 1.3 : 1.6);
+    r.setPixelRatio(DPR);
+    r.setClearColor(0x0a0820);
+    const scene = new T.Scene();
+    scene.fog = new T.FogExp2(0x3a2160, .0058);
+    const cam = new T.PerspectiveCamera(mobile ? 62 : 46, 1, .1, 1400);
 
-    scene.add(new T.AmbientLight(0x6a5acd, .55));
-    const key = new T.PointLight(0x22d3ee, 1.4, 90); key.position.set(14, 20, 14); scene.add(key);
-    const rim = new T.PointLight(0xf472b6, 1.1, 90); rim.position.set(-16, 40, -10); scene.add(rim);
+    /* luz de atardecer */
+    scene.add(new T.HemisphereLight(0xb9a6ff, 0xff7a59, .85));
+    const sunL = new T.DirectionalLight(0xffc49a, 1.15); sunL.position.set(-60, 40, -30); scene.add(sunL);
+    const rim = new T.DirectionalLight(0x7f6bff, .55); rim.position.set(50, 30, 60); scene.add(rim);
 
-    // Torre: 5 mundos de 10 pisos cada uno, cada vez más angosta
-    const COLS = [0xfbbf24, 0x22d3ee, 0x7c5cff, 0xf472b6, 0x4ade80];
-    const FLOORS = 50, FH = 1.1;
-    const tower = new T.Group(); scene.add(tower);
-    const bodyMat = new T.MeshStandardMaterial({ color: 0x14132a, roughness: .7, metalness: .3 });
-    const winGeo = new T.PlaneGeometry(.42, .5);
-    const winMat = new T.MeshBasicMaterial({ color: 0xffffff });
-    const perFace = 5, nWin = FLOORS * 4 * perFace;
-    const wins = new T.InstancedMesh(winGeo, winMat, nWin);
-    const m4 = new T.Matrix4(), q = new T.Quaternion(), sc = new T.Vector3(1, 1, 1), pos = new T.Vector3(), col = new T.Color();
-    const winBase = []; let wi = 0;
-    for (let f = 0; f < FLOORS; f++) {
-      const w = Math.floor(f / 10), W = 4.4 - w * .45, y = f * FH;
-      const body = new T.Mesh(new T.BoxGeometry(W, FH * .86, W), bodyMat); body.position.y = y + FH * .43; tower.add(body);
-      const slab = new T.Mesh(new T.BoxGeometry(W + .25, .08, W + .25), new T.MeshBasicMaterial({ color: COLS[w] }));
-      slab.position.y = y + FH * .9; tower.add(slab);
-      if (f % 10 === 9) { // anillo de luz al cambiar de mundo
-        const ring = new T.Mesh(new T.TorusGeometry(W * .95, .05, 8, 64), new T.MeshBasicMaterial({ color: COLS[w] }));
-        ring.rotation.x = Math.PI / 2; ring.position.y = y + FH; tower.add(ring);
-      }
-      for (let s = 0; s < 4; s++) {
-        const ang = s * Math.PI / 2; q.setFromAxisAngle(new T.Vector3(0, 1, 0), ang);
-        for (let k = 0; k < perFace; k++) {
-          const off = (k - (perFace - 1) / 2) * (W / (perFace + .5));
-          pos.set(Math.sin(ang) * (W / 2 + .01) + Math.cos(ang) * off, y + FH * .45, Math.cos(ang) * (W / 2 + .01) - Math.sin(ang) * off);
-          m4.compose(pos, q, sc); wins.setMatrixAt(wi, m4);
-          const lit = Math.random() < .55; const c = lit ? COLS[w] : 0x1d1b38;
-          winBase.push({ w, lit }); col.set(c); if (lit) col.lerp(new T.Color(0xffffff), .35);
-          wins.setColorAt(wi, col); wi++;
-        }
+    /* cielo con degradado y sol retro */
+    const sky = new T.Mesh(new T.SphereGeometry(900, 32, 16), new T.ShaderMaterial({
+      side: T.BackSide, depthWrite: false, fog: false,
+      uniforms: { top: { value: new T.Color(0x05041a) }, mid: { value: new T.Color(0x2b1659) }, hor: { value: new T.Color(0xe86a5a) }, low: { value: new T.Color(0x8a3a8f) } },
+      vertexShader: 'varying vec3 vP; void main(){ vP = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
+      fragmentShader: 'uniform vec3 top; uniform vec3 mid; uniform vec3 hor; uniform vec3 low; varying vec3 vP; void main(){ float h = vP.y; vec3 c = h > 0.0 ? mix(mix(hor, mid, smoothstep(0.0, 0.18, h)), top, smoothstep(0.18, 0.75, h)) : mix(hor, low, smoothstep(0.0, -0.2, h)); gl_FragColor = vec4(c, 1.0); }'
+    }));
+    scene.add(sky);
+    const tex = (w, h, draw) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); return new T.CanvasTexture(c); };
+    const sunTex = tex(256, 256, (x, w) => {
+      const g = x.createLinearGradient(0, 0, 0, w); g.addColorStop(0, '#fff3b0'); g.addColorStop(.5, '#ffb35c'); g.addColorStop(1, '#ff4fb8');
+      x.fillStyle = g; x.beginPath(); x.arc(w / 2, w / 2, w / 2 - 2, 0, Math.PI * 2); x.fill();
+      x.globalCompositeOperation = 'destination-out';
+      for (let i = 0; i < 7; i++) { const y = w * .55 + i * i * 2.2 + i * 8; x.fillRect(0, y, w, 3 + i * 1.3); }
+    });
+    const sun = new T.Sprite(new T.SpriteMaterial({ map: sunTex, fog: false, depthWrite: false }));
+    sun.scale.set(170, 170, 1); sun.position.set(-260, 30, -520); scene.add(sun);
+    const halo = new T.Sprite(new T.SpriteMaterial({ map: tex(128, 128, (x, w) => { const g = x.createRadialGradient(w / 2, w / 2, 0, w / 2, w / 2, w / 2); g.addColorStop(0, 'rgba(255,150,110,.35)'); g.addColorStop(1, 'rgba(255,120,120,0)'); x.fillStyle = g; x.fillRect(0, 0, w, w); }), fog: false, depthWrite: false, blending: T.AdditiveBlending }));
+    halo.scale.set(520, 520, 1); halo.position.copy(sun.position); scene.add(halo);
+
+    /* estrellas */
+    const NS = mobile ? 700 : 1600, sp = new Float32Array(NS * 3);
+    for (let i = 0; i < NS; i++) { const a = Math.random() * Math.PI * 2, e = .12 + Math.random() * 1.3, R = 800; sp.set([R * Math.cos(a) * Math.cos(e), R * Math.sin(e), R * Math.sin(a) * Math.cos(e)], i * 3); }
+    const sg = new T.BufferGeometry(); sg.setAttribute('position', new T.BufferAttribute(sp, 3));
+    const stars = new T.Points(sg, new T.PointsMaterial({ color: 0xffffff, size: 1.6, sizeAttenuation: false, transparent: true, opacity: .85, fog: false }));
+    scene.add(stars);
+
+    /* ---------- vóxeles: todo el mundo hecho de cubos, agrupado por material ---------- */
+    const box = new T.BoxGeometry(1, 1, 1);
+    const std = (c, o = {}) => new T.MeshStandardMaterial({ color: c, roughness: .85, metalness: 0, flatShading: true, ...o });
+    const glow = c => new T.MeshBasicMaterial({ color: c });
+    const M = {
+      grass: std(0x63d36b), grass2: std(0x4cbd5f), dirt: std(0x9a6240), rock: std(0x6a4a74), rock2: std(0x3e2d52),
+      stoneTop: std(0xb9c3d8), stone: std(0x7b86a3), purpleTop: std(0x5b3aa8), purple: std(0x2a1d5a), cloudTop: std(0xfff2ff), cloud: std(0xf3c9ee),
+      wall: std(0xfff1df), wall2: std(0xd9c8ff), wall3: std(0xffd3a8), roofR: std(0xe5564c), roofB: std(0x4d6fe0), roofP: std(0x9a5cf6),
+      wood: std(0x8a5631), leaf: std(0x3fc46b), leaf2: std(0x2f9e57), pink: std(0xff9bd3),
+      glass: std(0x77d8ff, { roughness: .15, metalness: .55 }), dark: std(0x1c163f, { roughness: .4, metalness: .4 }), metal: std(0xc9cde0, { roughness: .35, metalness: .7 }),
+      gold: std(0xffc83d, { roughness: .25, metalness: .8, emissive: 0x5a3600 }), panel: std(0x2547b8, { roughness: .2, metalness: .6, emissive: 0x0a1a55 }),
+      warm: glow(0xffd27a), cyan: glow(0x7ff3ff), neon: glow(0xff4fb8), lime: glow(0x9dff6b), lamp: glow(0xfff1a8), red: glow(0xff4d4d), gem: glow(0x9b5cff)
+    };
+    const bins = {}; const add = (m, x, y, z, sx = 1, sy = 1, sz = 1) => (bins[m] = bins[m] || []).push([x, y, z, sx, sy, sz]);
+    let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+
+    // isla: columnas de cubos que se afinan hacia abajo
+    function island(oy, R, top, mid, bot) {
+      for (let x = -R; x <= R; x++) for (let z = -R; z <= R; z++) {
+        const d = Math.hypot(x, z) + (rnd() - .5) * 1.1; if (d > R) continue;
+        add(rnd() < .14 && top === 'grass' ? 'grass2' : top, x, oy, z);
+        add(mid, x, oy - 1, z);
+        const depth = Math.max(1, Math.round((R - d) * 1.35 + rnd() * 2.5));
+        add(bot, x, oy - 1.5 - depth / 2, z, 1, depth, 1);
       }
     }
-    tower.add(wins);
-    // antena + faro
-    const topY = FLOORS * FH;
-    const ant = new T.Mesh(new T.CylinderGeometry(.05, .08, 3, 8), new T.MeshBasicMaterial({ color: 0x9391bd })); ant.position.y = topY + 1.5; tower.add(ant);
-    const beacon = new T.Mesh(new T.SphereGeometry(.2, 16, 16), new T.MeshBasicMaterial({ color: 0xf87171 })); beacon.position.y = topY + 3.1; tower.add(beacon);
-    const halo = new T.Mesh(new T.TorusGeometry(3.4, .06, 8, 80), new T.MeshBasicMaterial({ color: 0x4ade80, transparent: true, opacity: .7 })); halo.position.y = topY + 1; tower.add(halo);
-    // ascensor que sube y baja por fuera
-    const elev = new T.Mesh(new T.BoxGeometry(.6, .8, .12), new T.MeshBasicMaterial({ color: 0xfbbf24 })); tower.add(elev);
-    const shaft = new T.Mesh(new T.BoxGeometry(.05, topY, .05), new T.MeshBasicMaterial({ color: 0x3a3860 })); shaft.position.set(0, topY / 2, 2.35); tower.add(shaft);
+    const house = (x, z, oy, w, d, h, wall, roof) => {
+      add(wall, x, oy + .5 + h / 2, z, w, h, d);
+      for (let i = 0; i < Math.ceil(w / 2) + 1; i++) add(roof, x, oy + h + .5 + i * .7, z, Math.max(.6, w + .6 - i * 1.3), .7, Math.max(.6, d + .6 - i * 1.3));
+      for (let k = -1; k <= 1; k += 2) { add('warm', x + k * w * .25, oy + h * .55 + .5, z + d / 2 + .05, .5, .55, .1); add('warm', x + w / 2 + .05, oy + h * .55 + .5, z + k * d * .25, .1, .55, .5); }
+      add('wood', x, oy + .95, z + d / 2 + .05, .6, .9, .1);
+    };
+    const tree = (x, z, oy, s = 1) => { add('wood', x, oy + 1 * s, z, .5 * s, 1.6 * s, .5 * s); add(rnd() < .5 ? 'leaf' : 'leaf2', x, oy + 2.3 * s, z, 2 * s, 1.6 * s, 2 * s); add('leaf', x, oy + 3.3 * s, z, 1.2 * s, .9 * s, 1.2 * s); };
+    const lamp = (x, z, oy) => { add('metal', x, oy + 1.2, z, .18, 2.4, .18); add('lamp', x, oy + 2.5, z, .45, .45, .45); };
 
-    // piso de neón
-    const grid = new T.GridHelper(240, 96, 0x7c5cff, 0x2a2a52); grid.material.transparent = true; grid.material.opacity = .55; scene.add(grid);
-    const glow = new T.Mesh(new T.CircleGeometry(9, 48), new T.MeshBasicMaterial({ color: 0x7c5cff, transparent: true, opacity: .16 })); glow.rotation.x = -Math.PI / 2; glow.position.y = .01; scene.add(glow);
+    // 1 · Edificio Barrio: pasto, casitas, árboles y faroles
+    island(ISL[0], 9, 'grass', 'dirt', 'rock');
+    house(-4, -3, ISL[0], 3.2, 3, 2.6, 'wall', 'roofR'); house(3.5, -4, ISL[0], 2.6, 2.6, 2.2, 'wall3', 'roofB');
+    house(4.5, 3, ISL[0], 3, 2.8, 2.4, 'wall2', 'roofP'); house(-4.5, 4, ISL[0], 2.4, 2.4, 2, 'wall', 'roofB');
+    [[-7, 0], [0, -7], [7, -1], [1, 7], [-2, -5.5], [6.5, 6]].forEach(([x, z], i) => tree(x, z, ISL[0], .9 + (i % 3) * .15));
+    [[-1.8, 1.8], [1.8, -1.8], [1.8, 1.8], [-1.8, -1.8]].forEach(([x, z]) => lamp(x, z, ISL[0]));
+    for (let i = -6; i <= 6; i++) { if (Math.abs(i) < 2) continue; add('stone', i, ISL[0] + .52, 0, 1, .06, 1.4); add('stone', 0, ISL[0] + .52, i, 1.4, .06, 1); }
 
-    // estrellas
-    const sg = new T.BufferGeometry(); const sp = new Float32Array(1400 * 3);
-    for (let i = 0; i < 1400; i++) { const th = Math.random() * Math.PI * 2, ph = Math.random() * Math.PI * .5, R = 140 + Math.random() * 80; sp.set([R * Math.cos(th) * Math.sin(ph), R * Math.cos(ph) * .7 + 20, R * Math.sin(th) * Math.sin(ph)], i * 3); }
-    sg.setAttribute('position', new T.BufferAttribute(sp, 3));
-    scene.add(new T.Points(sg, new T.PointsMaterial({ color: 0xffffff, size: .7, sizeAttenuation: true, transparent: true, opacity: .8 })));
+    // 2 · Torre Centro: plaza de piedra y torres de cristal
+    island(ISL[1], 8, 'stoneTop', 'stone', 'rock2');
+    [[-3.5, -2.5, 2.6, 11], [3.2, -3.4, 2.2, 8], [2.8, 3.4, 2.4, 13], [-3.4, 3.2, 2, 6.5]].forEach(([x, z, w, h]) => {
+      add('glass', x, ISL[1] + .5 + h / 2, z, w, h, w);
+      for (let y = 1.4; y < h; y += 1.4) add('cyan', x, ISL[1] + .5 + y, z, w + .08, .12, w + .08);
+      add('lamp', x, ISL[1] + h + .8, z, .3, .3, .3);
+    });
+    tree(-6, 0, ISL[1], .8); tree(6, .5, ISL[1], .8); tree(0, -6.5, ISL[1], .75);
+
+    // 3 · Rascacielos IO: isla morada y un rascacielos con bordes de neón
+    island(ISL[2], 7, 'purpleTop', 'purple', 'rock2');
+    { const x = 3, z = -1.5, w = 3.4, h = 20, y0 = ISL[2] + .5;
+      add('dark', x, y0 + h / 2, z, w, h, w);
+      add('dark', x, y0 + h + 1.2, z, w * .7, 2.4, w * .7); add('dark', x, y0 + h + 3, z, w * .4, 1.4, w * .4);
+      add('metal', x, y0 + h + 6, z, .16, 5, .16); add('red', x, y0 + h + 8.6, z, .4, .4, .4);
+      for (const [dx, dz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) add(dx * dz > 0 ? 'neon' : 'cyan', x + dx * w / 2, y0 + h / 2, z + dz * w / 2, .14, h, .14);
+      for (let y = 2; y < h; y += 2.5) add('gem', x, y0 + y, z + w / 2 + .03, w * .8, .1, .06);
+    }
+    house(-3, 2.5, ISL[2], 2.4, 2.4, 3.5, 'wall2', 'roofP'); tree(-3.8, -3.6, ISL[2], .8);
+    const signTex = tex(256, 128, (x, w, h) => { x.font = 'bold 104px "Pixelify Sans", monospace'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.shadowColor = '#ff4fb8'; x.shadowBlur = 22; x.fillStyle = '#ffd6f2'; x.fillText('IO', w / 2, h / 2 + 6); });
+    const sign = new T.Sprite(new T.SpriteMaterial({ map: signTex, transparent: true })); sign.scale.set(7, 3.5, 1); sign.position.set(3, ISL[2] + 14, 2.4); scene.add(sign);
+
+    // 4 · Ciudad en las nubes: isla blanca y un templo dorado
+    island(ISL[3], 7, 'cloudTop', 'cloud', 'cloud');
+    { const y0 = ISL[3] + .5;
+      for (const [x, z] of [[-2, -2], [2, -2], [2, 2], [-2, 2]]) add('gold', x, y0 + 1.6, z, .5, 3.2, .5);
+      add('wall', 0, y0 + 3.4, 0, 5.4, .5, 5.4); add('roofP', 0, y0 + 4, 0, 4.6, .7, 4.6); add('roofP', 0, y0 + 4.6, 0, 3.2, .7, 3.2); add('gold', 0, y0 + 5.3, 0, 1.4, .8, 1.4);
+      for (const [x, z] of [[-4.5, 0], [4.5, 0], [0, 4.5], [0, -4.5]]) { add('pink', x, y0 + .8, z, .7, 1.6, .7); add('warm', x, y0 + 1.9, z, .55, .55, .55); }
+    }
+    // 5 · Estación orbital
+    const station = new T.Group(); station.position.y = ISL[4]; scene.add(station);
+    station.add(new T.Mesh(new T.IcosahedronGeometry(2.6, 1), M.metal));
+    const ring = new T.Mesh(new T.TorusGeometry(8, .7, 8, 48), M.dark); ring.rotation.x = Math.PI / 2; station.add(ring);
+    const ringGlow = new T.Mesh(new T.TorusGeometry(8, .14, 6, 64), M.lime); ringGlow.rotation.x = Math.PI / 2; ringGlow.position.y = .75; station.add(ringGlow);
+    for (let i = 0; i < 4; i++) { const sp2 = new T.Mesh(box, M.metal); sp2.scale.set(16, .25, .25); sp2.rotation.y = i * Math.PI / 4; station.add(sp2); }
+    for (const s of [-1, 1]) { const p = new T.Mesh(box, M.panel); p.scale.set(7, .12, 3); p.position.set(s * 13, 0, 0); station.add(p); }
+    const lights = [];
+    for (let i = 0; i < 12; i++) { const l = new T.Mesh(box, i % 2 ? M.lime : M.cyan); const a = i / 12 * Math.PI * 2; l.scale.setScalar(.45); l.position.set(Math.cos(a) * 8, .9, Math.sin(a) * 8); station.add(l); lights.push(l); }
+
+    // construir los cubos (un InstancedMesh por material)
+    const m4 = new T.Matrix4(), q = new T.Quaternion(), v = new T.Vector3(), s3 = new T.Vector3();
+    for (const [k, list] of Object.entries(bins)) {
+      const im = new T.InstancedMesh(box, M[k], list.length);
+      list.forEach(([x, y, z, sx, sy, sz], i) => { m4.compose(v.set(x, y, z), q, s3.set(sx, sy, sz)); im.setMatrixAt(i, m4); });
+      scene.add(im);
+    }
+
+    // la corona dorada en la cima
+    const crown = new T.Group(); crown.position.y = CROWN; scene.add(crown);
+    const N = 14;
+    for (let i = 0; i < N; i++) {
+      const a = i / N * Math.PI * 2, cx = Math.cos(a) * 3.2, cz = Math.sin(a) * 3.2;
+      const b = new T.Mesh(box, M.gold); b.position.set(cx, 0, cz); b.scale.set(1.5, 1.6, 1.5); b.lookAt(0, 0, 0); crown.add(b);
+      if (i % 2 === 0) { const sp3 = new T.Mesh(box, M.gold); sp3.position.set(cx, 1.6, cz); sp3.scale.set(.8, 1.8, .8); crown.add(sp3); const g = new T.Mesh(box, i % 4 ? M.gem : M.red); g.position.set(cx, 2.8, cz); g.scale.setScalar(.6); crown.add(g); }
+    }
+    const crownLight = new T.PointLight(0xffc83d, 2.2, 40); crownLight.position.y = CROWN + 2; scene.add(crownLight);
+
+    // el ascensor: un rayo de luz que une los mundos y una cabina que para en cada piso
+    const beam = new T.Mesh(new T.CylinderGeometry(.18, .18, CROWN + 4, 8, 1, true), new T.MeshBasicMaterial({ color: 0xffe08a, transparent: true, opacity: .55 }));
+    beam.position.set(0, (CROWN - 4) / 2, 0); scene.add(beam);
+    const beamGlow = new T.Mesh(new T.CylinderGeometry(.7, .7, CROWN + 4, 12, 1, true), new T.MeshBasicMaterial({ color: 0xffb35c, transparent: true, opacity: .1, blending: T.AdditiveBlending, depthWrite: false }));
+    beamGlow.position.copy(beam.position); scene.add(beamGlow);
+    for (const y of ISL) { const pad = new T.Mesh(new T.TorusGeometry(1.4, .12, 6, 32), M.warm); pad.rotation.x = Math.PI / 2; pad.position.y = y + .6; scene.add(pad); }
+    const cab = new T.Mesh(box, M.warm); cab.scale.set(1.1, 1.5, 1.1); scene.add(cab);
+
+    // mar de nubes: manchas suaves que siempre miran a la cámara
+    const cloudTex = tex(256, 128, (x, w, h) => {
+      for (let i = 0; i < 9; i++) {
+        const cx = w * (.18 + Math.random() * .64), cy = h * (.5 + (Math.random() - .5) * .25), rr = h * (.22 + Math.random() * .2);
+        const g = x.createRadialGradient(cx, cy, 0, cx, cy, rr); g.addColorStop(0, 'rgba(255,255,255,.95)'); g.addColorStop(.6, 'rgba(255,255,255,.55)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+        x.fillStyle = g; x.beginPath(); x.arc(cx, cy, rr, 0, Math.PI * 2); x.fill();
+      }
+    });
+    const CC = [0xffd6ec, 0xf3c6ff, 0xffe3d1, 0xe6d4ff];
+    const cloudGroup = new T.Group(); scene.add(cloudGroup);
+    const NC = mobile ? 70 : 150;
+    for (let i = 0; i < NC; i++) {
+      const c = new T.Sprite(new T.SpriteMaterial({ map: cloudTex, color: CC[i % 4], transparent: true, opacity: .55 + Math.random() * .35, depthWrite: false }));
+      const a = Math.random() * Math.PI * 2, rr = 30 + Math.pow(Math.random(), .8) * 360, sc = 50 + Math.random() * 110;
+      c.position.set(Math.cos(a) * rr, -26 - Math.random() * 10, Math.sin(a) * rr); c.scale.set(sc, sc * .42, 1);
+      cloudGroup.add(c);
+    }
+    // nubes que rodean la ciudad de las nubes
+    const puffGroup = new T.Group(); scene.add(puffGroup);
+    for (let i = 0; i < 14; i++) {
+      const c = new T.Sprite(new T.SpriteMaterial({ map: cloudTex, color: 0xffffff, transparent: true, opacity: .85, depthWrite: false }));
+      const a = i / 14 * Math.PI * 2, rr = 8.5 + Math.random() * 2.5, sc = 7 + Math.random() * 5;
+      c.position.set(Math.cos(a) * rr, ISL[3] - 1.2 + Math.random() * 1.2, Math.sin(a) * rr); c.scale.set(sc, sc * .45, 1); puffGroup.add(c);
+    }
 
     // unos y ceros flotando
-    const tex = ch => { const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'); x.font = 'bold 50px "Space Mono", monospace'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillStyle = '#fff'; x.shadowColor = '#fff'; x.shadowBlur = 10; x.fillText(ch, 32, 34); return new T.CanvasTexture(c); };
-    const T1 = tex('1'), T0 = tex('0'); const bits = [];
-    const NB = mobile ? 90 : 170;
-    for (let i = 0; i < NB; i++) {
-      const m = new T.SpriteMaterial({ map: Math.random() < .5 ? T1 : T0, color: COLS[i % 5], transparent: true, opacity: .75, depthWrite: false });
-      const s = new T.Sprite(m); const a = Math.random() * Math.PI * 2, rr = 6 + Math.random() * 26;
-      s.position.set(Math.cos(a) * rr, Math.random() * 70, Math.sin(a) * rr); const z = .35 + Math.random() * .6; s.scale.set(z, z, z);
-      s.userData.v = .01 + Math.random() * .035; scene.add(s); bits.push(s);
+    const glyph = ch => tex(64, 64, (x) => { x.font = 'bold 48px "Pixelify Sans", monospace'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillStyle = '#fff'; x.fillText(ch, 32, 34); });
+    const G1 = glyph('1'), G0 = glyph('0'), bits = [], BC = [0xa7d62a, 0x71e6ff, 0xffc83d, 0xff4fb8, 0xb49bff];
+    for (let i = 0; i < (mobile ? 50 : 110); i++) {
+      const sp4 = new T.Sprite(new T.SpriteMaterial({ map: i % 2 ? G1 : G0, color: BC[i % 5], transparent: true, opacity: .7, depthWrite: false, blending: T.AdditiveBlending }));
+      const a = Math.random() * Math.PI * 2, rr = 14 + Math.random() * 30; sp4.position.set(Math.cos(a) * rr, Math.random() * 110 - 15, Math.sin(a) * rr);
+      const z = .6 + Math.random() * .8; sp4.scale.set(z, z, 1); sp4.userData.v = .4 + Math.random() * 1.2; scene.add(sp4); bits.push(sp4);
+    }
+
+    /* brillo (bloom) si el navegador lo aguanta */
+    let composer = null;
+    if (T.EffectComposer && T.RenderPass && T.UnrealBloomPass && T.CopyShader && T.LuminosityHighPassShader) {
+      try {
+        composer = new T.EffectComposer(r);
+        composer.addPass(new T.RenderPass(scene, cam));
+        composer.addPass(new T.UnrealBloomPass(new T.Vector2(innerWidth, innerHeight), mobile ? .7 : .85, .5, .86));
+      } catch { composer = null; }
     }
 
     let W = 0, H = 0;
-    function size() { W = innerWidth; H = innerHeight; r.setSize(W, H, false); cam.aspect = W / H; cam.updateProjectionMatrix(); }
+    function size() {
+      W = innerWidth; H = innerHeight; r.setSize(W, H, false); cam.aspect = W / H; cam.updateProjectionMatrix();
+      if (composer) { composer.setPixelRatio?.(DPR); composer.setSize(W, H); }
+    }
     addEventListener('resize', size); size();
+
     const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
     addEventListener('pointermove', e => { mouse.tx = e.clientX / W - .5; mouse.ty = e.clientY / H - .5; }, { passive: true });
 
-    let t = 0, sy = 0, last = performance.now(), running = true, intro = 0;
-    // al terminar la intro, la cámara baja desde el cielo
-    const introStart = () => { intro = 1; };
-    addEventListener('io:booted', introStart);
-    if (document.getElementById('boot').hidden) intro = .6;
+    /* cámara: plano general en la portada; al bajar, sube mundo por mundo hasta la corona */
+    const sm = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+    const lerp = (a, b, k) => a + (b - a) * k;
+    let t = 0, sy = 0, last = performance.now(), running = true, intro = 0, focusY = ISL[0] + 3, stopped = false;
+    let override = null; // la cámara vuela a un mundo elegido con un cartucho
+    const camPos = new T.Vector3(), look = new T.Vector3(), fwd = new T.Vector3(), right = new T.Vector3();
+    addEventListener('io:booted', () => { intro = 1; });
+    if (document.getElementById('boot').hidden) intro = .5;
+    const kick = () => { if (stopped) { stopped = false; last = performance.now(); requestAnimationFrame(loop); } };
+    window.IOworld = { focus(w) { override = { y: w >= 5 ? CROWN : ISL[w], w, until: performance.now() + 7000, scroll: scrollY }; kick(); } };
     document.addEventListener('visibilitychange', () => { running = !document.hidden; if (running) { last = performance.now(); requestAnimationFrame(loop); } });
 
     function frame(dt) {
       t += dt;
-      const p = window.IOscroll || 0; sy += (p - sy) * Math.min(1, dt * 3);
-      mouse.x += (mouse.tx - mouse.x) * .05; mouse.y += (mouse.ty - mouse.y) * .05;
-      intro = Math.max(0, intro - dt * .45);
+      const p = window.IOscroll || 0; sy += (p - sy) * Math.min(1, dt * 2.6);
+      mouse.x += (mouse.tx - mouse.x) * .04; mouse.y += (mouse.ty - mouse.y) * .04;
+      intro = Math.max(0, intro - dt * .4);
+      if (override && (performance.now() > override.until || Math.abs(scrollY - override.scroll) > 260)) override = null;
+
+      const hero = 1 - sm(0, .1, sy);                         // 1 en la portada
+      const climb = sm(.06, .93, sy);                        // 0 → 1 mientras bajas
+      let targetY = lerp(ISL[0] + 3, CROWN, climb);
+      if (override) targetY = override.y + 3;
+      focusY += (targetY - focusY) * Math.min(1, dt * (override ? 1.6 : 3));
       const ease = intro * intro;
-      const ang = (reduce ? 0 : t * .07) + sy * 5.2 + mouse.x * .5;
-      const rad = (mobile ? 23 : 14) - sy * 2 + ease * 20;
-      const cy = 2.5 + sy * (topY - 2) + ease * 40 - mouse.y * 2;
-      cam.position.set(Math.cos(ang) * rad, cy, Math.sin(ang) * rad);
-      cam.lookAt(0, 2 + sy * (topY - 4) + 3 + ease * 10, 0);
-      // la torre se corre a la derecha en pantallas anchas para dejar espacio al texto
-      tower.position.x = grid.position.x = glow.position.x = 0;
-      if (!mobile) { const off = new T.Vector3(); cam.getWorldDirection(off); const right = new T.Vector3().crossVectors(off, cam.up).normalize(); cam.position.addScaledVector(right, -6.5 * (1 - sy)); }
+      const ang = (reduce ? .6 : t * .05) + sy * 7 + mouse.x * .4 + (override ? override.w * .9 : 0);
+      const rad = lerp(override ? 24 : 30, mobile ? 96 : 84, hero) + ease * 40;
+      const cy = lerp(focusY + 7, 52, hero) + ease * 60 - mouse.y * 3;
+      camPos.set(Math.cos(ang) * rad, cy, Math.sin(ang) * rad);
+      look.set(0, lerp(focusY, 44, hero) + ease * 20, 0);
+      // en pantallas anchas la torre se corre a la derecha para dejar espacio al texto
+      if (!mobile) {
+        fwd.copy(look).sub(camPos).normalize(); right.crossVectors(fwd, cam.up).normalize();
+        const off = lerp(12, W > 1100 ? 42 : 30, hero) * (override ? .4 : 1);
+        camPos.addScaledVector(right, -off); look.addScaledVector(right, -off);
+      }
+      cam.position.copy(camPos); cam.lookAt(look);
+
+      // HUD: el piso que muestra la cámara
+      const fy = Math.max(0, focusY - 3); let w = 0;
+      for (let i = 0; i < ISL.length; i++) if (fy >= ISL[i] - 6) w = i;
+      if (fy > CROWN - 8) w = 5;
+      const next = w + 1 < ISL.length ? ISL[w + 1] : CROWN;
+      const floor = w >= 5 ? 101 : Math.round(lerp(WFLOOR[w], WFLOOR[w + 1] - 1, Math.min(1, Math.max(0, (fy - ISL[w]) / (next - ISL[w])))));
+      window.IOhud?.(floor, w);
+
       if (!reduce) {
-        elev.position.set(0, (Math.sin(t * .35) * .5 + .5) * (topY - 1) + .4, 2.3);
-        beacon.material.color.setHex(Math.sin(t * 4) > 0 ? 0xf87171 : 0x3a1010);
-        halo.rotation.z = t * .3; halo.rotation.x = Math.PI / 2 + Math.sin(t * .5) * .15;
-        for (const s of bits) { s.position.y += s.userData.v * 60 * dt; if (s.position.y > 75) s.position.y = -2; }
-      }
-      r.render(scene, cam);
+        crown.rotation.y += dt * .5; crown.position.y = CROWN + Math.sin(t * 1.2) * .6;
+        station.rotation.y += dt * .12; ring.rotation.z += dt * .05;
+        lights.forEach((l, i) => l.visible = ((t * 3 + i) | 0) % 3 !== 0);
+        // la cabina para en cada mundo y sube al siguiente
+        const seg = (t * .22) % (ISL.length - 1), k = seg % 1, iA = Math.floor(seg);
+        cab.position.set(0, lerp(ISL[iA], ISL[iA + 1], k < .35 ? 0 : sm(.35, 1, k)) + 1.4, 0);
+        cloudGroup.rotation.y += dt * .006; puffGroup.rotation.y += dt * .05;
+        for (const b of bits) { b.position.y += b.userData.v * dt * 2; if (b.position.y > 105) b.position.y = -18; }
+        stars.material.opacity = .7 + Math.sin(t * 2) * .15;
+        sign.material.opacity = Math.sin(t * .7) > .85 && Math.sin(t * 40) > 0 ? .35 : 1;
+      } else cab.position.set(0, ISL[0] + 1.4, 0);
+      if (composer) composer.render(dt); else r.render(scene, cam);
     }
-    // parpadeo de ventanas
-    if (!reduce) setInterval(() => {
-      if (!running) return;
-      for (let k = 0; k < 14; k++) {
-        const i = Math.floor(Math.random() * nWin), b = winBase[i]; b.lit = !b.lit;
-        col.set(b.lit ? COLS[b.w] : 0x1d1b38); if (b.lit) col.lerp(new T.Color(0xffffff), .35); wins.setColorAt(i, col);
-      }
-      wins.instanceColor.needsUpdate = true;
-    }, 180);
+
+    // rendimiento: si va lento, se apaga el brillo y baja la resolución
+    let frames = 0, acc = 0, tuned = false;
     function loop(now) {
       if (!running) return;
-      const dt = Math.min(.05, (now - last) / 1000); last = now; frame(dt);
-      if (!reduce || Math.abs((window.IOscroll || 0) - sy) > .0005) requestAnimationFrame(loop);
-      else stopped = true;
+      const dt = Math.min(.05, (now - last) / 1000); last = now;
+      frame(dt);
+      if (!tuned) {
+        frames++; acc += dt;
+        if (acc > 2.5) {
+          tuned = true; const fps = frames / acc;
+          if (fps < 38 && composer) composer = null;
+          if (fps < 28) { DPR = 1; r.setPixelRatio(1); size(); }
+        }
+      }
+      if (!reduce || Math.abs((window.IOscroll || 0) - sy) > .0005 || override) requestAnimationFrame(loop); else stopped = true;
     }
-    let stopped = false;
-    if (reduce) addEventListener('scroll', () => { if (stopped) { stopped = false; last = performance.now(); requestAnimationFrame(loop); } }, { passive: true });
+    if (reduce) addEventListener('scroll', kick, { passive: true });
     requestAnimationFrame(loop);
-    document.querySelector('.bg-fallback').style.opacity = '.55';
+    document.querySelector('.sky-fallback').style.opacity = '0';
   }
 
-  // Sin WebGL: lluvia de unos y ceros en 2D
+  // Sin WebGL: cielo de atardecer y lluvia suave de unos y ceros
   function fallback(replace) {
     let c = cv; if (replace) { c = cv.cloneNode(); cv.replaceWith(c); }
     const x = c.getContext('2d'); if (!x) return;
     let W, H, cols, drops; const fs = 16;
     const size = () => { W = c.width = innerWidth; H = c.height = innerHeight; cols = Math.ceil(W / fs); drops = Array.from({ length: cols }, () => Math.random() * -H / fs); };
     addEventListener('resize', size); size();
-    const COLS = ['#7c5cff', '#22d3ee', '#4ade80', '#fbbf24', '#f472b6'];
+    const COLS = ['#a7d62a', '#71e6ff', '#ffc83d', '#ff4fb8', '#b49bff'];
     function step() {
-      x.fillStyle = 'rgba(9,9,15,.12)'; x.fillRect(0, 0, W, H); x.font = fs + 'px "Space Mono", monospace';
-      for (let i = 0; i < cols; i++) { if (Math.random() < .02) continue; x.fillStyle = COLS[i % 5]; x.globalAlpha = .35; x.fillText(Math.random() < .5 ? '1' : '0', i * fs, drops[i] * fs); x.globalAlpha = 1; drops[i] += .5; if (drops[i] * fs > H && Math.random() > .97) drops[i] = 0; }
-      if (!reduce) requestAnimationFrame(step);
+      x.clearRect(0, 0, W, H); x.font = fs + 'px monospace';
+      for (let i = 0; i < cols; i++) { x.fillStyle = COLS[i % 5]; x.globalAlpha = .25; x.fillText(Math.random() < .5 ? '1' : '0', i * fs, drops[i] * fs); drops[i] += .35; if (drops[i] * fs > H && Math.random() > .97) drops[i] = 0; }
+      x.globalAlpha = 1; if (!reduce) requestAnimationFrame(step);
     }
     step();
+    window.IOworld = { focus() {} };
   }
-  if (window.THREE) start(); else addEventListener('load', start);
+  if (window.THREE) start(); else addEventListener('DOMContentLoaded', start);
 })();
 </script>
 </body>

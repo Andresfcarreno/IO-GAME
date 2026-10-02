@@ -993,4 +993,22 @@ export default {
   "Tu mochila está vacía 🎒": "Your backpack is empty 🎒",
   "Lo que compres o guardes aparece aquí para colocarlo en tu piso.": "What you buy or store shows up here so you can place it on your floor.",
   "🛒 Ir a la tienda": "🛒 Go to the shop",
-}
+
+  /* ---------- lobby y escenarios de los pisos ---------- */
+  "Lobby": "Lobby",
+  "LOBBY · IO TOWER": "LOBBY · IO TOWER",
+  "🏛️ LOBBY": "🏛️ LOBBY",
+  "PLANTA BAJA": "GROUND FLOOR",
+  "Muro de fundadores · jugadores de IO": "Founders' wall · IO players",
+  "{} Ir al lobby": "{} Go to the lobby",
+  "MURO DE FUNDADORES": "FOUNDERS' WALL",
+  "Tu nombre puede estar aquí": "Your name could be here",
+  "1% MEJOR CADA DÍA": "1% BETTER EVERY DAY",
+  "🏛️ Lobby de la torre IO. Aquí se ven los jugadores que están en línea y el muro de fundadores.": "🏛️ IO Tower lobby. Here you can see who's online and the founders' wall.",
+  "🏛️ El lobby es de todos. Decora tus propios pisos.": "🏛️ The lobby belongs to everyone. Decorate your own floors.",
+  "El lobby es de todos. Decora tus propios pisos.": "The lobby belongs to everyone. Decorate your own floors.",
+  "🏛️ El lobby se llena cuando el servidor de IO está conectado.": "🏛️ The lobby fills up once the IO server is connected.",
+  "👥 Hay 1 jugador en el lobby ahora.": "👥 There's 1 player in the lobby right now.",
+  "👥 Hay {} jugadores en el lobby ahora.": "👥 There are {} players in the lobby right now.",
+  "🏛️ Estás solo en el lobby por ahora. Invita a alguien a jugar.": "🏛️ You're alone in the lobby for now. Invite someone to play.",
+};

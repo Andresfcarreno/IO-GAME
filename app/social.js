@@ -76,4 +76,30 @@ export async function buddies() {
     return rows.filter(r => r.user_id !== me).slice(0, 6).map(r => ({ id: r.user_id, name: String(r.name || 'Anónimo').slice(0, 20), look: R.safeLook(r.look?.a), act: H.ACTS[r.act] ? r.act : 'jump', habit: String(r.habit || '').slice(0, 40), rem: Math.max(0, (new Date(r.until) - Date.now()) / 1000), paused: !!r.paused, bot: false }));
   } catch { return []; }
 }
+/* ---------- lobby: quién está ahora en la planta baja ---------- */
+const LOBBY = 'LOBBY';
+/** Avisa que estás en el lobby (se renueva cada 20 s; a los 2 min sin aviso dejas de aparecer). */
+export async function lobbyPing() {
+  if (!Auth.signedIn()) return;
+  try {
+    await R.rest('io_rooms?on_conflict=room,user_id', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+      body: { room: LOBBY, user_id: Auth.user().id, name: (cfg.rankName || cfg.name || 'Player').slice(0, 20), look: { a: cfg.avatar }, act: 'lobby', habit: '', until: new Date(Date.now() + 120000).toISOString(), paused: false, updated_at: new Date().toISOString() } });
+  } catch { /* sin conexión */ }
+}
+/** Jugadores reales que están en el lobby (activos en los últimos 2 min), sin contarte a ti. */
+export async function lobbyFolk() {
+  if (!Auth.configured()) return [];
+  try {
+    const since = new Date(Date.now() - 120000).toISOString();
+    const q = `io_rooms?select=user_id,name,look,updated_at&room=eq.${LOBBY}&updated_at=gte.${since}&order=updated_at.desc&limit=12`;
+    const rows = await (Auth.signedIn() ? R.rest(q) : Auth.publicGet(q)).then(r => r.json());
+    const me = R.myId();
+    return rows.filter(r => r.user_id !== me).slice(0, 8).map(r => ({ id: r.user_id, name: String(r.name || 'Jugador').slice(0, 20), look: R.safeLook(r.look?.a) }));
+  } catch { return []; }
+}
+/** Sales del lobby: borras tu aviso. */
+export async function lobbyLeave() {
+  if (!Auth.signedIn()) return;
+  try { await R.rest(`io_rooms?room=eq.${LOBBY}&user_id=eq.${Auth.user().id}`, { method: 'DELETE' }); } catch { /* */ }
+}
 export const newId = uid;

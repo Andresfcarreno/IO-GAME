@@ -108,6 +108,23 @@ revoke select, update, delete on public.io_waitlist from anon, authenticated;
 grant insert on public.io_waitlist to anon, authenticated;
 
 -- ============================================================
+-- Totales públicos para la página de inicio (solo números agregados, nunca datos de una persona).
+create or replace function public.io_public_stats() returns json
+language sql stable security definer set search_path = '' as $$
+  select json_build_object(
+    'players',  (select count(*) from public.io_ranking),
+    'xp',       (select coalesce(sum(xp), 0) from public.io_ranking),
+    'minutes',  (select coalesce(sum(least(coalesce((data->'stats'->>'minutes')::numeric, 0), 100000)), 0)::bigint from public.io_saves where id = 'io:game' and not deleted),
+    'habits',   (select coalesce(sum(least(coalesce((data->'stats'->>'sessions')::numeric, 0), 10000)), 0)::bigint from public.io_saves where id = 'io:game' and not deleted),
+    'waitlist', (select count(*) from public.io_waitlist),
+    'online',   (select count(distinct user_id) from public.io_rooms where updated_at > now() - interval '2 minutes'),
+    'week_xp',  (select coalesce(sum(week_xp), 0) from public.io_ranking where week_key = (date_trunc('week', now()))::date)
+  );
+$$;
+revoke all on function public.io_public_stats() from public;
+grant execute on function public.io_public_stats() to anon, authenticated;
+
+-- ============================================================
 -- Versión anterior (sin cuentas): si creaste io_items con la política abierta, ciérrala.
 do $$ begin
   if to_regclass('public.io_items') is not null then
