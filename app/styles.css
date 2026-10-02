@@ -1625,3 +1625,259 @@ body[data-gb="oro"] .mid-btns button,body[data-gb="oro"] .ctl-help{color:#3b1d06
 .hf[data-empty="1"] .hf-rest{display:none}
 .hf-rest{display:flex;flex-direction:column;gap:10px;animation:fu .25s both}
 .hf-pick{row-gap:8px}
+
+/* ================= pisos distintos: cada tipo de cuarto tiene su escenario ================= */
+.rset{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+.rset > *{position:absolute}
+.scene.custom .furn-set{display:none}
+[data-hide~="win"] .win,[data-hide~="curt"] .curt,[data-hide~="sill"] .sill,[data-hide~="beams"] .beams,[data-hide~="poster"] .poster,
+[data-hide~="wains"] .wains,[data-hide~="ceil"] .ceil,[data-hide~="lampc"] .lampc,[data-hide~="prug"] .prug{display:none!important}
+/* superficies propias de cada piso */
+.sf{position:absolute;z-index:2;display:block}
+.sf-shelf{height:7px;border-radius:2px;background:linear-gradient(180deg,var(--wood),var(--wood2));box-shadow:0 5px 7px rgba(0,0,0,.4)}
+.sf-shelf.sf-metal{background:linear-gradient(180deg,#cbd5e1,#64748b);height:6px}
+.sf-shelf.sf-metal::before,.sf-shelf.sf-metal::after{content:'';position:absolute;top:0;width:4px;height:120px;background:linear-gradient(90deg,#94a3b8,#475569)}
+.sf-shelf.sf-metal::before{left:0}.sf-shelf.sf-metal::after{right:0}
+.sf-shelf.sf-neon{background:#1e1b4b;box-shadow:0 0 0 1px #f472b6,0 0 14px #f472b6,0 6px 10px rgba(0,0,0,.5);animation:neonHum 3s ease-in-out infinite}
+@keyframes neonHum{50%{box-shadow:0 0 0 1px #22d3ee,0 0 16px #22d3ee,0 6px 10px rgba(0,0,0,.5)}}
+.sf-shelf.sf-stone{height:9px;border-radius:5px;background:linear-gradient(180deg,#d6d3d1,#78716c)}
+.sf-shelf.sf-rope{background:linear-gradient(180deg,#a16207,#713f12)}
+.sf-shelf.sf-rope::before,.sf-shelf.sf-rope::after{content:'';position:absolute;bottom:6px;width:2px;height:80px;background:#d6c7a1}
+.sf-shelf.sf-rope::before{left:8%}.sf-shelf.sf-rope::after{right:8%}
+.sf-shelf.sf-bookledge{height:8px;background:linear-gradient(180deg,#7c4a1e,#4a2c10)}
+.sf-shelf.sf-brass{background:linear-gradient(180deg,#fcd34d,#92400e)}
+.sf-shelf.sf-mantel{height:10px;border-radius:2px;background:linear-gradient(180deg,#e7e5e4,#a8a29e);box-shadow:0 4px 8px rgba(0,0,0,.45)}
+.sf-block{border-radius:3px 3px 0 0;box-shadow:0 -1px 0 rgba(255,255,255,.15) inset,0 6px 10px rgba(0,0,0,.35);display:flex;gap:4px;padding:10px 6px 5px}
+.sf-block b{flex:1;border-radius:2px;background:rgba(0,0,0,.18);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.sf-sideboard{background:linear-gradient(180deg,var(--wood) 0 7px,var(--wood2) 7px)}
+.sf-bench{background:linear-gradient(180deg,#a16207 0 8px,#3f3f46 8px)}
+.sf-bench b{background:repeating-linear-gradient(0deg,#52525b 0 3px,#3f3f46 3px 6px)}
+.sf-counter{background:linear-gradient(180deg,#f5f5f4 0 7px,#cbd5e1 7px 8px,#0f766e 8px)}
+.sf-counter b::after{content:'';display:block;width:12px;height:3px;margin:6px auto 0;border-radius:2px;background:#e2e8f0}
+.sf-rack{background:linear-gradient(180deg,#334155 0 6px,transparent 6px 46%,#334155 46% 54%,transparent 54%);box-shadow:none;padding:0}
+.sf-rack b{background:radial-gradient(circle,#0f172a 0 35%,transparent 36%) 0 40%/14px 14px repeat-x;box-shadow:none}
+.sf-desk{background:linear-gradient(180deg,#78350f 0 8px,transparent 8px);box-shadow:0 4px 0 -2px rgba(0,0,0,.3);padding:8px 0 0}
+.sf-desk b{flex:none;width:6px;background:#451a03;box-shadow:none}
+.sf-desk b:nth-child(2){flex:1;background:transparent}
+.sf-planter{background:linear-gradient(180deg,#3f2a14 0 6px,#a16207 6px);box-shadow:inset 0 0 0 2px #713f12}
+.sf-planter b{background:radial-gradient(circle at 50% 20%,#4ade80 0 30%,transparent 32%);box-shadow:none}
+.sf-bar{background:linear-gradient(180deg,#1f2937 0 8px,#7c2d12 8px)}
+.sf-mixer{background:linear-gradient(180deg,#111827 0 8px,#1f2937 8px)}
+.sf-mixer b{background:repeating-linear-gradient(90deg,transparent 0 5px,#9ca3af 5px 6px,transparent 6px 10px),linear-gradient(0deg,#22c55e 0 30%,#facc15 30% 60%,transparent 60%);animation:vu 1.2s steps(4) infinite}
+@keyframes vu{50%{filter:hue-rotate(40deg) brightness(1.3)}}
+.sf-snack{background:linear-gradient(180deg,#fde047 0 7px,#b91c1c 7px)}
+.sf-plinth{background:linear-gradient(90deg,#f8fafc,#cbd5e1);box-shadow:0 6px 10px rgba(0,0,0,.25)}
+.sf-plinth b{display:none}
+.sf-console{background:linear-gradient(180deg,#0e7490 0 6px,#0f172a 6px);box-shadow:0 0 12px rgba(34,211,238,.35)}
+.sf-console b{background:radial-gradient(circle,#4ade80 0 2px,transparent 3px) 2px 2px/8px 8px,radial-gradient(circle,#f87171 0 2px,transparent 3px) 6px 6px/10px 10px;animation:blinkL 1.4s steps(2) infinite}
+@keyframes blinkL{50%{opacity:.5}}
+.screen.deco.furn-hint .sf-shelf{box-shadow:0 0 0 2px var(--amber)}
+
+/* --- sala: chimenea encendida --- */
+[data-type="sala"] .wall{background:repeating-linear-gradient(90deg,rgba(255,255,255,.06) 0 3px,transparent 3px 26px),linear-gradient(180deg,#24463f,#1a3530)}
+.rs-fire{left:57%;width:31%;bottom:18%;height:25%;border-radius:4px 4px 0 0;background:repeating-linear-gradient(0deg,#9a3412 0 9px,#7c2d12 9px 11px),#7c2d12;box-shadow:inset 0 0 0 4px #57200b,0 6px 10px rgba(0,0,0,.4)}
+.rs-fire::before{content:'';position:absolute;left:22%;right:22%;bottom:0;height:62%;border-radius:40% 40% 0 0;background:radial-gradient(ellipse at 50% 100%,#fb923c,#1c0a04 70%)}
+.rs-flame{position:absolute;bottom:6px;left:42%;width:16%;height:38%;border-radius:50% 50% 40% 40%/60% 60% 40% 40%;background:linear-gradient(0deg,#f97316,#fde047);transform-origin:50% 100%;animation:flame 0.7s ease-in-out infinite alternate;filter:blur(.3px);box-shadow:0 0 18px #fb923c}
+.rs-flame.f2{left:33%;height:28%;animation-delay:-.3s}.rs-flame.f3{left:52%;height:30%;animation-delay:-.5s}
+.rs-logs{position:absolute;left:32%;right:32%;bottom:2px;height:6px;border-radius:3px;background:#451a03}
+.rs-sala-art{left:63%;width:18%;top:26%;height:14%}
+.rs-frame{border:3px solid #d4a24c;border-radius:2px;background:linear-gradient(135deg,#fde68a,#f472b6 45%,#7c3aed);box-shadow:0 4px 8px rgba(0,0,0,.4)}
+
+/* --- garaje: portón, tablero de herramientas, tubo de luz --- */
+.rs-tube{left:30%;width:26%;top:3%;height:6px;border-radius:3px;background:#f8fafc;box-shadow:0 0 18px 6px rgba(226,232,240,.45);animation:tube 6s steps(1) infinite}
+.rs-tube.t2{left:62%}
+@keyframes tube{0%,93%,97%{opacity:1}95%{opacity:.35}}
+.rs-gdoor{right:3%;width:42%;top:17%;bottom:18%;border:5px solid #1f2937;border-bottom:0;background:repeating-linear-gradient(0deg,#9ca3af 0 12px,#6b7280 12px 14px);box-shadow:inset 0 -14px 0 #fbbf24}
+.rs-gdoor::after{content:'';position:absolute;left:0;right:0;bottom:0;height:7px;background:repeating-linear-gradient(135deg,#111 0 8px,#fbbf24 8px 16px)}
+.rs-gdoor i{position:absolute;left:44%;bottom:22px;width:12%;height:5px;border-radius:2px;background:#374151}
+.rs-gdoor.d2a{right:3%;width:30%}.rs-gdoor.d2b{right:36%;width:30%}
+.rs-peg{left:24%;width:25%;top:16%;height:20%;border-radius:3px;background:radial-gradient(circle,#78350f 0 1.5px,transparent 2px) 0 0/9px 9px,#c2a06b;box-shadow:inset 0 0 0 3px #8b6b3d,0 4px 8px rgba(0,0,0,.35);display:flex;flex-wrap:wrap;justify-content:space-around;align-items:center;padding:4px;font-size:17px}
+.rs-oil{left:46%;bottom:5%;width:16%;height:4%;border-radius:50%;background:radial-gradient(ellipse,rgba(0,0,0,.45),transparent 70%)}
+.rs-oil.o2{left:70%}
+.rs-cone{left:47%;bottom:17%;font-size:22px}
+
+/* --- cocina: gabinetes, utensilios, campana --- */
+.rs-cab{left:23%;width:31%;top:13%;height:15%;display:flex;gap:3px;padding:3px;border-radius:3px;background:#713f12;box-shadow:0 6px 8px rgba(0,0,0,.35)}
+.rs-cab i{flex:1;border-radius:2px;background:linear-gradient(180deg,#d6a46b,#a16207);position:relative}
+.rs-cab i::after{content:'';position:absolute;right:4px;bottom:5px;width:3px;height:10px;border-radius:2px;background:#fef3c7}
+.rs-hang{left:24%;width:29%;top:30%;display:flex;justify-content:space-around;font-size:15px;border-top:2px solid #94a3b8;padding-top:2px}
+.rs-hang span{transform-origin:50% 0;animation:sway 3s ease-in-out infinite alternate}
+.rs-hang span:nth-child(2){animation-delay:-1s}.rs-hang span:nth-child(3){animation-delay:-2s}
+@keyframes sway{to{transform:rotate(6deg)}}
+.rs-hood{left:64%;width:20%;top:43%;height:9%;clip-path:polygon(20% 0,80% 0,100% 100%,0 100%);background:linear-gradient(180deg,#cbd5e1,#64748b)}
+[data-type="cocina"] .win{right:24px}
+
+/* --- gimnasio: espejo, franja motivadora, tapete --- */
+[data-type="gimnasio"] .wall{background:linear-gradient(180deg,#1f2937,#111827)}
+.rs-band{left:0;right:0;top:12%;height:9%;background:#dc2626;display:grid;place-items:center;box-shadow:0 3px 0 #7f1d1d}
+.rs-band b{font-family:var(--pixel);font-size:8px;color:#fff;letter-spacing:1px}
+.rs-mirror{left:23%;width:32%;top:26%;height:47%;border:4px solid #9ca3af;border-radius:3px;background:linear-gradient(115deg,#cbd5e1 0%,#e2e8f0 30%,#94a3b8 31%,#cbd5e1 48%,#f1f5f9 49%,#94a3b8 100%);opacity:.85;overflow:hidden}
+.rs-mirror i{position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.7) 45%,transparent 60%);animation:shine 5s ease-in-out infinite}
+@keyframes shine{0%,60%{transform:translateX(-120%)}100%{transform:translateX(120%)}}
+.rs-mat{left:28%;width:30%;bottom:6%;height:6%;border-radius:4px;background:#2563eb;box-shadow:inset 0 0 0 2px #1e40af}
+[data-type="gimnasio"] .win{height:40px;top:52px}
+
+/* --- biblioteca: librero de pared completo --- */
+.rs-books{left:21%;right:3%;top:10%;bottom:18%;border-radius:3px;background:#5b3410;box-shadow:inset 0 0 0 5px #3b2108,0 6px 10px rgba(0,0,0,.4);display:grid;grid-template-rows:repeat(4,1fr);padding:6px 6px 0;gap:6px}
+.rs-books i{border-bottom:6px solid #7c4a1e;background:
+  linear-gradient(90deg,#b91c1c 0 6%,#1d4ed8 6% 10%,#15803d 10% 17%,#f59e0b 17% 20%,#7c3aed 20% 27%,transparent 27% 30%,#0e7490 30% 36%,#be185d 36% 41%,#a16207 41% 47%,#334155 47% 52%,transparent 52% 55%,#16a34a 55% 61%,#dc2626 61% 64%,#2563eb 64% 71%,#ca8a04 71% 75%,#9333ea 75% 81%,transparent 81% 84%,#0f766e 84% 90%,#b45309 90% 96%,#1e3a8a 96%)}
+.rs-books i:nth-child(2){background-position:37% 0;filter:hue-rotate(60deg) brightness(.95)}
+.rs-books i:nth-child(3){filter:hue-rotate(160deg) brightness(.9)}
+.rs-books i:nth-child(4){filter:hue-rotate(260deg) brightness(.85)}
+.rs-books i{background-size:140% 100%}
+.rs-ladder{left:56%;top:12%;bottom:18%;width:30px;transform:skewX(-8deg);background:linear-gradient(90deg,#a16207 0 4px,transparent 4px 26px,#a16207 26px) ,repeating-linear-gradient(0deg,transparent 0 18px,#a16207 18px 22px)}
+
+/* --- jardín interior: invernadero de vidrio --- */
+.rs-glass{left:0;right:0;top:0;bottom:18%;background:linear-gradient(90deg,rgba(255,255,255,.25) 2px,transparent 2px) 0 0/25% 100%,linear-gradient(0deg,rgba(255,255,255,.25) 2px,transparent 2px) 0 0/100% 33%,linear-gradient(180deg,#7dd3fc,#bbf7d0 85%)}
+[data-time="noche"] .rs-glass{background:linear-gradient(90deg,rgba(255,255,255,.18) 2px,transparent 2px) 0 0/25% 100%,linear-gradient(0deg,rgba(255,255,255,.18) 2px,transparent 2px) 0 0/100% 33%,linear-gradient(180deg,#0b1030,#1e3a5f 85%)}
+[data-time="tarde"] .rs-glass{background:linear-gradient(90deg,rgba(255,255,255,.25) 2px,transparent 2px) 0 0/25% 100%,linear-gradient(0deg,rgba(255,255,255,.25) 2px,transparent 2px) 0 0/100% 33%,linear-gradient(180deg,#7c3aed,#fb923c 85%)}
+.rs-trees{position:absolute;left:0;right:0;bottom:0;height:34%;background:radial-gradient(circle at 10% 100%,#15803d 0 22%,transparent 23%),radial-gradient(circle at 34% 100%,#166534 0 26%,transparent 27%),radial-gradient(circle at 62% 100%,#15803d 0 20%,transparent 21%),radial-gradient(circle at 88% 100%,#14532d 0 28%,transparent 29%);opacity:.9}
+.rs-vines{left:0;right:0;top:-6px;display:flex;justify-content:space-around;font-size:18px}
+.rs-vines span{transform:rotate(180deg);animation:sway 4s ease-in-out infinite alternate;transform-origin:50% 0}
+.rs-vines span:nth-child(odd){animation-delay:-2s;font-size:14px}
+.rs-path{left:24%;right:6%;bottom:4%;height:6%;background:radial-gradient(ellipse 40% 50%,#d6d3d1 0 60%,transparent 64%) 0 0/30px 100%;opacity:.55}
+.rs-fountain{left:44%;bottom:17%;width:12%;height:7%;border-radius:40% 40% 4px 4px;background:linear-gradient(180deg,#e7e5e4,#a8a29e)}
+.rs-fountain i{position:absolute;left:44%;bottom:100%;width:12%;height:22px;background:linear-gradient(0deg,#7dd3fc,#e0f2fe);border-radius:4px;animation:spout 1s ease-in-out infinite alternate;opacity:.85}
+@keyframes spout{to{height:30px;opacity:.6}}
+
+/* --- oficina: pizarra con gráfica, archivador, persianas --- */
+.rs-wb{left:23%;width:32%;top:14%;height:25%;border-radius:3px;background:#f8fafc;box-shadow:inset 0 0 0 3px #94a3b8,0 5px 8px rgba(0,0,0,.35);padding:8px}
+.rs-wb svg{position:absolute;left:8%;top:14%;width:62%;height:70%}
+.rs-wb .note{position:absolute;width:16%;height:22%;right:6%;background:#fde047;box-shadow:1px 2px 0 rgba(0,0,0,.2)}
+.rs-wb .n1{top:12%}.rs-wb .n2{top:42%;background:#f9a8d4;right:14%}.rs-wb .n3{top:66%;background:#86efac}
+.rs-file{left:23%;width:9%;bottom:18%;height:17%;display:flex;flex-direction:column;gap:3px;padding:3px;background:#64748b;border-radius:2px}
+.rs-file i{flex:1;border-radius:1px;background:#94a3b8;position:relative}
+.rs-file i::after{content:'';position:absolute;left:35%;right:35%;top:40%;height:3px;background:#334155}
+[data-type="oficina"] .win{background:repeating-linear-gradient(0deg,#e2e8f0 0 5px,#94a3b8 5px 7px)!important}
+[data-type="oficina"] .wall{background:linear-gradient(180deg,#334155,#1e293b)}
+
+/* --- sala de juegos: neón, LED y piso de ajedrez --- */
+[data-type="juegos"] .wall{background:radial-gradient(circle at 50% 120%,rgba(244,114,182,.28),transparent 60%),linear-gradient(180deg,#160b33,#0b0620)}
+.rs-led{left:0;right:0;top:3%;height:4px;background:linear-gradient(90deg,#f472b6,#22d3ee,#a3e635,#fbbf24,#f472b6);background-size:200% 100%;box-shadow:0 0 14px #22d3ee;animation:led 3s linear infinite}
+@keyframes led{to{background-position:200% 0}}
+.rs-neon{left:58%;width:34%;top:14%;height:15%;display:grid;place-items:center;border:2px solid #f472b6;border-radius:8px;box-shadow:0 0 12px #f472b6,inset 0 0 12px #f472b6;animation:flicker 4s steps(1) infinite}
+.rs-neon b{font-family:var(--pixel);font-size:9px;color:#fdf2f8;text-shadow:0 0 6px #f472b6,0 0 14px #f472b6}
+@keyframes flicker{0%,88%,92%,100%{opacity:1}90%{opacity:.4}}
+.rs-inv{left:60%;width:32%;top:34%;display:flex;justify-content:space-around;font-size:22px;animation:inv 2s steps(2) infinite}
+@keyframes inv{50%{transform:translateX(6px)}}
+.rs-checker{left:0;right:0;bottom:0;height:18%;background:repeating-conic-gradient(#1e1b4b 0 25%,#312e81 0 50%) 0 0/24px 24px;opacity:.9}
+
+/* --- spa: listones de madera, bambú y vapor --- */
+[data-type="spa"] .wall{background:repeating-linear-gradient(90deg,#b08960 0 14px,#9c7550 14px 16px)}
+.rs-bamboo{left:62%;width:26%;top:12%;height:44%;display:flex;gap:10px;justify-content:center}
+.rs-bamboo i{width:9px;height:100%;background:repeating-linear-gradient(0deg,#65a30d 0 28px,#3f6212 28px 31px);border-radius:3px}
+.rs-steam{left:24%;width:30%;bottom:20%;height:40%}
+.rs-steam i{position:absolute;bottom:0;width:22px;height:60px;border-radius:50%;background:radial-gradient(ellipse,rgba(255,255,255,.4),transparent 70%);animation:steam 4s ease-out infinite}
+.rs-steam i:nth-child(2){left:40%;animation-delay:-1.3s}.rs-steam i:nth-child(3){left:75%;animation-delay:-2.6s}
+@keyframes steam{0%{transform:translateY(20px) scale(.6);opacity:0}40%{opacity:1}100%{transform:translateY(-70px) scale(1.4);opacity:0}}
+.rs-stones{left:50%;bottom:17%;font-size:20px}
+
+/* --- piscina: azulejos, escalera y reflejos --- */
+.rs-tiles{left:0;right:0;top:0;bottom:18%;background:linear-gradient(90deg,rgba(255,255,255,.35) 1px,transparent 1px) 0 0/14px 14px,linear-gradient(0deg,rgba(255,255,255,.35) 1px,transparent 1px) 0 0/14px 14px,linear-gradient(180deg,#bae6fd,#7dd3fc)}
+.rs-poolladder{left:40%;bottom:6%;width:22px;height:20%;border:3px solid #e2e8f0;border-bottom:0;border-radius:10px 10px 0 0;background:repeating-linear-gradient(0deg,transparent 0 9px,#e2e8f0 9px 11px)}
+.rs-glare{left:0;right:0;bottom:2%;height:12%;background:repeating-linear-gradient(100deg,transparent 0 30px,rgba(255,255,255,.35) 30px 34px);animation:glare 3s linear infinite}
+@keyframes glare{to{background-position:68px 0}}
+
+/* --- terraza: cielo abierto, ciudad y luces colgadas --- */
+.rs-sky{left:0;right:0;top:0;bottom:18%;background:linear-gradient(180deg,#38bdf8,#a5f3fc)}
+[data-time="tarde"] .rs-sky{background:linear-gradient(180deg,#7c3aed,#f97316 70%,#fbbf24)}
+[data-time="noche"] .rs-sky{background:radial-gradient(circle,#fff 0 1px,transparent 1.5px) 0 0/34px 30px,linear-gradient(180deg,#070b24,#1b1650)}
+[data-time="amanecer"] .rs-sky{background:linear-gradient(180deg,#f472b6,#fb923c 60%,#fde68a)}
+.rs-moon{position:absolute;right:16%;top:12%;width:26px;height:26px;border-radius:50%;background:#fef9c3;box-shadow:0 0 20px #fde68a}
+.rs-skyline{position:absolute;left:0;right:0;bottom:0;height:44%;background:linear-gradient(90deg,#1e1b4b 0 12%,transparent 12% 15%,#312e81 15% 30%,transparent 30% 33%,#1e1b4b 33% 46%,transparent 46% 49%,#3730a3 49% 66%,transparent 66% 69%,#1e1b4b 69% 84%,transparent 84% 87%,#312e81 87%);clip-path:polygon(0 40%,12% 40%,12% 10%,15% 10%,15% 30%,30% 30%,30% 0,33% 0,33% 50%,46% 50%,46% 20%,49% 20%,49% 35%,66% 35%,66% 5%,69% 5%,69% 45%,84% 45%,84% 25%,87% 25%,87% 15%,100% 15%,100% 100%,0 100%)}
+.rs-skyline::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0 7px,rgba(253,224,71,.4) 7px 9px);mix-blend-mode:screen;opacity:.6}
+.rs-lights{left:0;right:0;top:10%;height:16%;display:flex;justify-content:space-around;align-items:flex-start;border-top:2px solid rgba(0,0,0,.4);border-radius:0 0 50% 50%/0 0 30% 30%}
+.rs-lights i{width:9px;height:12px;margin-top:8px;border-radius:50% 50% 45% 45%;background:#fde68a;box-shadow:0 0 10px #fbbf24;animation:bulb 2s ease-in-out infinite}
+.rs-lights i:nth-child(odd){background:#f9a8d4;box-shadow:0 0 10px #f472b6;animation-delay:-1s;margin-top:14px}
+@keyframes bulb{50%{opacity:.55}}
+.rs-rail{left:0;right:0;bottom:18%;height:15%;border-top:4px solid #e2e8f0;background:linear-gradient(90deg,#cbd5e1 3px,transparent 3px) 0 0/40px 100%,rgba(191,219,254,.18)}
+[data-type="terraza"] .floor{background:repeating-linear-gradient(90deg,#a16207 0 22px,#854d0e 22px 24px)}
+
+/* --- estudio de música: espuma, vinilos y "on air" --- */
+[data-type="musica"] .wall{background:linear-gradient(180deg,#1e1b2e,#141022)}
+.rs-foam{top:14%;width:22%;height:36%;background:conic-gradient(from 45deg,#3b3355 25%,#2a2440 0 50%,#3b3355 0 75%,#2a2440 0) 0 0/16px 16px;border-radius:3px;box-shadow:0 4px 8px rgba(0,0,0,.4)}
+.rs-foam.f1{left:23%}.rs-foam.f2{left:72%;width:24%}
+.rs-vinyl{top:16%;width:44px;height:44px;border-radius:50%;background:radial-gradient(circle,#f472b6 0 18%,#111 19% 30%,#1f1f1f 31% 34%,#111 35% 60%,#222 61% 63%,#111 64%);animation:spin 6s linear infinite;box-shadow:0 4px 8px rgba(0,0,0,.5)}
+.rs-vinyl.v1{left:50%}.rs-vinyl.v2{left:58%;top:30%;animation-duration:9s;filter:hue-rotate(120deg)}
+.rs-onair{left:50%;top:3%;font-family:var(--pixel);font-size:7px;padding:4px 6px;border-radius:4px;background:#7f1d1d;color:#fecaca;box-shadow:0 0 10px #ef4444;animation:flicker 3s steps(1) infinite}
+.rs-spk{left:23%;bottom:18%;width:9%;height:16%;border-radius:3px;background:radial-gradient(circle at 50% 30%,#111 0 22%,#374151 23% 27%,transparent 28%),radial-gradient(circle at 50% 74%,#111 0 16%,#374151 17% 21%,transparent 22%),#1f2937;animation:thump .5s ease-in-out infinite alternate}
+@keyframes thump{to{transform:scale(1.03)}}
+
+/* --- cine en casa: pantalla grande, telón y butacas --- */
+[data-type="cine"] .wall{background:linear-gradient(180deg,#2a0a12,#14050a)}
+.rs-screen{left:24%;width:62%;top:10%;height:38%;border:4px solid #0a0a0a;background:linear-gradient(135deg,#1e3a8a,#7c3aed 50%,#db2777);box-shadow:0 0 30px rgba(124,58,237,.6);overflow:hidden}
+.rs-film{position:absolute;inset:0;background:linear-gradient(90deg,transparent 0 30%,rgba(255,255,255,.25) 50%,transparent 70%);animation:film 3.5s ease-in-out infinite}
+@keyframes film{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.rs-velvet{top:6%;bottom:18%;width:9%;background:repeating-linear-gradient(90deg,#991b1b 0 6px,#7f1d1d 6px 10px);box-shadow:0 4px 8px rgba(0,0,0,.5)}
+.rs-velvet.l{left:19%}.rs-velvet.r{left:84%}
+.rs-beam{right:-4%;top:-2%;width:70%;height:52%;background:linear-gradient(200deg,rgba(255,255,255,.18),transparent 70%);clip-path:polygon(100% 0,100% 12%,0 100%,0 60%)}
+.rs-seats{left:23%;right:2%;bottom:16%;height:8%;display:flex;gap:6px}
+.rs-seats i{flex:1;border-radius:8px 8px 0 0;background:linear-gradient(180deg,#b91c1c,#7f1d1d)}
+
+/* --- galería de arte: muros blancos y focos --- */
+[data-type="galeria"] .wall{background:linear-gradient(180deg,#f8fafc,#e2e8f0)}
+[data-type="galeria"] .floor{background:repeating-linear-gradient(90deg,#d6d3d1 0 38px,#a8a29e 38px 40px)}
+.rs-spots{left:0;right:0;top:0;height:60%}
+.rs-spots i{position:absolute;top:0;width:24%;height:100%;background:linear-gradient(180deg,rgba(254,240,138,.45),transparent 80%);clip-path:polygon(42% 0,58% 0,100% 100%,0 100%)}
+.rs-spots i:nth-child(1){left:18%}.rs-spots i:nth-child(2){left:45%}.rs-spots i:nth-child(3){left:72%}
+.rs-artw{top:16%;border:4px solid #1f2937;box-shadow:0 6px 10px rgba(0,0,0,.25)}
+.rs-artw.a1{left:24%;width:18%;height:22%;background:radial-gradient(circle at 30% 40%,#f43f5e 0 18%,transparent 19%),radial-gradient(circle at 70% 60%,#3b82f6 0 22%,transparent 23%),#fef3c7}
+.rs-artw.a2{left:74%;width:16%;height:26%;background:linear-gradient(0deg,#0ea5e9 0 33%,#facc15 33% 66%,#ef4444 66%)}
+.rs-rope{left:24%;right:4%;bottom:24%;height:12px;border-top:3px solid #b91c1c;border-radius:0 0 50% 50%}
+
+/* --- observatorio: cúpula con rendija y carta de estrellas --- */
+[data-type="observatorio"] .wall{background:linear-gradient(180deg,#0b1030,#111b44)}
+.rs-dome{left:-10%;right:-10%;top:-40%;height:80%;border-radius:50%;background:repeating-conic-gradient(from 0deg at 50% 50%,#1e293b 0 6deg,#26344d 6deg 12deg);box-shadow:inset 0 -6px 0 #475569}
+.rs-slit{position:absolute;left:50%;top:0;width:13%;height:100%;transform:translateX(-50%);background:radial-gradient(circle,#fff 0 1px,transparent 1.5px) 0 0/16px 14px,linear-gradient(180deg,#020617,#1e1b4b);animation:twinkle 3s ease-in-out infinite}
+.rs-chart{left:23%;width:30%;top:40%;height:26%;border-radius:3px;background:radial-gradient(circle at 20% 30%,#fde68a 0 2px,transparent 3px),radial-gradient(circle at 45% 20%,#fde68a 0 2px,transparent 3px),radial-gradient(circle at 70% 45%,#fde68a 0 2px,transparent 3px),radial-gradient(circle at 55% 75%,#fde68a 0 2px,transparent 3px),linear-gradient(160deg,#1e3a8a,#0f172a);box-shadow:inset 0 0 0 3px #b45309}
+.rs-chart::after{content:'';position:absolute;inset:0;background:linear-gradient(35deg,transparent 30%,rgba(253,230,138,.6) 30.5%,transparent 31.5%),linear-gradient(-20deg,transparent 52%,rgba(253,230,138,.6) 52.5%,transparent 53.5%)}
+.rs-orbit{left:70%;top:42%;width:60px;height:60px;border:2px dashed rgba(148,163,184,.5);border-radius:50%;animation:spin 12s linear infinite}
+.rs-orbit i{position:absolute;top:-5px;left:24px;width:10px;height:10px;border-radius:50%;background:#38bdf8;box-shadow:0 0 8px #38bdf8}
+
+/* --- hangar: portón abierto a la pista --- */
+[data-type="hangar"] .wall{background:linear-gradient(180deg,#1f2937,#111827)}
+.rs-truss{left:0;right:0;top:0;height:16%;background:repeating-linear-gradient(60deg,transparent 0 18px,#4b5563 18px 21px),repeating-linear-gradient(-60deg,transparent 0 18px,#4b5563 18px 21px);border-bottom:4px solid #374151}
+.rs-hdoor{left:24%;right:3%;top:20%;bottom:18%;border:6px solid #374151;border-bottom:0;background:linear-gradient(180deg,#0b1030,#312e81 70%,#1f2937 70%);overflow:hidden}
+[data-time="dia"] .rs-hdoor{background:linear-gradient(180deg,#38bdf8,#bae6fd 70%,#4b5563 70%)}
+.rs-runway{position:absolute;left:0;right:0;bottom:0;height:30%;background:repeating-linear-gradient(90deg,transparent 0 14px,#fde047 14px 18px) 0 50%/100% 3px no-repeat,radial-gradient(circle,#f87171 0 2px,transparent 3px) 0 20%/28px 100% repeat-x,#1f2937;animation:runway 2s linear infinite}
+@keyframes runway{to{background-position:-36px 50%,-28px 20%,0 0}}
+.rs-hstripe{left:0;right:0;bottom:16%;height:6px;background:repeating-linear-gradient(135deg,#111 0 8px,#fbbf24 8px 16px)}
+
+/* --- puente de mando: ventanal al espacio y consolas --- */
+[data-type="puente"] .wall{background:linear-gradient(180deg,#0f172a,#020617)}
+.rs-view{left:22%;right:3%;top:9%;height:44%;border:5px solid #334155;border-radius:30px 30px 8px 8px;background:radial-gradient(circle,#fff 0 1px,transparent 1.5px) 0 0/30px 26px,radial-gradient(circle,#c7d2fe 0 1px,transparent 1.5px) 13px 11px/40px 34px,#020617;overflow:hidden;box-shadow:inset 0 0 30px rgba(34,211,238,.25),0 0 0 2px #22d3ee}
+.rs-planet{position:absolute;right:12%;top:18%;width:70px;height:70px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#60a5fa,#1d4ed8 55%,#0b1a4a);box-shadow:0 0 24px rgba(96,165,250,.5);animation:planet 30s linear infinite}
+.rs-planet::after{content:'';position:absolute;left:-30%;right:-30%;top:46%;height:8%;border-radius:50%;border:2px solid rgba(253,230,138,.7);transform:rotate(-14deg)}
+@keyframes planet{to{transform:translateX(-160px)}}
+.rs-warp{position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 40px,rgba(255,255,255,.25) 40px 42px);animation:warp 1.4s linear infinite;opacity:.4}
+@keyframes warp{to{background-position:-84px 0}}
+.rs-cons{left:22%;right:3%;bottom:18%;height:9%;display:flex;gap:4px}
+.rs-cons i{flex:1;border-radius:4px 4px 0 0;background:radial-gradient(circle,#4ade80 0 2px,transparent 3px) 4px 4px/10px 8px,#1e293b;animation:blinkL 1.6s steps(2) infinite}
+.rs-cons i:nth-child(even){animation-delay:-.8s;background:radial-gradient(circle,#22d3ee 0 2px,transparent 3px) 2px 3px/9px 9px,#1e293b}
+[data-type="puente"] .floor{background:repeating-linear-gradient(90deg,#334155 0 30px,#1e293b 30px 32px)}
+
+/* --- lobby: mármol, columnas, recepción y muro de fundadores --- */
+[data-type="lobby"] .wall{background:linear-gradient(180deg,#e9e2d0,#cfc3a6)}
+[data-type="lobby"] .floor{background:repeating-conic-gradient(#f5f0e1 0 25%,#1f2937 0 50%) 0 0/28px 28px}
+[data-type="lobby"] .wall-trim{background:#b8860b}
+.rs-cols{left:0;right:0;top:0;bottom:18%}
+.rs-cols i{position:absolute;top:0;bottom:0;width:6%;background:linear-gradient(90deg,#d6cdb4,#fffaf0 40%,#cbbf9e);box-shadow:inset 0 10px 0 #b8860b,inset 0 -10px 0 #b8860b}
+.rs-cols i:nth-child(1){left:20%}.rs-cols i:nth-child(2){left:60%}.rs-cols i:nth-child(3){right:2%}
+.rs-chand{left:43%;top:0;width:14%;height:16%}
+.rs-chand::before{content:'';position:absolute;left:50%;top:0;width:2px;height:40%;background:#b8860b}
+.rs-chand i{position:absolute;left:0;right:0;top:38%;height:44%;border-radius:0 0 50% 50%;background:radial-gradient(circle,#fff7c2 0 2px,transparent 3px) 0 2px/9px 9px,linear-gradient(180deg,#fcd34d,#b8860b);box-shadow:0 10px 40px 10px rgba(253,230,138,.4)}
+.rs-founders{left:27%;width:31%;top:20%;height:40%;border:4px solid #b8860b;border-radius:4px;background:linear-gradient(160deg,#1f2937,#0b1220);display:flex;flex-direction:column;align-items:center;gap:5px;padding:7px 6px;box-shadow:0 6px 12px rgba(0,0,0,.35)}
+.rs-founders b{font-family:var(--pixel);font-size:6.5px;color:#fcd34d;letter-spacing:.5px;text-align:center}
+.rs-plates{display:grid;grid-template-columns:repeat(2,1fr);gap:4px;width:100%;flex:1}
+.rs-plates i{border-radius:2px;background:linear-gradient(180deg,#d4a24c,#8b6914);display:grid;place-items:center;font-style:normal;font-family:var(--pixel);font-size:7px;color:rgba(31,41,55,.6)}
+.rs-founders small{font-family:var(--font);font-size:8.5px;color:#cbd5e1}
+.rs-desk{left:64%;width:28%;bottom:18%;height:15%;border-radius:6px 6px 0 0;background:linear-gradient(180deg,#5b3410 0 8px,#3b2108 8px);display:grid;place-items:center;box-shadow:0 6px 10px rgba(0,0,0,.35)}
+.rs-desk b{font-family:var(--pixel);font-size:7px;color:#fcd34d;letter-spacing:1px}
+.rs-marble{left:0;right:0;bottom:0;height:18%;background:linear-gradient(180deg,rgba(255,255,255,.25),transparent 40%)}
+.rs-plant{bottom:17%;font-size:28px}.rs-plant.l{left:21%}.rs-plant.r{left:93%}
+/* jugadores que están en el lobby ahora */
+.lobby-folk{position:absolute;bottom:calc(var(--floorY) - 6px);z-index:5;width:46px;height:78px;transform:translateX(-50%);pointer-events:auto;transition:left 3s linear}
+.lobby-folk .av{width:100%;height:100%}
+.lobby-folk b{position:absolute;left:50%;top:-12px;transform:translateX(-50%);white-space:nowrap;font-family:var(--pixel);font-size:6px;color:#fff;background:rgba(15,23,42,.75);padding:2px 4px;border-radius:4px}
+@media (prefers-reduced-motion:reduce){.rs-flame,.rs-tube,.rs-hang span,.rs-mirror i,.rs-vines span,.rs-fountain i,.rs-led,.rs-neon,.rs-inv,.rs-steam i,.rs-glare,.rs-lights i,.rs-vinyl,.rs-onair,.rs-spk,.rs-film,.rs-slit,.rs-orbit,.rs-runway,.rs-planet,.rs-warp,.rs-cons i,.sf-neon,.sf-mixer b,.sf-console b{animation:none}}
+.folk{position:absolute;inset:0;z-index:5;pointer-events:none}

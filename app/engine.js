@@ -2,6 +2,7 @@
  * caminar (◀ ▶), ascensor (puerta a la izquierda: ▲ o A), interactuar con objetos (A),
  * modo decorar (SELECT: elegir, mover y guardar objetos), menú (START), minimapa, efectos y sonido.
  * Teclado: flechas/WASD · Z o Espacio = A · X = B · Shift = SELECT · Enter = START. */
+import { setOf, furnHTML, BASE_SURF } from './rooms.js';
 import { t as tr, locale } from './i18n.js';
 import * as W from './world.js';
 import * as Pet from './pet.js';
@@ -49,6 +50,7 @@ export function blip(kind = 'coin') {
 
 /* ================= diálogo ================= */
 export function say(text, ms = 5200, name = 'IO') {
+  text = tr(text); // en inglés se escribe ya traducido, letra por letra
   const box = $('dlg'); const el = $('dlgText'); if (!box) return;
   $('dlgName').textContent = name;
   box.hidden = false; clearInterval(E.typeT); clearTimeout(E.sayT);
@@ -65,11 +67,15 @@ export function render() {
   const scene = $('scene');
   scene.dataset.skin = f.world.skin; scene.dataset.type = f.type; scene.dataset.view = f.view; scene.dataset.elev = f.world.elev;
   scene.classList.toggle('open', f.open);
+  const set = setOf(f.type); SURF = mkSurf(set.surf);
+  scene.dataset.hide = set.hide.join(' '); scene.classList.toggle('custom', !set.base); scene.classList.toggle('lobby', !!f.lobby);
+  const rk = f.type + (W.roomHasFurniture(n) ? '+' : '');
+  if ($('rset').dataset.k !== rk) { $('rset').dataset.k = rk; $('rset').innerHTML = set.bg + (!set.base && W.roomHasFurniture(n) ? furnHTML(set.surf) : ''); }
   scene.style.setProperty('--hue', (f.world.hue || 0) + 'deg');
   const h = new Date().getHours();
   scene.dataset.time = h >= 5 && h < 8 ? 'amanecer' : h >= 8 && h < 17 ? 'dia' : h >= 17 && h < 19 ? 'tarde' : 'noche';
-  $('elevNum').textContent = n;
-  $('floorTag').textContent = `${n === 1 ? 'PISO 1' : 'PISO ' + n} · ${f.name.toUpperCase()}`;
+  $('elevNum').textContent = n === 0 ? 'L' : n;
+  $('floorTag').textContent = n === 0 ? 'LOBBY · IO TOWER' : `PISO ${n} · ${f.name.toUpperCase()}`;
   // objetos
   const objs = W.placedOn(g, n); const furn = W.roomHasFurniture(n);
   scene.classList.toggle('furn', furn);
@@ -214,19 +220,19 @@ function renderElevPanel() {
   const need = W.xpAt(selN) - g.xp;
   const dir = selN > cur ? '▲' : selN < cur ? '▼' : '●';
   $('elevPanel').innerHTML = `
-    <div class="ev-disp"><span class="ev-arrow${selN !== cur ? ' go' : ''}">${dir}</span><b>${String(selN).padStart(2, '0')}</b><div><small>ESTÁS EN EL ${cur}</small><strong>${esc(w.n.toUpperCase())}</strong></div></div>
+    <div class="ev-disp"><span class="ev-arrow${selN !== cur ? ' go' : ''}">${dir}</span><b>${selN === 0 ? 'LB' : String(selN).padStart(2, '0')}</b><div><small>ESTÁS EN EL ${cur}</small><strong>${esc(w.n.toUpperCase())}</strong></div></div>
     <div class="ev-main">
       <div class="ev-tower" data-skin="${w.skin}">
         <div class="ev-wsw"><button data-ew="-1" ${wi <= 0 ? 'disabled' : ''} aria-label="Edificio anterior">◀</button><small>${w.from}–${w.to}</small><button data-ew="1" ${w.to >= lvl + 25 ? 'disabled' : ''} aria-label="Edificio siguiente">▶</button></div>
-        <div class="ev-roof"></div><div class="ev-bands">${bands}</div><div class="ev-lobby">LOBBY</div>
+        <div class="ev-roof"></div><div class="ev-bands">${bands}</div>${w.id === 1 ? `<button class="ev-lobby tw-b${selN === 0 ? ' sel' : ''}${cur === 0 ? ' cur' : ''}" data-floor="0" aria-label="Lobby">🏛️ LOBBY</button>` : '<div class="ev-lobby">LOBBY</div>'}
       </div>
       <div class="ev-card${open ? '' : ' locked'}">
         <div class="ev-ic">${open ? sel.ic : '🔒'}</div>
-        <small>PISO ${selN}</small><b>${esc(sel.name)}</b>
+        <small>${selN === 0 ? 'PLANTA BAJA' : 'PISO ' + selN}</small><b>${esc(sel.name)}</b>
         <span class="ev-w">${esc(sel.world.n)}${sel.cap ? ` · 🚗×${sel.cap}` : ''}</span>
-        ${open ? `<div class="ev-objs">${objs.length ? objs.slice(0, 8).join(' ') : '<em>Aún sin visitar · trae regalos</em>'}</div>`
+        ${selN === 0 ? '<div class="ev-objs"><em>Muro de fundadores · jugadores de IO</em></div>' : open ? `<div class="ev-objs">${objs.length ? objs.slice(0, 8).join(' ') : '<em>Aún sin visitar · trae regalos</em>'}</div>`
           : `<div class="ev-lock">Se abre en el <b>nivel ${selN}</b><small>faltan ${need.toLocaleString(locale)} XP</small><div class="ev-bar"><i style="width:${Math.min(100, g.xp / W.xpAt(selN) * 100)}%"></i></div></div>`}
-        <button class="ev-go" data-go="${selN}" ${!open || selN === cur ? 'disabled' : ''}>${selN === cur ? 'Aquí estás' : open ? `${dir} Ir al ${selN}` : 'Bloqueado'}</button>
+        <button class="ev-go" data-go="${selN}" ${!open || selN === cur ? 'disabled' : ''}>${selN === cur ? 'Aquí estás' : open ? (selN === 0 ? `${dir} Ir al lobby` : `${dir} Ir al ${selN}`) : 'Bloqueado'}</button>
       </div>
     </div>
     <div class="ep-help">▲▼ piso · ◀▶ edificio · A ir · B salir</div>`;
@@ -236,7 +242,7 @@ function renderElevPanel() {
 function elevMove(dx, dy) {
   if (dx) return elevWorld(dx);
   const w = E.elevWorld; const k = E.elevSel + dy;
-  if (k < w.from || k > w.to) { blip('error'); return; }
+  if (k < (w.id === 1 ? 0 : w.from) || k > w.to) { blip('error'); return; }
   E.elevSel = k; blip('menu'); renderElevPanel();
 }
 function elevWorld(d) {
@@ -281,7 +287,7 @@ export function ride(target) {
       setTimeout(() => { $('scene').classList.remove('doors-open'); }, 900);
       walkTo(.24, () => { E.mode = 'walk'; hints(); });
       const f = W.floorInfo(target);
-      say(`${f.ic} Piso ${target} · ${f.name}${f.world.from === target ? ` — bienvenido a ${f.world.n}` : ''}.`, 3500);
+      say(target === 0 ? '🏛️ Lobby de la torre IO. Aquí se ven los jugadores que están en línea y el muro de fundadores.' : `${f.ic} Piso ${target} · ${f.name}${f.world.from === target ? ` — bienvenido a ${f.world.n}` : ''}.`, 3500);
       E.hooks.onFloor?.(target);
     }, 650);
   };
@@ -316,6 +322,7 @@ function chooseMenu(k) {
 /* ================= modo decorar ================= */
 function decoObjs() { const g = W.game(); return [...W.placedOn(g, floorNow())].sort((a, b) => a.x - b.x); }
 export function enterDeco(selectU = null) {
+  if (floorNow() === 0) { say('🏛️ El lobby es de todos. Decora tus propios pisos.', 3000); return; }
   hush(); E.mode = 'deco'; E.deco = { sel: 0, moving: false, orig: null };
   const list = decoObjs();
   if (selectU) { E.deco.sel = Math.max(0, list.findIndex(p => p.u === selectU)); E.deco.moving = true; E.deco.orig = { ...list[E.deco.sel] }; }
@@ -334,16 +341,18 @@ function decoUI() {
 }
 const wallTop = y => `calc(var(--wallTop) + ${(y * 100).toFixed(1)}% * var(--wallK))`;
 /* superficies del cuarto (fracciones de la escena): piso, aparador bajo la ventana y dos repisas */
-const SURF = {
-  floor: { x0: .22, x1: .95, b: 'var(--floorY)', k: 1 },
-  table: { x0: .62, x1: .88, b: 'calc(var(--floorY) + 38px)', k: .82, max: 3 },
-  shelf2: { x0: .29, x1: .49, b: '47.5%', k: .7, max: 3 },
-  shelf1: { x0: .29, x1: .49, b: '65.5%', k: .7, max: 3 },
+// Cada piso define sus propias superficies (rooms.js); el piso siempre existe.
+const FLOOR_SURF = { x0: .22, x1: .95, b: 'var(--floorY)', k: 1, f: .17 };
+const mkSurf = surf => {
+  const out = { floor: FLOOR_SURF };
+  for (const [k, s] of Object.entries(surf)) out[k] = { x0: s.x0, x1: s.x1, b: (s.f * 100).toFixed(1) + '%', f: s.f, k: k === 'table' ? .82 : .7, max: 3 };
+  return out;
 };
+let SURF = mkSurf(BASE_SURF);
 function surfOptions(p) {
   const it = W.itemById(p.item); if (!W.roomHasFurniture(floorNow())) return ['floor'];
   const others = W.placedOn(W.game(), floorNow()).filter(q => q.u !== p.u);
-  return W.surfacesOf(it).filter(s => s === 'floor' || others.filter(q => q.on === s).length < SURF[s].max);
+  return W.surfacesOf(it).filter(s => s === 'floor' || (SURF[s] && others.filter(q => q.on === s).length < SURF[s].max));
 }
 function applySurf(el, it, on) {
   el.dataset.on = on; el.className = el.className.replace(/\bon-\w+/, 'on-' + on);
@@ -433,8 +442,9 @@ function setupDrag() {
     if (drag.o.classList.contains('b-floor')) {
       const p = decoObjs()[E.deco.sel]; const it = W.itemById(p.item); const opts = surfOptions(p);
       const yb = (drag.rect.bottom - e.clientY) / drag.rect.height;
-      const want = yb > .6 ? 'shelf1' : yb > .43 ? 'shelf2' : yb > .26 ? 'table' : 'floor';
-      const on = opts.includes(want) && x >= SURF[want].x0 - .04 && x <= SURF[want].x1 + .04 ? want : 'floor';
+      // la superficie más cercana a donde está el dedo (si el objeto cabe ahí)
+      let on = 'floor', best = Math.abs(yb - SURF.floor.f) + .06;
+      for (const sName of opts) { const S = SURF[sName]; if (sName === 'floor' || !S || x < S.x0 - .04 || x > S.x1 + .04) continue; const d = Math.abs(yb - S.f - .04); if (d < best) { best = d; on = sName; } }
       if (on !== drag.o.dataset.on) applySurf(drag.o, it, on); else if (on !== 'floor') drag.o.style.left = clamp(x, SURF[on].x0, SURF[on].x1) * 100 + '%';
     }
     if (drag.o.classList.contains('b-wall')) {

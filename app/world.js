@@ -21,6 +21,7 @@ const BASE_WORLDS = [
 const SECTOR_NAMES = ['Sector Nova', 'Anillo Ámbar', 'Nébula Índigo', 'Cúpula Solar', 'Archipiélago Binario', 'Ciudad Espejo', 'Faro Cuántico', 'Jardín de Saturno'];
 const ROMAN = n => [[10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']].reduce((s, [v, r]) => { while (n >= v) { s += r; n -= v; } return s; }, '');
 export function worldOf(floor) {
+  if (floor < 1) return BASE_WORLDS[0]; // el lobby es la entrada del primer edificio
   const w = BASE_WORLDS.find(x => floor >= x.from && floor <= x.to);
   if (w) return w;
   const k = Math.floor((floor - 101) / 25); // 0,1,2…
@@ -53,10 +54,12 @@ export const ROOMS = {
   helipuerto: { n: 'Helipuerto', ic: '🚁', cap: 1, open: true, starter: [['bandera', .9]] },
   mirador: { n: 'Mirador', ic: '🌄', open: true, starter: [['telescopio', .8], ['banca', .35]] },
   puente: { n: 'Puente de mando', ic: '🛰️', starter: [['consola', .55], ['robot', .85], ['planeta', .3, .35]] },
+  lobby: { n: 'Lobby', ic: '🏛️', starter: [] },
 };
 const SPECIAL = { 1: 'cuarto', 2: 'sala', 3: 'garaje', 4: 'cocina', 5: 'gimnasio', 6: 'biblioteca', 7: 'jardin', 8: 'oficina', 9: 'juegos', 10: 'garaje2', 15: 'piscina', 20: 'spa', 25: 'terraza', 30: 'cine', 35: 'galeria', 40: 'observatorio', 45: 'hangar', 50: 'helipuerto', 60: 'jardin', 75: 'mirador', 100: 'puente' };
 const ROTATION = ['cuarto', 'sala', 'estudio_musica', 'cocina', 'biblioteca', 'gimnasio', 'oficina', 'juegos', 'spa', 'cine', 'galeria', 'jardin', 'garaje2'];
 export function floorInfo(n) {
+  if (n === 0) { const w = worldOf(0); return { n: 0, type: 'lobby', name: 'Lobby', ic: '🏛️', world: w, view: 'calle', cap: 0, open: false, starter: [], lobby: true }; }
   let type = SPECIAL[n] || ROTATION[(n * 7) % ROTATION.length];
   if (type === 'estudio_musica') type = 'musica';
   const r = ROOMS[type]; const w = worldOf(n);
@@ -151,7 +154,7 @@ export function surfacesOf(it) {
   if (SHELF_OK.has(it.id)) out.push('shelf2', 'shelf1');
   return out;
 }
-export const roomHasFurniture = n => { const f = floorInfo(n); return !f.open && !['piscina', 'helipuerto', 'hangar'].includes(f.type); };
+export const roomHasFurniture = n => { const f = floorInfo(n); return !f.open && !['piscina', 'helipuerto', 'hangar', 'lobby'].includes(f.type); };
 const STARTER_ON = { planta: ['shelf2', .36], tv: ['table', .74], monitor: ['table', .72], frutas: ['table', .7], palomitas: ['table', .78], globo: ['shelf1', .4], vela: ['shelf2', .44], flores: ['shelf1', .34] };
 
 /** Objetos del piso; la primera visita coloca los muebles iniciales (regalo: pasan a ser tuyos). */
@@ -168,6 +171,7 @@ export function countPlaced(g, itemId) { return Object.values(g.placed).flat().f
 export const bagCount = (g, itemId) => Math.max(0, (g.owned[itemId] || 0) - countPlaced(g, itemId));
 export function canPlaceHere(g, it, n) {
   const f = floorInfo(n);
+  if (f.lobby) return 'El lobby es de todos. Decora tus propios pisos.';
   if (it.kind === 'veh') {
     if (!f.cap) return 'Los vehículos van en el garaje (piso 3), el garaje doble (10), el hangar (45) o el helipuerto (50).';
     const vehs = placedOn(g, n).filter(p => itemById(p.item)?.kind === 'veh').length;
