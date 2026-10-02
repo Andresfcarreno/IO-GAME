@@ -185,44 +185,22 @@ section{padding-block:clamp(80px,13vh,150px);position:relative}
 .inside > div{min-width:0}
 .demo-col{display:grid;justify-items:center}
 @media (max-width:860px){.inside{grid-template-columns:1fr;justify-items:center;text-align:center}.inside .lede{margin-inline:auto}.feats{justify-content:center}.inside .kicker{justify-content:center}}
-.gb{position:relative;width:min(340px,86vw);border-radius:22px 22px 70px 22px;padding:22px 22px 150px;background:linear-gradient(155deg,#e8e4f4,#bdb7d6);box-shadow:inset -7px -9px 0 rgba(0,0,0,.12),0 50px 120px rgba(0,0,0,.55),0 0 120px rgba(124,92,255,.25);transform:perspective(1000px) rotateY(-12deg) rotateX(5deg);transition:transform .7s cubic-bezier(.2,.7,.2,1),opacity .9s ease,filter .9s;user-select:none;-webkit-user-select:none}
-.gb:hover,.gb.live{transform:perspective(1000px) rotateY(0) rotateX(0)}
-.gb.bump{animation:bump .18s}
-@keyframes bump{50%{transform:perspective(1000px) translateY(2px) scale(.995)}}
-.gb .bez{border-radius:10px 10px 36px 10px;padding:16px 16px 22px}
-.gb .led{transition:background .3s,box-shadow .3s}
-.gb.live .led{background:#ff3b3b;box-shadow:0 0 10px #ff3b3b}
-.gb-scr{position:relative;border-radius:4px;overflow:hidden;background:#0a0820;aspect-ratio:390/770}
-.gb-scr iframe{position:absolute;left:0;top:0;width:390px;height:700px;border:0;transform-origin:0 0;opacity:0;transition:opacity .5s}
-.gb-scr iframe.on{opacity:1}
-.gb-scr img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top;transition:opacity .4s}
-.gb-scr .scan{position:absolute;inset:0;pointer-events:none;z-index:2;background:repeating-linear-gradient(0deg,rgba(0,0,0,.08) 0 1px,transparent 1px 3px);mix-blend-mode:multiply}
+.phone{position:relative;width:min(290px,78vw,calc(74vh * 390 / 780));aspect-ratio:390/780;border-radius:44px;padding:10px;background:linear-gradient(145deg,#2c2a4a,#121122);box-shadow:0 0 0 2px #3a3860,0 40px 90px rgba(0,0,0,.6),0 0 90px rgba(124,92,255,.35);transform:perspective(1200px) rotateY(-12deg) rotateX(4deg);transition:transform .6s cubic-bezier(.2,.7,.2,1),opacity .9s ease,filter .9s;animation:hover 6s ease-in-out infinite}
+.phone.in{transform:perspective(1200px) rotateY(-12deg) rotateX(4deg)}
+.phone.in:hover,.phone.in.live{transform:perspective(1200px) rotateY(0) rotateX(0)}
+@keyframes hover{50%{translate:0 -10px}}
+.ph-sc{position:relative;width:100%;height:100%;border-radius:34px;overflow:hidden;background:#09090f}
+.ph-sc iframe{position:absolute;left:0;top:0;width:390px;height:780px;border:0;transform-origin:0 0;opacity:0;transition:opacity .5s}
+.ph-sc iframe.on{opacity:1}
+.ph-sc img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top;transition:opacity .4s}
+.phone .notch{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:90px;height:22px;border-radius:0 0 14px 14px;background:#121122;z-index:3;pointer-events:none}
 .scr-play{position:absolute;inset:0;z-index:3;display:grid;place-content:center;gap:10px;background:rgba(10,8,32,.55);color:#fff;font-family:var(--pixel);font-size:10px;letter-spacing:1px;text-align:center}
 .scr-play b{font-size:30px;color:var(--gold);text-shadow:0 0 20px rgba(255,200,61,.8);animation:crown 1.4s ease-in-out infinite}
 .scr-play span{animation:blink 1s steps(1) infinite}
-.gb .dev-name{position:absolute;left:28px;bottom:118px;margin:0}
-.gpad{position:absolute;left:24px;bottom:30px;width:82px;height:82px}
-.gpad button{position:absolute;width:30%;height:30%;background:#2b2944;transition:transform .08s,background .08s}
-.gpad .u{left:35%;top:0;border-radius:4px 4px 0 0}.gpad .d{left:35%;bottom:0;border-radius:0 0 4px 4px}
-.gpad .l{top:35%;left:0;border-radius:4px 0 0 4px}.gpad .r{top:35%;right:0;border-radius:0 4px 4px 0}
-.gpad::after{content:"";position:absolute;left:35%;top:35%;width:30%;height:30%;background:#2b2944;pointer-events:none}
-.gpad button.dn,.gpad button:active{background:#17152b;transform:scale(.92)}
-.gab{position:absolute;right:22px;bottom:52px;display:flex;gap:12px;transform:rotate(-24deg)}
-.gab button{width:36px;height:36px;border-radius:50%;background:#a12a62;box-shadow:inset -2px -3px 0 rgba(0,0,0,.25),0 3px 0 #6e1a42;color:rgba(255,255,255,.55);font-family:var(--pixel);font-size:8px;transition:transform .08s,box-shadow .08s}
-.gab button.dn,.gab button:active{transform:translateY(3px);box-shadow:inset -2px -3px 0 rgba(0,0,0,.25),0 0 0 #6e1a42}
-.gss{position:absolute;left:50%;bottom:16px;transform:translateX(-30%);display:flex;gap:14px}
-.gss button{font-family:var(--pixel);font-size:6px;color:#6c6596;display:grid;justify-items:center;gap:5px;letter-spacing:.5px}
-.gss button::before{content:"";width:34px;height:9px;border-radius:6px;background:#8f89ad;transform:rotate(-24deg);transition:background .1s}
-.gss button.dn::before,.gss button:active::before{background:#5c5780}
-.gspk{position:absolute;right:26px;bottom:14px;display:flex;gap:5px;transform:rotate(-24deg)}
-.gspk i{width:4px;height:26px;border-radius:3px;background:rgba(43,41,68,.35)}
-.gb .pops{position:absolute;inset:0;pointer-events:none;overflow:visible}
-.gb .pop{position:absolute;font-family:var(--pixel);font-size:10px;color:var(--gold);text-shadow:0 0 10px rgba(255,200,61,.8);animation:popup .9s ease-out forwards}
-@keyframes popup{from{opacity:1;transform:translateY(0) scale(.8)}to{opacity:0;transform:translateY(-60px) scale(1.2)}}
-.rec{position:absolute;top:4px;left:50%;transform:translateX(-50%);white-space:nowrap;z-index:4;font-family:var(--pixel);font-size:7px;color:#fff;background:rgba(0,0,0,.6);padding:5px 8px;border-radius:7px;display:flex;gap:6px;align-items:center}
+.rec{position:absolute;top:-30px;left:50%;transform:translateX(-50%);white-space:nowrap;z-index:4;font-family:var(--pixel);font-size:7px;color:#fff;background:rgba(0,0,0,.6);padding:5px 8px;border-radius:7px;display:flex;gap:6px;align-items:center}
 .rec i{width:7px;height:7px;border-radius:50%;background:#ff4d4d;animation:blink 1s steps(1) infinite}
-.gb.live .rec i{background:var(--lcd)}
-.demo-hint{margin-top:16px;font-family:var(--pixel);font-size:8px;color:var(--mute);letter-spacing:1px;line-height:1.8;text-align:center}
+.phone.live .rec i{background:var(--lcd)}
+.demo-hint{margin-top:22px;font-family:var(--pixel);font-size:8px;color:var(--mute);letter-spacing:1px;line-height:1.8;text-align:center}
 .demo-hint a{color:var(--lcd)}
 .feats{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px;max-width:560px}
 .feat{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:14px;background:var(--glass);border:1px solid var(--line);font-weight:600;font-size:15px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
@@ -370,7 +348,7 @@ dialog::backdrop{background:rgba(5,4,14,.72);backdrop-filter:blur(6px);-webkit-b
   html{scroll-behavior:auto}
   .reveal{opacity:1;transform:none;filter:none;transition:none}
   .brand b,.i-clock::before,.i-clock::after,.i-crown,.i-elev::before,.scroll-hint span,.chip i{animation:none}
-  .gb{transform:none}
+  .phone,.phone.in{transform:none;animation:none}
 }
 </style>
 </head>
@@ -441,23 +419,15 @@ dialog::backdrop{background:rgba(5,4,14,.72);backdrop-filter:blur(6px);-webkit-b
 <section id="dentro">
   <div class="wrap inside">
     <div class="demo-col">
-    <div class="gb reveal" id="gbDemo" aria-label="Demo jugable del juego">
+    <div class="phone reveal" id="gbDemo" aria-label="Demo jugable del juego">
       <span class="rec"><i></i>DEMO JUGABLE</span>
-      <div class="bez"><span class="led"></span>
-        <div class="gb-scr" id="demoScr">
-          <img id="demoImg" src="img/hero-home.webp" alt="Pantalla real del juego">
-          <button class="scr-play" id="demoPlay" type="button"><b>▶</b><span>TOCA PARA JUGAR</span></button>
-          <i class="scan"></i>
-        </div>
+      <div class="ph-sc" id="demoScr">
+        <img id="demoImg" src="img/hero-home.webp" alt="Pantalla real del juego">
+        <button class="scr-play" id="demoPlay" type="button"><b>▶</b><span>TOCA PARA JUGAR</span></button>
       </div>
-      <div class="dev-name" translate="no">IO <em>GAME LIFE</em></div>
-      <div class="gpad" role="group" aria-label="Cruceta"><button class="u" data-k="ArrowUp" aria-label="Arriba"></button><button class="l" data-k="ArrowLeft" aria-label="Izquierda"></button><button class="r" data-k="ArrowRight" aria-label="Derecha"></button><button class="d" data-k="ArrowDown" aria-label="Abajo"></button></div>
-      <div class="gab"><button data-k="x" aria-label="B">B</button><button data-k="z" aria-label="A">A</button></div>
-      <div class="gss"><button data-k="Shift" translate="no">SELECT</button><button data-k="Enter" translate="no">START</button></div>
-      <div class="gspk"><i></i><i></i><i></i><i></i></div>
-      <div class="pops" id="gbPops"></div>
+      <i class="notch"></i>
     </div>
-    <p class="demo-hint reveal d2">CRUCETA PARA CAMINAR · A PARA USAR<br><a href="app/?demo=1" target="_blank" rel="noopener">ABRIR DEMO EN GRANDE ↗</a></p>
+    <p class="demo-hint reveal d2">ES EL JUEGO DE VERDAD · TÓCALO<br><a href="app/?demo=1" target="_blank" rel="noopener">ABRIR DEMO EN GRANDE ↗</a></p>
     </div>
     <div>
       <div class="kicker reveal">DENTRO DEL JUEGO</div>
@@ -766,11 +736,11 @@ window.dispatchEvent(new Event('io:lang'));
   lit(); if (!reduce) setInterval(lit, 1600);
 
   /* ---------- demo jugable: el juego de verdad dentro de la consola ---------- */
-  const gb = document.getElementById('gbDemo'), scr = document.getElementById('demoScr'), dImg = document.getElementById('demoImg'), dPlay = document.getElementById('demoPlay'), pops = document.getElementById('gbPops');
+  const gb = document.getElementById('gbDemo'), scr = document.getElementById('demoScr'), dImg = document.getElementById('demoImg'), dPlay = document.getElementById('demoPlay');
   const demoSrc = window.IO_DEMO_SRC || 'app/?demo=1';
   const canEmbed = /^https?:/.test(location.protocol) && !window.IO_NO_IFRAME;
   let frame = null;
-  const fit = () => { if (!frame) return; const s = scr.clientWidth / 390; frame.style.transform = `scale(${s})`; frame.style.height = (scr.clientHeight / s) + 'px'; };
+  const fit = () => { if (!frame) return; const sc = scr.clientWidth / 390; frame.style.transform = `scale(${sc})`; frame.style.height = (scr.clientHeight / sc) + 'px'; };
   function loadDemo() {
     if (frame || !canEmbed) return;
     frame = document.createElement('iframe'); frame.src = demoSrc; frame.title = T('IO en modo demo'); frame.setAttribute('allow', 'autoplay');
@@ -782,26 +752,11 @@ window.dispatchEvent(new Event('io:lang'));
     const shots = ['hero-home', 'hero-perro', 'hero-orar', 'hero-gym', 'hero-tienda'].map(n => 'img/' + n + '.webp'); let si = 0;
     if (!reduce) setInterval(() => { si = (si + 1) % shots.length; dImg.style.opacity = 0; setTimeout(() => { dImg.src = shots[si]; dImg.style.opacity = 1; }, 300); }, 2600);
   }
-  function wake() {
-    if (!canEmbed) return;
-    loadDemo(); if (gb.classList.contains('live')) return;
-    gb.classList.add('live'); dPlay.hidden = true; blip(523, 784, .08, .05); setTimeout(() => blip(784, 1047, .08, .05), 160);
+  dPlay.addEventListener('click', () => {
+    if (!canEmbed) { window.open(demoSrc, '_blank'); return; }
+    loadDemo(); gb.classList.add('live'); dPlay.hidden = true;
+    blip(523, 784, .08, .05); setTimeout(() => blip(784, 1047, .08, .05), 160);
     try { frame.contentWindow.focus(); } catch {}
-  }
-  dPlay.addEventListener('click', () => canEmbed ? wake() : window.open(demoSrc, '_blank'));
-  // La consola de afuera también maneja el juego: manda las teclas al juego de adentro.
-  const keyTo = (type, key) => { try { const d = frame?.contentDocument; d && d.body.dispatchEvent(new KeyboardEvent(type, { key, bubbles: true, cancelable: true })); } catch {} };
-  const TONE = { ArrowUp: 660, ArrowDown: 440, ArrowLeft: 523, ArrowRight: 587, z: 988, x: 784, Enter: 1175, Shift: 880 };
-  const SAY = { z: 'A!', x: 'B!', Enter: 'START', Shift: 'SELECT' };
-  gb.querySelectorAll('[data-k]').forEach(b => {
-    const k = b.dataset.k;
-    b.addEventListener('pointerdown', e => {
-      e.preventDefault(); b.classList.add('dn'); wake(); keyTo('keydown', k);
-      blip(TONE[k], TONE[k] * 1.5, .04, .035); gb.classList.remove('bump'); void gb.offsetWidth; gb.classList.add('bump');
-      if (SAY[k] && !reduce) { const p = document.createElement('span'); p.className = 'pop'; p.textContent = SAY[k]; const r = b.getBoundingClientRect(), g = gb.getBoundingClientRect(); p.style.left = (r.left - g.left) + 'px'; p.style.top = (r.top - g.top - 10) + 'px'; pops.appendChild(p); setTimeout(() => p.remove(), 900); }
-    });
-    const up = () => { if (!b.classList.contains('dn')) return; b.classList.remove('dn'); keyTo('keyup', k); };
-    b.addEventListener('pointerup', up); b.addEventListener('pointerleave', up); b.addEventListener('pointercancel', up);
   });
   document.getElementById('toDemo').addEventListener('click', () => setTimeout(loadDemo, 300));
 
