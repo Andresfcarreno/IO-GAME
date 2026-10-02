@@ -183,18 +183,47 @@ section{padding-block:clamp(80px,13vh,150px);position:relative}
 /* dentro del juego */
 .inside{display:grid;grid-template-columns:auto 1fr;gap:clamp(30px,6vw,80px);align-items:center}
 .inside > div{min-width:0}
+.demo-col{display:grid;justify-items:center}
 @media (max-width:860px){.inside{grid-template-columns:1fr;justify-items:center;text-align:center}.inside .lede{margin-inline:auto}.feats{justify-content:center}.inside .kicker{justify-content:center}}
-.gb{position:relative;width:min(300px,78vw);border-radius:22px 22px 70px 22px;padding:22px 22px 120px;background:linear-gradient(155deg,#e8e4f4,#bdb7d6);box-shadow:inset -7px -9px 0 rgba(0,0,0,.12),0 50px 120px rgba(0,0,0,.55);transform:perspective(1000px) rotateY(-14deg) rotateX(6deg);transition:transform .7s cubic-bezier(.2,.7,.2,1),opacity .9s ease,filter .9s}
-.gb:hover{transform:perspective(1000px) rotateY(0) rotateX(0)}
+.gb{position:relative;width:min(340px,86vw);border-radius:22px 22px 70px 22px;padding:22px 22px 150px;background:linear-gradient(155deg,#e8e4f4,#bdb7d6);box-shadow:inset -7px -9px 0 rgba(0,0,0,.12),0 50px 120px rgba(0,0,0,.55),0 0 120px rgba(124,92,255,.25);transform:perspective(1000px) rotateY(-12deg) rotateX(5deg);transition:transform .7s cubic-bezier(.2,.7,.2,1),opacity .9s ease,filter .9s;user-select:none;-webkit-user-select:none}
+.gb:hover,.gb.live{transform:perspective(1000px) rotateY(0) rotateX(0)}
+.gb.bump{animation:bump .18s}
+@keyframes bump{50%{transform:perspective(1000px) translateY(2px) scale(.995)}}
 .gb .bez{border-radius:10px 10px 36px 10px;padding:16px 16px 22px}
-.gb-scr{border-radius:4px;overflow:hidden;background:#0a0820;aspect-ratio:360/600}
-.gb-scr video{width:100%;height:100%;object-fit:cover;object-position:top}
-.gb .dev-name{position:absolute;left:28px;bottom:86px;margin:0}
-.gb .dpad{bottom:22px;left:30px;width:68px}
-.gb .abtn{bottom:30px;right:26px}
-.gb .abtn span{width:30px}
-.rec{position:absolute;top:30px;left:30px;z-index:2;font-family:var(--pixel);font-size:7px;color:#fff;background:rgba(0,0,0,.55);padding:5px 8px;border-radius:7px;display:flex;gap:6px;align-items:center}
+.gb .led{transition:background .3s,box-shadow .3s}
+.gb.live .led{background:#ff3b3b;box-shadow:0 0 10px #ff3b3b}
+.gb-scr{position:relative;border-radius:4px;overflow:hidden;background:#0a0820;aspect-ratio:390/770}
+.gb-scr iframe{position:absolute;left:0;top:0;width:390px;height:700px;border:0;transform-origin:0 0;opacity:0;transition:opacity .5s}
+.gb-scr iframe.on{opacity:1}
+.gb-scr img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top;transition:opacity .4s}
+.gb-scr .scan{position:absolute;inset:0;pointer-events:none;z-index:2;background:repeating-linear-gradient(0deg,rgba(0,0,0,.08) 0 1px,transparent 1px 3px);mix-blend-mode:multiply}
+.scr-play{position:absolute;inset:0;z-index:3;display:grid;place-content:center;gap:10px;background:rgba(10,8,32,.55);color:#fff;font-family:var(--pixel);font-size:10px;letter-spacing:1px;text-align:center}
+.scr-play b{font-size:30px;color:var(--gold);text-shadow:0 0 20px rgba(255,200,61,.8);animation:crown 1.4s ease-in-out infinite}
+.scr-play span{animation:blink 1s steps(1) infinite}
+.gb .dev-name{position:absolute;left:28px;bottom:118px;margin:0}
+.gpad{position:absolute;left:24px;bottom:30px;width:82px;height:82px}
+.gpad button{position:absolute;width:30%;height:30%;background:#2b2944;transition:transform .08s,background .08s}
+.gpad .u{left:35%;top:0;border-radius:4px 4px 0 0}.gpad .d{left:35%;bottom:0;border-radius:0 0 4px 4px}
+.gpad .l{top:35%;left:0;border-radius:4px 0 0 4px}.gpad .r{top:35%;right:0;border-radius:0 4px 4px 0}
+.gpad::after{content:"";position:absolute;left:35%;top:35%;width:30%;height:30%;background:#2b2944;pointer-events:none}
+.gpad button.dn,.gpad button:active{background:#17152b;transform:scale(.92)}
+.gab{position:absolute;right:22px;bottom:52px;display:flex;gap:12px;transform:rotate(-24deg)}
+.gab button{width:36px;height:36px;border-radius:50%;background:#a12a62;box-shadow:inset -2px -3px 0 rgba(0,0,0,.25),0 3px 0 #6e1a42;color:rgba(255,255,255,.55);font-family:var(--pixel);font-size:8px;transition:transform .08s,box-shadow .08s}
+.gab button.dn,.gab button:active{transform:translateY(3px);box-shadow:inset -2px -3px 0 rgba(0,0,0,.25),0 0 0 #6e1a42}
+.gss{position:absolute;left:50%;bottom:16px;transform:translateX(-30%);display:flex;gap:14px}
+.gss button{font-family:var(--pixel);font-size:6px;color:#6c6596;display:grid;justify-items:center;gap:5px;letter-spacing:.5px}
+.gss button::before{content:"";width:34px;height:9px;border-radius:6px;background:#8f89ad;transform:rotate(-24deg);transition:background .1s}
+.gss button.dn::before,.gss button:active::before{background:#5c5780}
+.gspk{position:absolute;right:26px;bottom:14px;display:flex;gap:5px;transform:rotate(-24deg)}
+.gspk i{width:4px;height:26px;border-radius:3px;background:rgba(43,41,68,.35)}
+.gb .pops{position:absolute;inset:0;pointer-events:none;overflow:visible}
+.gb .pop{position:absolute;font-family:var(--pixel);font-size:10px;color:var(--gold);text-shadow:0 0 10px rgba(255,200,61,.8);animation:popup .9s ease-out forwards}
+@keyframes popup{from{opacity:1;transform:translateY(0) scale(.8)}to{opacity:0;transform:translateY(-60px) scale(1.2)}}
+.rec{position:absolute;top:4px;left:50%;transform:translateX(-50%);white-space:nowrap;z-index:4;font-family:var(--pixel);font-size:7px;color:#fff;background:rgba(0,0,0,.6);padding:5px 8px;border-radius:7px;display:flex;gap:6px;align-items:center}
 .rec i{width:7px;height:7px;border-radius:50%;background:#ff4d4d;animation:blink 1s steps(1) infinite}
+.gb.live .rec i{background:var(--lcd)}
+.demo-hint{margin-top:16px;font-family:var(--pixel);font-size:8px;color:var(--mute);letter-spacing:1px;line-height:1.8;text-align:center}
+.demo-hint a{color:var(--lcd)}
 .feats{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px;max-width:560px}
 .feat{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:14px;background:var(--glass);border:1px solid var(--line);font-weight:600;font-size:15px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 .feat b{font-size:20px;line-height:1}
@@ -254,9 +283,6 @@ section{padding-block:clamp(80px,13vh,150px);position:relative}
 .meter-top{display:flex;justify-content:space-between;font-family:var(--pixel);font-size:8px;color:var(--mute);margin-bottom:10px}
 .bar{height:18px;border-radius:6px;background:#120d30;border:2px solid #2b2560;overflow:hidden;position:relative}
 .bar i{position:absolute;inset:0;background:repeating-linear-gradient(90deg,var(--lcd) 0 10px,#8bb81f 10px 12px);width:3%;box-shadow:0 0 14px var(--lcd)}
-.coins{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
-.coin{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.04);font-size:14px;color:var(--mute)}
-.coin b{font-family:var(--pixel);font-size:10px;color:var(--gold)}
 .form{display:grid;gap:10px;margin-top:20px}
 .inline{display:flex;gap:8px}
 @media (max-width:420px){.inline{flex-direction:column}}
@@ -268,6 +294,38 @@ section{padding-block:clamp(80px,13vh,150px);position:relative}
 .done b{font-family:var(--display);font-size:26px;display:block;margin:6px 0}
 .share{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
 .share a,.share button{padding:10px 14px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.05);font-weight:600;font-size:14px;text-decoration:none}
+
+
+/* comunidad en vivo */
+.live-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:40px}
+@media (max-width:760px){.live-grid{grid-template-columns:repeat(2,1fr)}}
+.lv{position:relative;padding:22px 18px 18px;border-radius:20px;background:rgba(6,5,18,.72);border:2px solid #2b2560;overflow:hidden;min-width:0;transition:border-color .3s,transform .3s,opacity .9s ease,filter .9s}
+.lv:hover{border-color:var(--lcd);transform:translateY(-4px)}
+.lv::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px)}
+.lv em{position:absolute;top:16px;right:16px;font-style:normal;font-size:22px}
+.lv b{display:block;font-family:var(--pixel);font-size:clamp(20px,3.4vw,32px);color:var(--lcd);text-shadow:0 0 18px rgba(167,214,42,.4);margin-bottom:10px;font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lv span{color:var(--mute);font-size:14px}
+.lv.tick b{animation:tick .5s}
+@keyframes tick{40%{color:var(--gold);transform:scale(1.08)}}
+.on-dot{width:12px;height:12px;border-radius:50%;background:var(--lcd);box-shadow:0 0 12px var(--lcd);animation:blink 1.2s steps(1) infinite}
+.goal{margin-top:26px;padding:22px clamp(16px,3vw,26px);border-radius:20px;background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.bar.big{height:26px;overflow:visible}
+.bar.big i{transition:width 1.6s cubic-bezier(.2,.7,.2,1);width:0;border-radius:4px}
+.bar .flag{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:13px;line-height:1}
+.goal-n{margin-top:14px;color:var(--mute);font-size:15px}
+.linkbtn{color:var(--lcd);font-weight:700;text-decoration:underline;text-underline-offset:3px}
+/* niveles de apoyo */
+.tiers{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
+@media (max-width:340px){.tiers{grid-template-columns:1fr}}
+.tier{position:relative;display:grid;align-content:start;gap:4px;padding:14px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.04);min-width:0;transition:transform .25s,border-color .25s,box-shadow .25s}
+.tier:hover{transform:translateY(-3px) rotate(-.6deg);border-color:var(--gold);box-shadow:0 12px 30px rgba(255,200,61,.15)}
+.tier em{font-style:normal;font-size:24px;line-height:1}
+.tier b{font-family:var(--pixel);font-size:13px;color:var(--gold)}
+.tier strong{font-size:15px}
+.tier span{color:var(--mute);font-size:13px;line-height:1.35}
+.tier.hot{border-color:rgba(255,200,61,.6);background:linear-gradient(160deg,rgba(255,200,61,.14),rgba(255,255,255,.03))}
+.tier.hot::before{content:"★";position:absolute;top:10px;right:12px;color:var(--gold);animation:crown 1.8s ease-in-out infinite}
+.joined{margin-top:10px;font-family:var(--pixel);font-size:9px;color:var(--lcd);line-height:1.8}
 
 /* final */
 .final{text-align:center;padding-block:clamp(110px,18vh,190px) clamp(90px,14vh,140px)}
@@ -361,9 +419,9 @@ dialog::backdrop{background:rgba(5,4,14,.72);backdrop-filter:blur(6px);-webkit-b
     <p class="lede">Haz tus hábitos de verdad. Tu personaje los hace contigo. Sube de piso.</p>
     <div class="cta">
       <a class="btn btn-start" href="app/" data-sfx>▶ PRESS START</a>
-      <a class="btn btn-ghost" href="#dentro" id="toTrailer">Ver tráiler</a>
+      <a class="btn btn-ghost" href="#dentro" id="toDemo">🎮 Probar la demo</a>
     </div>
-    <div class="perks"><span>SIN ANUNCIOS</span><span>NADA SE COMPRA</span><span>ES · EN</span></div>
+    <div class="perks"><span>SIN ANUNCIOS</span><span>NADA SE COMPRA</span><span translate="no">ES · EN</span></div>
   </div>
   <a class="scroll-hint" href="#como">SUBE LA TORRE<span>▼</span></a>
 </section>
@@ -382,18 +440,29 @@ dialog::backdrop{background:rgba(5,4,14,.72);backdrop-filter:blur(6px);-webkit-b
 
 <section id="dentro">
   <div class="wrap inside">
-    <div class="gb reveal" aria-label="Video del juego real">
-      <span class="rec"><i></i>JUEGO REAL</span>
-      <div class="bez"><span class="led" style="background:#ff3b3b;box-shadow:0 0 10px #ff3b3b"></span>
-        <div class="gb-scr"><video id="trailerV" src="img/trailer.webm" poster="img/trailer-poster.webp" muted loop playsinline preload="none" aria-label="Video del juego: el personaje saca al perro, ora, entrena y lee mientras corre el reloj"></video></div>
+    <div class="demo-col">
+    <div class="gb reveal" id="gbDemo" aria-label="Demo jugable del juego">
+      <span class="rec"><i></i>DEMO JUGABLE</span>
+      <div class="bez"><span class="led"></span>
+        <div class="gb-scr" id="demoScr">
+          <img id="demoImg" src="img/hero-home.webp" alt="Pantalla real del juego">
+          <button class="scr-play" id="demoPlay" type="button"><b>▶</b><span>TOCA PARA JUGAR</span></button>
+          <i class="scan"></i>
+        </div>
       </div>
       <div class="dev-name" translate="no">IO <em>GAME LIFE</em></div>
-      <div class="dpad"></div><div class="abtn"><span></span><span></span></div>
+      <div class="gpad" role="group" aria-label="Cruceta"><button class="u" data-k="ArrowUp" aria-label="Arriba"></button><button class="l" data-k="ArrowLeft" aria-label="Izquierda"></button><button class="r" data-k="ArrowRight" aria-label="Derecha"></button><button class="d" data-k="ArrowDown" aria-label="Abajo"></button></div>
+      <div class="gab"><button data-k="x" aria-label="B">B</button><button data-k="z" aria-label="A">A</button></div>
+      <div class="gss"><button data-k="Shift" translate="no">SELECT</button><button data-k="Enter" translate="no">START</button></div>
+      <div class="gspk"><i></i><i></i><i></i><i></i></div>
+      <div class="pops" id="gbPops"></div>
+    </div>
+    <p class="demo-hint reveal d2">CRUCETA PARA CAMINAR · A PARA USAR<br><a href="app/?demo=1" target="_blank" rel="noopener">ABRIR DEMO EN GRANDE ↗</a></p>
     </div>
     <div>
       <div class="kicker reveal">DENTRO DEL JUEGO</div>
       <h2 class="h2 reveal d1" data-scr>Tú lo haces. Él también.</h2>
-      <p class="lede reveal d2">Mientras corre el reloj, tu personaje lee, ora, entrena o saca al perro contigo.</p>
+      <p class="lede reveal d2">Es el juego de verdad: pruébalo aquí. Mientras corre el reloj, tu personaje lee, ora, entrena o saca al perro contigo.</p>
       <div class="feats">
         <span class="feat reveal d1"><b>🎬</b>23 escenas animadas</span>
         <span class="feat reveal d2"><b>🥚</b>Mascota que evoluciona</span>
@@ -434,6 +503,27 @@ dialog::backdrop{background:rgba(5,4,14,.72);backdrop-filter:blur(6px);-webkit-b
   </div>
 </section>
 
+<section id="comunidad">
+  <div class="wrap">
+    <div class="kicker reveal">EN VIVO · LA COMUNIDAD</div>
+    <h2 class="h2 reveal d1" data-scr>Esto lo subimos juntos.</h2>
+    <p class="lede reveal d2">Cada número sale del juego en este momento. Sin inflar, sin bots.</p>
+    <div class="live-grid">
+      <div class="lv reveal d1"><em>👾</em><b id="stP">—</b><span>Jugadores</span></div>
+      <div class="lv reveal d2"><em class="on-dot"></em><b id="stO">—</b><span>Jugando ahora</span></div>
+      <div class="lv reveal d3"><em>⏱️</em><b id="stM">—</b><span>Minutos de hábitos</span></div>
+      <div class="lv reveal d1"><em>👑</em><b id="stH">—</b><span>Hábitos cumplidos</span></div>
+      <div class="lv reveal d2"><em>⚡</em><b id="stX">—</b><span>XP ganada</span></div>
+      <div class="lv reveal d3"><em>📬</em><b id="stW">—</b><span>En la lista de espera</span></div>
+    </div>
+    <div class="goal reveal d2">
+      <div class="meter-top"><span>META · LOS PRIMEROS 1.000 JUGADORES</span><span id="stG">PRONTO</span></div>
+      <div class="bar big"><i id="stGb"></i><span class="flag">🏁</span></div>
+      <p class="goal-n">Cada persona que invitas sube la barra. <button type="button" class="linkbtn" id="shareTop">Invitar a alguien ↗</button></p>
+    </div>
+  </div>
+</section>
+
 <section id="ranking">
   <div class="wrap arcade">
     <div class="kicker reveal">RANKING EN VIVO</div>
@@ -451,17 +541,23 @@ dialog::backdrop{background:rgba(5,4,14,.72);backdrop-filter:blur(6px);-webkit-b
     <div class="card reveal">
       <div class="kicker">APOYA EL PROYECTO</div>
       <h3>Llevemos IO a las tiendas.</h3>
-      <p>Una campaña para llegar a Google Play y App Store. Apoyar nunca da ventajas en el juego.</p>
+      <p>IO es gratis y lo seguirá siendo. La campaña es para llegar a Google Play y App Store. Apoyar nunca da ventajas en el juego.</p>
       <div class="meter">
-        <div class="meter-top"><span>META · USD 5.000</span><span>PRONTO</span></div>
-        <div class="bar"><i></i></div>
+        <div class="meter-top"><span>META · USD 5.000</span><span>USD 0 · ABRE PRONTO</span></div>
+        <div class="bar"><i style="width:0"></i></div>
       </div>
-      <div class="coins"><span class="coin"><b>$5</b>Muro de fundadores</span><span class="coin"><b>$15</b>Insignia de fundador</span><span class="coin"><b>$40</b>Diseña un mundo</span></div>
+      <div class="tiers">
+        <div class="tier"><em>🎖️</em><b>$10</b><strong>Insignia de apoyo</strong><span>Una insignia en tu perfil del juego.</span></div>
+        <div class="tier hot"><em>🏛️</em><b>$50</b><strong>Muro de fundadores</strong><span>Tu nombre en el muro del lobby de la torre.</span></div>
+        <div class="tier"><em>🛠️</em><b>$150</b><strong>Diseña un objeto</strong><span>Creamos contigo un objeto del juego.</span></div>
+        <div class="tier"><em>👑</em><b>$500</b><strong>Diseña un piso</strong><span>Un piso entero de la torre con tu idea.</span></div>
+      </div>
     </div>
     <div class="card reveal d1">
       <div class="kicker">AVÍSAME</div>
-      <h3>Te avisamos el día uno.</h3>
-      <p>Cuando llegue a las tiendas y cuando abra la campaña. Nada más.</p>
+      <h3>Únete desde el día uno.</h3>
+      <p>Te avisamos cuando llegue a las tiendas y cuando abra la campaña. Nada más.</p>
+      <p class="joined" id="joined" hidden></p>
       <form class="form" name="lista-espera" id="waitForm" method="POST" data-netlify="true" netlify-honeypot="bot-field" novalidate>
         <input type="hidden" name="form-name" value="lista-espera">
         <p class="hp"><label>No llenes esto: <input name="bot-field" id="bot-field" tabindex="-1" autocomplete="off"></label></p>
@@ -470,7 +566,7 @@ dialog::backdrop{background:rgba(5,4,14,.72);backdrop-filter:blur(6px);-webkit-b
           <input class="inp" id="f-email" name="email" type="email" autocomplete="email" required placeholder="tu@correo.com">
           <button class="btn btn-start" type="submit" id="f-go" data-sfx>AVÍSAME</button>
         </div>
-        <select class="inp" id="f-apoyo" name="apoyo" aria-label="¿Quieres apoyar?"><option>Solo avísame</option><option>Apoyo $5</option><option>Fundador $15</option><option>Constructor $40</option></select>
+        <select class="inp" id="f-apoyo" name="apoyo" aria-label="¿Quieres apoyar?"><option>Solo avísame</option><option>Insignia $10</option><option>Fundador $50</option><option>Diseñador $150</option><option>Leyenda $500</option></select>
         <input type="hidden" name="ref" id="f-ref">
         <p class="err" id="f-err" hidden></p>
       </form>
@@ -669,13 +765,48 @@ window.dispatchEvent(new Event('io:lang'));
   const lit = () => { tiles.forEach((t, i) => t.classList.toggle('on', i === ti)); ti = (ti + 1) % tiles.length; };
   lit(); if (!reduce) setInterval(lit, 1600);
 
-  /* ---------- tráiler: corre solo cuando se ve ---------- */
-  const tv = document.getElementById('trailerV');
-  new IntersectionObserver(es => es.forEach(e => {
-    if (e.isIntersecting) { if (tv.preload === 'none') tv.preload = 'auto'; if (!reduce) tv.play().catch(() => {}); } else tv.pause();
-  }), { threshold: .3 }).observe(tv);
-  if (reduce) tv.controls = true;
-  document.getElementById('toTrailer').addEventListener('click', () => setTimeout(() => tv.play().catch(() => {}), 700));
+  /* ---------- demo jugable: el juego de verdad dentro de la consola ---------- */
+  const gb = document.getElementById('gbDemo'), scr = document.getElementById('demoScr'), dImg = document.getElementById('demoImg'), dPlay = document.getElementById('demoPlay'), pops = document.getElementById('gbPops');
+  const demoSrc = window.IO_DEMO_SRC || 'app/?demo=1';
+  const canEmbed = /^https?:/.test(location.protocol) && !window.IO_NO_IFRAME;
+  let frame = null;
+  const fit = () => { if (!frame) return; const s = scr.clientWidth / 390; frame.style.transform = `scale(${s})`; frame.style.height = (scr.clientHeight / s) + 'px'; };
+  function loadDemo() {
+    if (frame || !canEmbed) return;
+    frame = document.createElement('iframe'); frame.src = demoSrc; frame.title = T('IO en modo demo'); frame.setAttribute('allow', 'autoplay');
+    frame.addEventListener('load', () => { fit(); frame.classList.add('on'); dImg.style.opacity = 0; });
+    scr.insertBefore(frame, dPlay); fit(); addEventListener('resize', fit);
+  }
+  if (canEmbed) new IntersectionObserver((es, o) => { if (es[0].isIntersecting) { o.disconnect(); loadDemo(); } }, { rootMargin: '400px' }).observe(scr);
+  else { // sin servidor: pantallas reales del juego
+    const shots = ['hero-home', 'hero-perro', 'hero-orar', 'hero-gym', 'hero-tienda'].map(n => 'img/' + n + '.webp'); let si = 0;
+    if (!reduce) setInterval(() => { si = (si + 1) % shots.length; dImg.style.opacity = 0; setTimeout(() => { dImg.src = shots[si]; dImg.style.opacity = 1; }, 300); }, 2600);
+  }
+  function wake() {
+    if (!canEmbed) return;
+    loadDemo(); if (gb.classList.contains('live')) return;
+    gb.classList.add('live'); dPlay.hidden = true; blip(523, 784, .08, .05); setTimeout(() => blip(784, 1047, .08, .05), 160);
+    try { frame.contentWindow.focus(); } catch {}
+  }
+  dPlay.addEventListener('click', () => canEmbed ? wake() : window.open(demoSrc, '_blank'));
+  // La consola de afuera también maneja el juego: manda las teclas al juego de adentro.
+  const keyTo = (type, key) => { try { const d = frame?.contentDocument; d && d.body.dispatchEvent(new KeyboardEvent(type, { key, bubbles: true, cancelable: true })); } catch {} };
+  const TONE = { ArrowUp: 660, ArrowDown: 440, ArrowLeft: 523, ArrowRight: 587, z: 988, x: 784, Enter: 1175, Shift: 880 };
+  const SAY = { z: 'A!', x: 'B!', Enter: 'START', Shift: 'SELECT' };
+  gb.querySelectorAll('[data-k]').forEach(b => {
+    const k = b.dataset.k;
+    b.addEventListener('pointerdown', e => {
+      e.preventDefault(); b.classList.add('dn'); wake(); keyTo('keydown', k);
+      blip(TONE[k], TONE[k] * 1.5, .04, .035); gb.classList.remove('bump'); void gb.offsetWidth; gb.classList.add('bump');
+      if (SAY[k] && !reduce) { const p = document.createElement('span'); p.className = 'pop'; p.textContent = SAY[k]; const r = b.getBoundingClientRect(), g = gb.getBoundingClientRect(); p.style.left = (r.left - g.left) + 'px'; p.style.top = (r.top - g.top - 10) + 'px'; pops.appendChild(p); setTimeout(() => p.remove(), 900); }
+    });
+    const up = () => { if (!b.classList.contains('dn')) return; b.classList.remove('dn'); keyTo('keyup', k); };
+    b.addEventListener('pointerup', up); b.addEventListener('pointerleave', up); b.addEventListener('pointercancel', up);
+  });
+  document.getElementById('toDemo').addEventListener('click', () => setTimeout(loadDemo, 300));
+
+  /* ---------- sonidos al pasar por encima (solo en computador, después del primer toque) ---------- */
+  if (matchMedia('(hover:hover)').matches) document.querySelectorAll('.cart,.tier,.feat,.tile,.lv').forEach((el, i) => el.addEventListener('pointerenter', () => { if (ac) blip(1200 + (i % 5) * 90, 1500 + (i % 5) * 90, .03, .018); }));
 
   /* ---------- cartuchos: la cámara vuela a cada mundo ---------- */
   const carts = [...document.querySelectorAll('.cart')];
@@ -730,6 +861,50 @@ window.dispatchEvent(new Event('io:lang'));
     }
   });
 })();
+</script>
+
+<!-- Comunidad en vivo: totales reales del juego (función io_public_stats en Supabase). Si no hay conexión, no inventa nada. -->
+<script type="module">
+const $ = id => document.getElementById(id);
+const T = s => (window.IOt || String)(s);
+const loc = () => document.documentElement.lang === 'en' ? 'en-US' : 'es-CO';
+const short = n => n >= 1e6 ? (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M' : n >= 1e4 ? Math.round(n / 1e3) + 'K' : n.toLocaleString(loc());
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const GOAL = 1000, shown = {};
+function roll(id, to) {
+  const el = $(id); if (!el) return; const from = shown[id] ?? 0; if (shown[id] === to) return; shown[id] = to;
+  if (from !== 0) { el.parentElement.classList.remove('tick'); void el.offsetWidth; el.parentElement.classList.add('tick'); }
+  if (reduce) { el.textContent = short(to); return; }
+  const t0 = performance.now(), dur = 1400;
+  const step = now => { const k = Math.min(1, (now - t0) / dur); el.textContent = short(Math.round(from + (to - from) * (1 - Math.pow(1 - k, 3)))); if (k < 1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+let started = false;
+async function load() {
+  try {
+    const { RANKING } = await import('./app/config.js');
+    if (!RANKING?.url || !RANKING?.key) throw new Error('off');
+    const r = await fetch(`${RANKING.url}/rest/v1/rpc/io_public_stats`, { method: 'POST', headers: { apikey: RANKING.key, Authorization: `Bearer ${RANKING.key}`, 'Content-Type': 'application/json' }, body: '{}' });
+    if (!r.ok) throw new Error('http');
+    const d = await r.json();
+    roll('stP', +d.players || 0); roll('stO', +d.online || 0); roll('stM', +d.minutes || 0);
+    roll('stH', +d.habits || 0); roll('stX', +d.xp || 0); roll('stW', +d.waitlist || 0);
+    const people = (+d.players || 0) + (+d.waitlist || 0);
+    $('stG').textContent = `${people.toLocaleString(loc())} / ${GOAL.toLocaleString(loc())}`;
+    $('stGb').style.width = Math.max(1.5, Math.min(100, people / GOAL * 100)) + '%';
+    if (+d.waitlist > 0) { const j = $('joined'); j.textContent = T(`YA SOMOS ${(+d.waitlist).toLocaleString(loc())} EN LA LISTA`); j.hidden = false; }
+    started = true;
+  } catch (e) { if (!started) $('stG').textContent = T('PRONTO'); }
+}
+// Carga cuando la sección se acerca y se actualiza cada 30 segundos mientras la página está abierta.
+new IntersectionObserver((es, o) => { if (es[0].isIntersecting) { o.disconnect(); load(); setInterval(() => { if (!document.hidden) load(); }, 30000); } }, { rootMargin: '300px' }).observe($('comunidad'));
+// Invitar: compartir el enlace (o copiarlo si el navegador no comparte).
+$('shareTop').addEventListener('click', async e => {
+  const link = location.origin + location.pathname + '?ref=invita';
+  const text = T('Estoy jugando IO: un videojuego donde subes de nivel haciendo tus hábitos reales. Es gratis 👉 {}').replace('{}', link);
+  try { if (navigator.share) { await navigator.share({ text }); return; } } catch { return; }
+  try { await navigator.clipboard.writeText(link); e.target.textContent = T('¡Copiado!'); } catch { e.target.textContent = link; }
+});
 </script>
 
 <!-- Ranking real: la misma base de datos del juego. Si no está configurada, no inventa nada. -->
