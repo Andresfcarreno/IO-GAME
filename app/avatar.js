@@ -86,8 +86,9 @@ function leg(side, L, k, S, SD) {
   const skinLeg = (y, h) => `<rect x="${cx - 5}" y="${y}" width="10" height="${h}" rx="5" fill="${S}"/><rect x="${cx - 5}" y="${y}" width="4" height="${h}" rx="2" fill="${SD}" opacity=".35"/>`;
   if (L.top === 'vestido' || L.bottom === 'falda') body = skinLeg(126, 56);
   else if (L.bottom === 'shorts') body = `${skinLeg(140, 42)}<rect x="${cx - 7}" y="122" width="14" height="26" rx="6" fill="${P}"/>`;
-  else body = `<rect x="${cx - 7}" y="122" width="14" height="58" rx="6.5" fill="${P}"/><rect x="${cx - 7}" y="122" width="5" height="58" rx="2.5" fill="#000" opacity=".16"/>`;
-  const shoe = `<path d="M${cx - 8} 188Q${cx - 8} 178 ${cx} 178Q${cx + 9} 178 ${cx + 10} 186L${cx + 10} 189L${cx - 8} 189Z" fill="${L.shoes}"/><rect x="${cx - 8}" y="187" width="18" height="2.6" rx="1.3" fill="#000" opacity=".3"/>`;
+  else body = `<rect x="${cx - 7}" y="122" width="14" height="58" rx="6.5" fill="${P}"/><rect x="${cx - 7}" y="122" width="5" height="58" rx="2.5" fill="#000" opacity=".16"/><path d="M${cx - 4} 152q4 2.4 8 0" stroke="#000" stroke-width=".9" opacity=".22" fill="none" stroke-linecap="round"/><path d="M${cx + side * 2.5} 125v9" stroke="#fff" stroke-width=".8" opacity=".18"/>`;
+  const sole = L.shoes === '#f1f5f9' ? '#cbd5e1' : '#f8fafc';
+  const shoe = `<path d="M${cx - 8} 188Q${cx - 8} 178 ${cx} 178Q${cx + 9} 178 ${cx + 10} 186L${cx + 10} 189L${cx - 8} 189Z" fill="${L.shoes}"/><path d="M${cx - 6} 181.5Q${cx - 2} 179 ${cx + 2} 180.2" stroke="#fff" stroke-width="1.2" opacity=".45" fill="none" stroke-linecap="round"/><circle cx="${cx + 1.5}" cy="182.4" r=".8" fill="#000" opacity=".35"/><circle cx="${cx + 4.2}" cy="183.2" r=".8" fill="#000" opacity=".35"/><rect x="${cx - 8.4}" y="186.4" width="18.8" height="3.4" rx="1.6" fill="${sole}"/><rect x="${cx - 8.4}" y="188.6" width="18.8" height="1.4" rx=".7" fill="#000" opacity=".35"/>`;
   return `<g class="leg ${side < 0 ? 'leg-l' : 'leg-r'}">${body}${shoe}</g>`;
 }
 function arm(side, L, sh, S, SD, T, TD, hold) {
@@ -97,7 +98,7 @@ function arm(side, L, sh, S, SD, T, TD, hold) {
   if (bare) a = `<rect x="${px - 4.8}" y="72" width="9.6" height="46" rx="4.8" fill="${S}"/><rect x="${px - 4.8}" y="72" width="3.4" height="46" rx="1.7" fill="${SD}" opacity=".35"/>`;
   else if (short) a = `<rect x="${px - 4.6}" y="82" width="9.2" height="36" rx="4.6" fill="${S}"/><rect x="${px - 6}" y="70" width="12" height="18" rx="5.5" fill="${T}"/><rect x="${px - 6}" y="70" width="4" height="18" rx="2" fill="${TD}" opacity=".45"/>`;
   else a = `<rect x="${px - 6}" y="70" width="12" height="47" rx="6" fill="${T}"/><rect x="${px - 6}" y="70" width="4.2" height="47" rx="2" fill="${TD}" opacity=".45"/><rect x="${px - 5.6}" y="112" width="11.2" height="4" rx="2" fill="${TD}"/>`;
-  a += `<circle cx="${px}" cy="121" r="5.6" fill="${S}"/>`;
+  a += `<path d="M${px - 5.4} 117.5Q${px - 5.8} 126.5 ${px} 126.8Q${px + 5.8} 126.5 ${px + 5.4} 117.5Q${px} 114.6 ${px - 5.4} 117.5Z" fill="${S}"/><path d="M${px - side * 4.6} 118.4q${-side * 3.2} 2 ${-side * 2} 5.2" stroke="${S}" stroke-width="3.4" stroke-linecap="round" fill="none"/><path d="M${px - 3.6} 124.2Q${px} 126 ${px + 3.6} 124.2" stroke="${SD}" stroke-width="1" fill="none" opacity=".55" stroke-linecap="round"/>`;
   if (hold) a += `<g class="hold">${hold(px, 121)}</g>`;
   return `<g class="arm ${side < 0 ? 'arm-l' : 'arm-r'}" style="transform-box:view-box;transform-origin:${px}px 73px"><g transform="rotate(${-side * 6} ${px} 74)">${a}</g></g>`;
 }
@@ -106,8 +107,8 @@ const smileLid = (x, S) => `<path d="M${x - 5.4} 44.6Q${x} 41.2 ${x + 5.4} 44.6L
 function face(L, S, SD, H) {
   const f = L.body === 'f'; const E = L.eye; const lip = f ? '#b4535b' : '#6b2b2b';
   const brow = (x1, y1, cx, cy, x2, y2) => `<path d="M${x1} ${y1}Q${cx} ${cy} ${x2} ${y2}" stroke="${shade(H, -0.1)}" stroke-width="${f ? 1.8 : 2.4}" stroke-linecap="round" fill="none"/>`;
-  const eye = x => `<ellipse cx="${x}" cy="42" rx="4.7" ry="4.3" fill="#fff"/><circle cx="${x}" cy="42.4" r="3.1" fill="${E}"/><circle cx="${x}" cy="42.6" r="1.55" fill="#0b0610"/><circle cx="${x + 1.1}" cy="41.2" r=".95" fill="#fff"/><path d="M${x - 4.9} 41.2Q${x} 36.8 ${x + 4.9} 41.2" stroke="#2a1616" stroke-width="1.3" fill="none" stroke-linecap="round"/>${f ? `<path d="M${x + (x < 60 ? -4.8 : 4.8)} 40.6l${x < 60 ? -2 : 2}-1.8" stroke="#2a1616" stroke-width="1.2" stroke-linecap="round"/>` : ''}`;
-  const nose = `<path d="M60 43.5Q58.2 48.8 59 50.4Q60.2 51.4 62 50.5" stroke="${shade(S, -0.28)}" stroke-width="1.35" fill="none" stroke-linecap="round"/>`;
+  const eye = x => `<ellipse cx="${x}" cy="42" rx="4.7" ry="4.3" fill="#fff"/><ellipse cx="${x}" cy="40.2" rx="4.4" ry="1.4" fill="#000" opacity=".08"/><circle cx="${x}" cy="42.4" r="3.1" fill="${E}"/><circle cx="${x}" cy="42.4" r="3.1" fill="none" stroke="#000" stroke-width=".7" opacity=".35"/><circle cx="${x}" cy="43.6" r="1.9" fill="#fff" opacity=".14"/><circle cx="${x}" cy="42.6" r="1.55" fill="#0b0610"/><circle cx="${x + 1.1}" cy="41.2" r=".95" fill="#fff"/><circle cx="${x - 1.2}" cy="43.7" r=".45" fill="#fff" opacity=".8"/><path d="M${x - 4.9} 41.2Q${x} 36.8 ${x + 4.9} 41.2" stroke="#2a1616" stroke-width="1.3" fill="none" stroke-linecap="round"/>${f ? `<path d="M${x + (x < 60 ? -4.8 : 4.8)} 40.6l${x < 60 ? -2 : 2}-1.8" stroke="#2a1616" stroke-width="1.2" stroke-linecap="round"/>` : ''}`;
+  const nose = `<path d="M60 43.5Q58.2 48.8 59 50.4Q60.2 51.4 62 50.5" stroke="${shade(S, -0.28)}" stroke-width="1.35" fill="none" stroke-linecap="round"/><ellipse cx="61.2" cy="47.6" rx=".9" ry="1.6" fill="#fff" opacity=".22"/>`;
   const cheeks = `<ellipse cx="48" cy="51" rx="4.6" ry="2.6" fill="#f87171" opacity=".24"/><ellipse cx="72" cy="51" rx="4.6" ry="2.6" fill="#f87171" opacity=".24"/>`;
   let feat = '';
   if (L.feature === 'pecas') feat = [[49, 48], [52, 50], [47, 51], [71, 48], [68, 50], [73, 51], [57, 47.5], [63, 47.5]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r=".75" fill="${shade(S, -0.35)}"/>`).join('');
@@ -136,6 +137,9 @@ const ACC = `
  <g class="acc acc-audifonos"><path d="M38.5 44C36 11 84 11 81.5 44" stroke="#1f2937" stroke-width="4.4" fill="none" stroke-linecap="round"/><rect x="32.5" y="36" width="9" height="15" rx="4.5" fill="#7c5cff"/><rect x="78.5" y="36" width="9" height="15" rx="4.5" fill="#7c5cff"/></g>
  <g class="acc acc-casco"><path d="M36.5 41C36.5 11 83.5 11 83.5 41Z" fill="#f1f5f9"/><path d="M42 35Q60 28 78 35L78 42Q60 36 42 42Z" fill="#38bdf8" opacity=".85"/><path d="M60 12v9" stroke="#dc2626" stroke-width="3"/></g>
  <g class="acc acc-sombrero"><rect x="44" y="-1" width="32" height="24" rx="2.5" fill="#111827"/><rect x="44" y="15" width="32" height="5" fill="#7c5cff"/><rect x="33" y="21" width="54" height="5.5" rx="2.7" fill="#111827"/></g>
+ <g class="acc acc-kepi"><path d="M45 25.5L47 13.5Q60 9.5 73 13.5L75 25.5Q60 21.5 45 25.5Z" fill="#dc2626"/><path d="M45.6 22.4Q60 18.6 74.4 22.4L75 25.5Q60 21.5 45 25.5Z" fill="#fbbf24"/><path d="M47 13.5Q60 9.5 73 13.5L73.4 15.6Q60 11.8 46.6 15.6Z" fill="#fff" opacity=".22"/><circle cx="60" cy="17" r="1.8" fill="#fbbf24"/><path d="M45 25.5Q40 34 42 43" stroke="#fbbf24" stroke-width="1" fill="none" opacity=".9"/></g>
+ <g class="acc acc-gorraseg"><path d="M38.5 33C38 17 49 11 60 11C71 11 82 17 81.5 33C72 28 48 28 38.5 33Z" fill="#1e293b"/><path d="M38.5 33C48 29.5 72 29.5 81.5 33L82 36C72 32.6 48 32.6 38 36Z" fill="#0f172a"/><path d="M40 35.5Q60 30.5 80 35.5Q78 40 60 38Q42 40 40 35.5Z" fill="#111827"/><path d="M56 15.5h8l1 4.6q-5 4-10 0z" fill="#fbbf24"/><circle cx="60" cy="18.6" r="1.5" fill="#b45309"/></g>
+ <g class="acc acc-halo"><ellipse cx="60" cy="4" rx="15" ry="3.6" fill="none" stroke="#fde68a" stroke-width="2.6" opacity=".95"/><ellipse cx="60" cy="4" rx="15" ry="3.6" fill="none" stroke="#fff" stroke-width=".8" opacity=".7"/></g>
  <g class="acc acc-corona"><path d="M41 25L44 6L52.5 16L60 2L67.5 16L76 6L79 25Z" fill="#fbbf24" stroke="#b45309" stroke-width="1.3" stroke-linejoin="round"/><circle cx="60" cy="18" r="2.6" fill="#ef4444"/><circle cx="48" cy="20.5" r="1.7" fill="#22d3ee"/><circle cx="72" cy="20.5" r="1.7" fill="#22d3ee"/></g>`;
 
 /** opts.holdL / opts.holdR: (x, y) => svg de lo que sostiene cada mano (se mueve con el brazo). */
@@ -156,13 +160,14 @@ export function avatarSVG(look, cls = 'av', vb = '0 0 120 200', opts = {}) {
   <g class="av-body">
     ${hairBack(L.hairStyle, H)}
     ${leg(-1, L, k, S, SD)}${leg(1, L, k, S, SD)}
-    ${tor.svg}
+    ${tor.svg}${opts.extra || ''}
     ${arm(-1, L, tor.sh, S, SD, T, TD, opts.holdL)}${arm(1, L, tor.sh, S, SD, T, TD, opts.holdR)}
-    <rect x="54" y="56" width="12" height="15" rx="4" fill="${S}"/><path d="M54 62Q60 67 66 62L66 58L54 58Z" fill="${SD}" opacity=".5"/>
+    <rect x="54" y="56" width="12" height="15" rx="4" fill="${S}"/><path d="M54 61Q60 68 66 61L66 57L54 57Z" fill="${SD}" opacity=".62"/>
     <g class="av-head">
       <ellipse cx="40" cy="43" rx="3.8" ry="5.8" fill="${S}"/><ellipse cx="80" cy="43" rx="3.8" ry="5.8" fill="${S}"/>
       <ellipse cx="40.5" cy="43" rx="1.8" ry="3.2" fill="${SD}" opacity=".6"/><ellipse cx="79.5" cy="43" rx="1.8" ry="3.2" fill="${SD}" opacity=".6"/>
       <ellipse cx="60" cy="40" rx="${f ? 19.5 : 20.5}" ry="23.5" fill="url(#sg${L._id})"/>
+      <path d="M43.5 50Q47 62 60 63.6Q73 62 76.5 50Q73 58.6 60 59.6Q47 58.6 43.5 50Z" fill="${SD}" opacity=".2"/>
       ${f ? '<circle cx="40" cy="50.5" r="1.8" fill="#fbbf24"/><circle cx="80" cy="50.5" r="1.8" fill="#fbbf24"/>' : ''}
       ${face(L, S, SD, H)}
       ${hairFront(L.hairStyle, H, HL)}
