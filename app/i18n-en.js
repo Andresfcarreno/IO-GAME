@@ -209,7 +209,7 @@ export default {
   "se lee “yo”. Eres tú, frente a tu espejo.": "reads like “I/O”. It's you, in front of your mirror.",
   "el código binario con el que se escribe todo.": "the binary code everything is written in.",
   "lo que aún no. Cada día eliges cuál escribir.": "what you haven't yet. Every day you choose which to write.",
-  "IO es un juego que solo se gana viviendo. Siempre gratis y sin anuncios. Nada se compra con dinero: todo se gana haciendo.": "IO is a game you can only win by living. Always free and ad-free. Nothing is bought with money: everything is earned by doing.",
+  "IO es un juego que solo se gana viviendo. Siempre gratis; el único anuncio es la pantalla del lobby y nunca te interrumpe. Nada se compra con dinero: todo se gana haciendo.": "IO is a game you can only win by living. Always free; the only ad is the lobby screen and it never interrupts you. Nothing is bought with money: everything is earned by doing.",
   "🌐 Página de IO: cómo se juega e instalar": "🌐 IO website: how to play & install",
   "Las cuentas se activan cuando el servidor de IO esté conectado. Mientras tanto tu partida vive en este dispositivo.": "Accounts turn on once the IO server is connected. Meanwhile your game lives on this device.",
   "Entra con Google o con tu correo para guardar tu partida en la nube y aparecer en el ranking.": "Sign in with Google or your email to save your game in the cloud and appear on the leaderboard.",
