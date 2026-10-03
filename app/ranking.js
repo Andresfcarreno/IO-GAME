@@ -30,7 +30,7 @@ export function roomSnap(g) {
   const pet = g.pet?.sp && g.pet.stage ? [g.pet.sp, g.pet.stage] : null;
   return { f, r: list, p: pet };
 }
-const ON = new Set(['', 'table', 'shelf1', 'shelf2']);
+const ON = new Set(['', 'table', 'table2', 'shelf1', 'shelf2', 'lift1', 'lift2']);
 export function safeRoom(look) {
   const f = Math.max(1, Math.min(100000, Math.floor(+look?.f || 1)));
   const r = (Array.isArray(look?.r) ? look.r : []).slice(0, 9).filter(x => Array.isArray(x) && W.itemById(x[0])).map(([id, x, on, y]) => [id, Math.max(0, Math.min(100, +x || 50)), ON.has(on) ? on : '', Math.max(-1, Math.min(100, Number.isFinite(+y) ? +y : -1))]);

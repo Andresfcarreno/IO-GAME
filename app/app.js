@@ -18,6 +18,7 @@ import * as Pet from './pet.js';
 import * as Wx from './weather.js';
 import * as Auth from './auth.js';
 import * as So from './social.js';
+import * as Lobby from './lobby.js';
 import * as I18N from './i18n.js';
 import EN from './i18n-en.js';
 if (I18N.isEn) I18N.addDict(EN);
@@ -94,17 +95,32 @@ async function lobbyTick(arrived = false) {
   lobbyWas = true; So.lobbyPing();
   const folk = await So.lobbyFolk();
   if (W.game().floor !== 0) return;
-  box.innerHTML = folk.map((f, i) => `<div class="lobby-folk" style="left:${30 + (i * 37) % 60}%" title="${esc(f.name)}"><b>${esc(f.name)}</b>${avatarSVG(f.look, 'av')}</div>`).join('');
-  if (arrived) G.say(!Auth.configured() ? '🏛️ El lobby se llena cuando el servidor de IO está conectado.' : folk.length ? `👥 ${folk.length === 1 ? 'Hay 1 jugador' : `Hay ${folk.length} jugadores`} en el lobby ahora.` : '🏛️ Estás solo en el lobby por ahora. Invita a alguien a jugar.', 3800);
+  box.innerHTML = folk.map((f, i) => { const sp = Lobby.FOLK_SPOTS[i % Lobby.FOLK_SPOTS.length]; return `<div class="lobby-folk act-${sp.act}" style="left:${(sp.x * 100).toFixed(2)}%" title="${esc(f.name)}"><b>${esc(f.name)}</b>${avatarSVG(f.look, 'av')}</div>`; }).join('');
+  if (arrived && G.state.mode !== 'talk' && G.state.mode !== 'ask') G.say(!Auth.configured() ? '🏛️ El lobby se llena cuando el servidor de IO está conectado.' : folk.length ? `👥 ${folk.length === 1 ? 'Hay 1 jugador' : `Hay ${folk.length} jugadores`} en el lobby ahora.` : '🏛️ Estás solo en el lobby por ahora. Invita a alguien a jugar.', 3800);
 }
 function lobbyWatch(arrived = false) {
   if (W.game().floor === 0) {
     lobbyTick(arrived);
     if (!lobbyT) lobbyT = setInterval(lobbyTick, 20000);
-    if (!lobbyShuffle) lobbyShuffle = setInterval(() => document.querySelectorAll('#folk .lobby-folk').forEach(el => { el.style.left = (28 + Math.random() * 64).toFixed(1) + '%'; }), 6000);
   } else lobbyTick();
 }
 addEventListener('pagehide', () => { if (lobbyWas) So.lobbyLeave(); });
+/** Parqueadero del lobby: tu puesto (desde el nivel 5) y los de jugadores reales del ranking. */
+function lobbyParking() {
+  const fill = () => { const el = $('lzPark'); if (el) el.innerHTML = Lobby.parkingHTML({ me: cfg.rankName || cfg.name || 'Player', lvl: W.level(), rows: R.online() ? R.state.rows : [] }); };
+  fill();
+  if (R.online() && Date.now() - (R.state.loadedAt || 0) > 60000 && !R.state.loading) R.load('global').then(fill).catch(() => {});
+}
+/** Zonas comunes del lobby: piscina, gimnasio y biblioteca. Te ofrecen empezar el hábito que toca. */
+function lobbyAmenity(id) {
+  const acts = Lobby.AMENITY[id]; const place = { pool: 'la piscina', gym: 'el gimnasio', lib: 'la biblioteca' }[id];
+  const kind = { pool: 'natación', gym: 'ejercicio', lib: 'lectura' }[id]; const ic = { pool: '🏊', gym: '🏋️', lib: '📚' }[id];
+  const pending = H.forDay().filter(x => acts.includes(H.actOf(x)) && !H.sess(x.id).done);
+  const h = pending[0] || H.list().find(x => acts.includes(H.actOf(x)) && !H.sess(x.id).done);
+  if (h) G.ask('me', `${ic} ¿${h.emoji} ${h.nombre} aquí en ${place}, con la comunidad?`, ['▶ Empezar', 'Ahora no'], i => { if (i === 0) startHabit(h.id); });
+  else if (H.list().some(x => acts.includes(H.actOf(x)))) G.say(`${ic} Ya cumpliste tu hábito de ${kind} hoy. ¡Vuelve mañana!`, 3800, 'me');
+  else G.ask('io', `${ic} En ${place} se entrena con la comunidad. ¿Creamos un hábito de ${kind}?`, ['＋ Crear hábito', 'Ahora no'], i => { if (i === 0) habitSheet(null); });
+}
 
 function renderAll() { renderTop(); renderHabits(); L.render(); G.render(); renderMini(); R.publish(); Rem.badge(); }
 
@@ -308,7 +324,7 @@ function decoSheet(u) {
 function aboutSheet() {
   openSheet('IO', `<div class="io-intro small"><div class="io-big"><span class="logo-flip"><span class="lf lf-a">IO</span><span class="lf lf-b">10</span></span></div>
     <div class="io-def"><b>IO</b><span>se lee “yo”. Eres tú, frente a tu espejo.</span><b>1 0</b><span>el código binario con el que se escribe todo.</span><b>1</b><span>lo que haces.</span><b>0</b><span>lo que aún no. Cada día eliges cuál escribir.</span></div>
-    <p class="note">IO es un juego que solo se gana viviendo. Siempre gratis y sin anuncios. Nada se compra con dinero: todo se gana haciendo.</p>
+    <p class="note">IO es un juego que solo se gana viviendo. Siempre gratis; el único anuncio es la pantalla del lobby y nunca te interrumpe. Nada se compra con dinero: todo se gana haciendo.</p>
     <a class="btn-acc" href="../" style="display:block;text-align:center;text-decoration:none">🌐 Página de IO: cómo se juega e instalar</a></div>`);
 }
 function accountBlock() {
@@ -460,8 +476,12 @@ function afterOnb({ first, demo, restored } = {}) {
 G.init({
   onMenu: k => k.startsWith('stats') ? statsSheet(k.split(':')[1]) : ({ mochila: bagSheet, tienda: () => L.show('tienda', { scroll: true }), ranking: () => L.show('ranking', { scroll: true }), progreso: () => L.show('progreso', { scroll: true }), mapa: mapSheet, personaje: charSheet, logros: achievementsTab, ajustes: settingsSheet })[k]?.(),
   onDecoMenu: u => decoSheet(u),
-  onRadio: () => { const st = Radio.toggle(W.level()); $('scene').classList.toggle('radio-on', !!st); L.render(); return st ? `${st.e} ${st.n}` : ''; },
+  onRadio: () => { const st = Radio.current() ? Radio.next(W.level()) : Radio.toggle(W.level()); $('scene').classList.toggle('radio-on', !!st); L.render(); return st ? `${st.e} ${st.n}` : ''; },
   onFloor: () => { renderTop(); L.render(); lobbyWatch(true); },
+  onLobbyDraw: () => lobbyParking(),
+  onAmenity: id => lobbyAmenity(id),
+  nextHabit: () => { const n = H.nextUp(); return n ? `${n.emoji} ${n.nombre}${H.hasTime(n) ? ' a las ' + n.hora : ''}` : ''; },
+  streak: () => H.dayStreak(),
 });
 L.init({ renderAll, buy, place, celebrate, start: id => startHabit(id) });
 document.body.dataset.gb = cfg.gb || 'clasico';

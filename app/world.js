@@ -35,8 +35,8 @@ export const worldsUpTo = floor => { const out = []; for (let f = 1; f <= Math.m
 export const ROOMS = {
   cuarto: { n: 'Tu cuarto', ic: '🛏️', starter: [['cama', .46], ['lampara_pie', .88], ['planta', .32]] },
   sala: { n: 'Sala', ic: '🛋️', starter: [['sofa', .55], ['tv', .85], ['cuadro', .5, .35]] },
-  garaje: { n: 'Garaje', ic: '🚗', cap: 1, starter: [['bici', .6], ['herramientas', .88, .4]] },
-  garaje2: { n: 'Garaje doble', ic: '🏎️', cap: 2, starter: [['bici', .45], ['herramientas', .9, .4]] },
+  garaje: { n: 'Garaje', ic: '🚗', cap: 2, starter: [['bici', .6], ['herramientas', .88, .4]] },
+  garaje2: { n: 'Garaje doble', ic: '🏎️', cap: 4, starter: [['bici', .45], ['herramientas', .9, .4]] },
   cocina: { n: 'Cocina', ic: '🍳', starter: [['estufa', .55], ['nevera', .85], ['frutas', .35]] },
   gimnasio: { n: 'Gimnasio', ic: '🏋️', starter: [['pesas', .5], ['saco', .85], ['espejo', .33, .35]] },
   biblioteca: { n: 'Biblioteca', ic: '📚', starter: [['estante', .55, .3], ['sillon', .7], ['lampara_pie', .88]] },
@@ -96,7 +96,7 @@ export const CATALOG = [
   // vehículos (garajes, hangar, helipuerto)
   ['bici', '🚲', 'Bicicleta', 'floor', 1.6, 0, 3, 'veh'], ['herramientas', '🧰', 'Herramientas', 'wall', 1, 0, 3], ['patineta', '🛹', 'Patineta', 'floor', 1.1, 40, 3, 'veh'],
   ['scooter', '🛵', 'Scooter', 'floor', 1.7, 180, 3, 'veh'], ['moto', '🏍️', 'Moto', 'floor', 1.8, 400, 6, 'veh'], ['carro', '🚗', 'Carro', 'floor', 2, 700, 10, 'veh'], ['jeep', '🚙', 'Jeep', 'floor', 2.1, 900, 12, 'veh'],
-  ['camper', '🚐', 'Camper', 'floor', 2.2, 1300, 18, 'veh'], ['deportivo', '🏎️', 'Deportivo', 'floor', 2.1, 2200, 25, 'veh'], ['avioneta', '🛩️', 'Avioneta', 'floor', 2.3, 0, 45, 'veh'], ['helicoptero', '🚁', 'Helicóptero', 'floor', 2.4, 3500, 50, 'veh'], ['ovni', '🛸', 'Nave', 'floor', 2.2, 8000, 90, 'veh'],
+  ['camper', '🚐', 'Camper', 'floor', 2.2, 1300, 18, 'veh'], ['deportivo', '🏎️', 'Deportivo', 'floor', 2.1, 2200, 25, 'veh'], ['avioneta', '🛩️', 'Avioneta', 'floor', 2.3, 0, 45, 'veh'], ['helicoptero', '🚁', 'Helicóptero', 'floor', 2.4, 3500, 50, 'veh'], ['ovni', '🛸', 'Nave', 'floor', 2.2, 8000, 90, 'veh'], ['io100', '🏎️', 'IO-100 Rojo', 'floor', 2.3, 0, 100, 'veh'],
   // mascotas (se mueven solas)
   ['hamster', '🐹', 'Hámster', 'floor', .8, 90, 2, 'pet'], ['gato', '🐈', 'Gato', 'floor', 1, 200, 4, 'pet'], ['perro', '🐕', 'Perro', 'floor', 1.1, 240, 6, 'pet'], ['loro', '🦜', 'Loro', 'floor', .9, 320, 9, 'pet'],
   ['tortuga', '🐢', 'Tortuga', 'floor', .9, 150, 3, 'pet'], ['zorro', '🦊', 'Zorro', 'floor', 1, 600, 20, 'pet'], ['unicornio', '🦄', 'Unicornio', 'floor', 1.3, 2500, 40, 'pet'], ['dragon', '🐉', 'Dragón', 'floor', 1.5, 9000, 100, 'pet'],
@@ -146,12 +146,13 @@ export const level = (g = game()) => levelOf(g.xp);
 /* ---------- superficies del cuarto: piso, aparador y dos repisas ---------- */
 const SHELF_OK = new Set(['brindis', 'rosas', 'huevos', 'tulipan', 'balon', 'helado', 'amistad', 'chocolate', 'regalos', 'radio', 'planta', 'cactus', 'vela', 'osito', 'frutas', 'cafetera', 'laptop', 'consola_tv', 'palomitas', 'globo', 'flores', 'microfono', 'lampara_pie_mini', 'trofeo_mini', 'hamster', 'tortuga']);
 const TABLE_OK = new Set([...SHELF_OK, 'tv', 'monitor', 'acuario', 'champana', 'lampara_pie', 'escultura', 'robot', 'telescopio']);
-/** Dónde puede ir un objeto (el orden es de abajo hacia arriba). */
+/** En qué clase de superficie puede ir un objeto: piso, mesa (aparador, mostrador…), repisa o elevador de carros. */
 export function surfacesOf(it) {
-  if (!it || it.band !== 'floor' || it.kind === 'veh') return ['floor'];
+  if (!it || it.band !== 'floor') return ['floor'];
+  if (it.kind === 'veh') return ['floor', 'lift'];
   const out = ['floor'];
   if (TABLE_OK.has(it.id)) out.push('table');
-  if (SHELF_OK.has(it.id)) out.push('shelf2', 'shelf1');
+  if (SHELF_OK.has(it.id)) out.push('shelf');
   return out;
 }
 export const roomHasFurniture = n => { const f = floorInfo(n); return !f.open && !['piscina', 'helipuerto', 'hangar', 'lobby'].includes(f.type); };
@@ -173,11 +174,11 @@ export function canPlaceHere(g, it, n) {
   const f = floorInfo(n);
   if (f.lobby) return 'El lobby es de todos. Decora tus propios pisos.';
   if (it.kind === 'veh') {
-    if (!f.cap) return 'Los vehículos van en el garaje (piso 3), el garaje doble (10), el hangar (45) o el helipuerto (50).';
+    if (!f.cap) return 'Los vehículos van en el garaje (piso 3), el garaje doble (10), el hangar (45) o el helipuerto (50). En los garajes hay elevador de carros.';
     const vehs = placedOn(g, n).filter(p => itemById(p.item)?.kind === 'veh').length;
     if (vehs >= f.cap) return `Este ${f.name.toLowerCase()} tiene espacio para ${f.cap} vehículo${f.cap > 1 ? 's' : ''}.`;
   }
-  if (placedOn(g, n).length >= 9) return 'Este piso está lleno. Guarda algo en la mochila primero.';
+  if (placedOn(g, n).length >= 14) return 'Este piso está lleno. Guarda algo en la mochila primero.';
   return '';
 }
 /* ---------- tienda: rarezas, oferta del día, caja sorpresa, colección ---------- */
