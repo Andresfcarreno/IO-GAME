@@ -476,7 +476,7 @@ function afterOnb({ first, demo, restored } = {}) {
 G.init({
   onMenu: k => k.startsWith('stats') ? statsSheet(k.split(':')[1]) : ({ mochila: bagSheet, tienda: () => L.show('tienda', { scroll: true }), ranking: () => L.show('ranking', { scroll: true }), progreso: () => L.show('progreso', { scroll: true }), mapa: mapSheet, personaje: charSheet, logros: achievementsTab, ajustes: settingsSheet })[k]?.(),
   onDecoMenu: u => decoSheet(u),
-  onRadio: () => { const st = Radio.toggle(W.level()); $('scene').classList.toggle('radio-on', !!st); L.render(); return st ? `${st.e} ${st.n}` : ''; },
+  onRadio: () => { const st = Radio.current() ? Radio.next(W.level()) : Radio.toggle(W.level()); $('scene').classList.toggle('radio-on', !!st); L.render(); return st ? `${st.e} ${st.n}` : ''; },
   onFloor: () => { renderTop(); L.render(); lobbyWatch(true); },
   onLobbyDraw: () => lobbyParking(),
   onAmenity: id => lobbyAmenity(id),

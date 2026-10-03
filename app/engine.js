@@ -287,7 +287,7 @@ function interact() {
   const it = W.itemById(p.item);
   if (it.kind === 'veh') { const el = document.querySelector(`#objs .obj[data-u="${p.u}"]`); el?.classList.remove('drive'); void el?.offsetWidth; el?.classList.add('drive'); blip('door'); say(`¡${it.e} Vamos a dar una vuelta!`, 2600, 'me'); setTimeout(() => el?.classList.remove('drive'), 2300); return; }
   if (it.kind === 'pet') { act('wave', '❤️'); say(`${it.e} ¡Te quiere!`, 2200, 'me'); blip('select'); return; }
-  if (p.item === 'radio') { const on = E.hooks.onRadio?.(); act('dance', on ? '🎶' : '📻'); blip('select'); say(on ? `📻 ${on}` : '📻 Radio apagada', 2400, 'me'); return; }
+  if (p.item === 'radio') { const on = E.hooks.onRadio?.(); act('dance', on ? '🎶' : '📻'); blip('select'); say(on ? `📻 ${on} · toca A otra vez para cambiar de estación` : '📻 Radio apagada', 3200, 'me'); return; }
   const [a, prop, line] = INTERACT[p.item] || ['wave', '✨', `${it.e} ${it.n}`];
   act(a, prop); blip('select'); say(line, 2600, 'me');
 }
@@ -656,7 +656,7 @@ function setupControls() {
   document.querySelectorAll('[data-btn]').forEach(b => {
     const k = b.dataset.btn;
     b.addEventListener('pointerdown', e => {
-      e.preventDefault(); b.classList.add('down'); press(k);
+      e.preventDefault(); b.classList.add('down'); press(k); try { navigator.vibrate?.(6); } catch { /* */ }
       if (['left', 'right', 'up', 'down'].includes(k)) E.held = k;
       if (ac?.state === 'suspended') ac.resume();
     });

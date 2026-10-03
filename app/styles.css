@@ -2155,3 +2155,22 @@ body[data-gb="oro"] .mid-btns button,body[data-gb="oro"] .ctl-help{color:#3b1d06
 .rs-mbench{left:30%;bottom:17%;width:70px;height:26px;background:linear-gradient(180deg,#a16207 0 5px,transparent 5px 10px,#a16207 10px 15px,transparent 15px),linear-gradient(90deg,#713f12 0 5px,transparent 5px calc(100% - 5px),#713f12 calc(100% - 5px))}
 .rs-mflowers{left:6%;bottom:17%;font-size:20px;letter-spacing:-4px}
 .rs-msign{left:50%;top:20%;transform:translateX(-50%);font-family:var(--pixel);font-size:7px;color:#fff;background:rgba(15,23,42,.7);padding:5px 8px;border-radius:3px;white-space:nowrap}
+.scene.open .rset{z-index:2}
+
+/* ================= v3: controles con relieve (cruceta de plástico, A/B brillantes) ================= */
+.controls{padding:18px 8px 6px}
+.dpad{grid-template-columns:repeat(3,40px);grid-template-rows:repeat(3,40px);filter:drop-shadow(0 5px 0 rgba(0,0,0,.5)) drop-shadow(0 8px 10px rgba(0,0,0,.35));position:relative}
+.dpad::before{content:'';position:absolute;inset:-9px;border-radius:50%;background:radial-gradient(circle,rgba(0,0,0,.35),transparent 70%);z-index:-1}
+.dpad button,.dp-mid{background:linear-gradient(160deg,#2c2758,#14112f);color:#8e86d6;font-size:11px;box-shadow:inset 0 1px 0 rgba(255,255,255,.14),inset 0 -2px 0 rgba(0,0,0,.4);transition:transform .06s,background .06s,color .06s}
+.dp-mid{background:radial-gradient(circle at 50% 50%,#0d0b20 0 30%,#1c1840 32%,#15122f)}
+.dpad button.down{background:linear-gradient(160deg,#3a3380,#1f1a4e);color:#fff;transform:scale(.94);box-shadow:inset 0 2px 4px rgba(0,0,0,.6)}
+.dp-up.down{transform:translateY(2px) scale(.96)}.dp-down.down{transform:translateY(-1px) scale(.96)}
+.ab{gap:14px}
+.ab button{position:relative;width:56px;height:56px;box-shadow:0 5px 0 rgba(0,0,0,.5),0 8px 12px rgba(0,0,0,.35),inset 0 3px 0 rgba(255,255,255,.35),inset 0 -4px 0 rgba(0,0,0,.25)}
+.ab button::before{content:'';position:absolute;inset:-6px;border-radius:50%;background:rgba(0,0,0,.28);z-index:-1}
+.ab button::after{content:'';position:absolute;left:22%;top:14%;width:30%;height:22%;border-radius:50%;background:rgba(255,255,255,.45);filter:blur(1px);transform:rotate(-30deg)}
+.ab button.down{transform:translateY(4px);box-shadow:0 1px 0 rgba(0,0,0,.5),inset 0 3px 6px rgba(0,0,0,.35)}
+.btn-a{background:radial-gradient(circle at 35% 30%,#fbcfe8,#ec4899 45%,#9d174d)}
+.btn-b{background:radial-gradient(circle at 35% 30%,#ddd6fe,#8b5cf6 45%,#4c1d95)}
+.mid-btns button i{width:38px;height:11px;background:linear-gradient(180deg,#2a2552,#110e28);box-shadow:0 2px 0 rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.12)}
+.mid-btns button.down i{background:#3a3380}

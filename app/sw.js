@@ -1,7 +1,7 @@
 /* IO — service worker: la app funciona sin conexión. */
-const VERSION = 'io-v13.0.0';
+const VERSION = 'io-v14.0.0';
 const SHELL = [
-  './', 'index.html', 'styles.css', 'app.js', 'store.js', 'world.js', 'habits.js', 'engine.js', 'rooms.js', 'focus.js', 'onboarding.js', 'avatar.js', 'ui.js', 'lower.js', 'ranking.js', 'config.js', 'i18n.js', 'i18n-en.js', 'scenes.js', 'radio.js', 'remind.js', 'share.js', 'pet.js', 'social.js', 'coach.js', 'weather.js', 'auth.js', 'habform.js',
+  './', 'index.html', 'styles.css', 'app.js', 'store.js', 'world.js', 'habits.js', 'engine.js', 'rooms.js', 'focus.js', 'onboarding.js', 'avatar.js', 'ui.js', 'lower.js', 'ranking.js', 'config.js', 'i18n.js', 'i18n-en.js', 'scenes.js', 'radio.js', 'remind.js', 'share.js', 'pet.js', 'social.js', 'coach.js', 'weather.js', 'auth.js', 'habform.js', 'npc.js', 'lobby.js',
   'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',
 ];
 self.addEventListener('install', e => { e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
