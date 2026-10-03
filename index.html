@@ -344,6 +344,7 @@ dialog::backdrop{background:rgba(5,4,14,.72);backdrop-filter:blur(6px);-webkit-b
 .tabs button{padding:9px 12px;border-radius:10px;border:1px solid var(--line);font-size:14px;color:var(--mute)}
 .tabs button[aria-selected="true"]{background:var(--lcd);color:var(--lcd-ink);border-color:var(--lcd);font-weight:700}
 .steps{list-style:none;counter-reset:s;display:grid;gap:10px}
+.steps[hidden],[hidden]{display:none!important}
 .steps li{counter-increment:s;display:flex;gap:12px;align-items:flex-start;color:var(--mute)}
 .steps li::before{content:counter(s);flex:0 0 26px;height:26px;border-radius:8px;background:rgba(167,214,42,.15);color:var(--lcd);font-family:var(--pixel);font-size:9px;display:grid;place-items:center}
 .steps b{color:var(--ink)}
